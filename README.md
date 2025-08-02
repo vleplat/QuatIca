@@ -379,22 +379,7 @@ print(f"Solution found in {info['iterations']} iterations")
 print(f"Final residual: {info['residual']:.2e}")
 ```
 
-### Deep Linear Networks
 
-```python
-from core.solver import DeepLinearNewtonSchulz
-
-# Create deep linear network
-solver = DeepLinearNewtonSchulz(
-    layers=[input_dim, hidden_dim, output_dim],
-    gamma=0.2,
-    max_iter=100,
-    random_init=False
-)
-
-# Solve for factors W1, W2 such that X @ W1 @ W2 ≈ I
-W1, W2, errors = solver.solve(X)
-```
 
 ### Matrix Generation
 
@@ -472,7 +457,6 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 - **Quaternion Pseudoinverse**: Huang, L., Wang, Q.-W., & Zhang, Y. (2015). The Moore–Penrose inverses of matrices over quaternion polynomial rings. Linear Algebra and its Applications, 475, 45-61.
 - **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
 - **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
-- **Deep Linear Networks**: Multi-layer matrix factorizations for complex matrix operations
 
 ## 🤝 Contributing
 
