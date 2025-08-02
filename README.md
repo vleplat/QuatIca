@@ -180,7 +180,7 @@ QuatIca/
 │   ├── image_completion/   # Image processing applications
 │   └── signal_processing/  # Signal processing applications
 │       └── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
-├── scripts/                # Utility scripts
+
 ├── data/                   # Sample data and datasets
 │   ├── images/            # Sample images for testing
 │   └── cifar-10-batches-py/ # CIFAR-10 dataset

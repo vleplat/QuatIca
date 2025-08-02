@@ -167,7 +167,7 @@ if __name__ == "__main__":
     plt.tight_layout()
     
     # Save high-resolution figure
-    output_dir = "output_figures"
+    output_dir = "../../output_figures"
     os.makedirs(output_dir, exist_ok=True)
     
     # Generate filename with parameters

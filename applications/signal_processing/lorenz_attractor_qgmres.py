@@ -22,6 +22,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
 
 from solver import QGMRESSolver
 from utils import timesQsparse
+from scipy.integrate import solve_ivp
 
 # --- Plotting functions ---
 def createfigure3(YMatrix1):
@@ -59,22 +60,33 @@ def main():
     sigma, beta, rho = 10.0, 8/3, 28.0
     T, delta, seed = 10.0, 1.0, 0
 
-    def lorenz(t, a, sigma=10, beta=8/3, rho=28):
+    T = 10.0
+
+    def lorenz(t, a):
         x, y, z = a
         return [
             -sigma*x + sigma*y,
-             rho*x - y - x*z,
+            rho*x - y - x*z,
             -beta*z + x*y
         ]
 
-    t_span = (0.0, T)
-    # Let solve_ivp pick its own adaptive time steps
-    from scipy.integrate import solve_ivp
-    sol = solve_ivp(lorenz, t_span, [1,1,1], method='RK45',
-                    atol=1e-6, rtol=1e-3)
-    t = sol.t           # time points (1D array)
-    a = sol.y.T         # shape (len(t), 3)
-    N = a.shape[0]
+    # specify the exact times where we want the solution:
+    num_points = 350  # Reduced from 500 for faster execution
+    t_eval = np.linspace(0, T, num_points)
+
+    sol = solve_ivp(
+        lorenz,
+        (0.0, T),
+        [1, 1, 1],
+        method='RK45',
+        atol=1e-6,
+        rtol=1e-3,
+        t_eval=t_eval    # <— this guarantees len(sol.t) == num_points
+    )
+
+    t = sol.t           # shape (num_points,)
+    a = sol.y.T         # shape (num_points, 3)
+    N = a.shape[0]      # will equal num_points
 
     
 
@@ -185,17 +197,17 @@ def main():
     # 9) Reconstruct and plot
     dy0, dy1, dy2, dy3 = timesQsparse(A0, A1, A2, A3,
                                       xm_0, xm_1, xm_2, xm_3)
-    createfigure3(np.column_stack((dy2, dy1, dy3)))
-    createfigure4(dy2, dy1, dy3)
-    # REC = np.column_stack((dy1, dy2, dy3))
-    # createfigure3(REC)
-    # createfigure4(dy1, dy2, dy3)
+    # createfigure3(np.column_stack((dy2, dy1, dy3)))
+    #createfigure4(dy2, dy1, dy3)
+    REC = np.column_stack((dy1, dy2, dy3))
+    createfigure3(REC)
+    createfigure4(dy1, dy2, dy3)
 
     # 10) Plot RHS comp.
-    createfigure3(np.column_stack((b2, b1, b3)))
-    createfigure4(b2, b1, b3)
-    # createfigure3(np.column_stack((b1, b2, b3)))
-    #createfigure4(b1, b2, b3)
+    # createfigure3(np.column_stack((b2, b1, b3)))
+    # createfigure4(b2, b1, b3)
+    createfigure3(np.column_stack((b1, b2, b3)))
+    createfigure4(b1, b2, b3)
 
     # 11) Residual history
     if resv is not None:
