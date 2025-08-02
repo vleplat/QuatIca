@@ -113,6 +113,8 @@ python run_analysis.py <script_name>
 | Script Name | What It Does | Best For |
 |-------------|--------------|----------|
 | `tutorial` | **🎓 Quaternion Basics Tutorial** - Complete introduction with visualizations | **🚀 START HERE!** Learn the framework |
+| `qgmres` | **Q-GMRES Solver Test** - Tests the iterative Krylov subspace solver | **Linear system solving** with quaternions |
+| `lorenz_signal` | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES | **Signal processing** applications |
 | `cifar10` | **CIFAR-10 Image Analysis** - Analyzes 250 images with class insights | **Advanced analysis** with real data |
 | `pseudoinverse` | **Single Image Analysis** - Analyzes one image (kodim16.png) | Understanding pseudoinverse structure |
 | `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
@@ -125,6 +127,12 @@ python run_analysis.py <script_name>
 ```bash
 # 🚀 START HERE: Learn the framework with interactive tutorial
 python run_analysis.py tutorial
+
+# Test Q-GMRES linear system solver
+python run_analysis.py qgmres
+
+# Process 3D signals with Lorenz attractor
+python run_analysis.py lorenz_signal
 
 # Advanced analysis with real data
 python run_analysis.py cifar10
@@ -159,10 +167,19 @@ QuatIca/
 │   └── visualization.py    # Plotting and visualization tools
 ├── tests/
 │   ├── unit/               # Unit tests and tutorial
-│   │   └── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial
+│   │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial
+│   │   ├── test_qgmres_accuracy.py       # Q-GMRES accuracy tests
+│   │   ├── test_qgmres_basics.py         # Q-GMRES basic functionality tests
+│   │   ├── test_qgmres_debug.py          # Q-GMRES debug tests
+│   │   └── test_qgmres_simple.py         # Q-GMRES simple tests
+│   ├── QGMRES/             # Q-GMRES solver tests
+│   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
+│   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
 │   └── pseudoinverse/      # Pseudoinverse analysis scripts
 ├── applications/
-│   └── image_completion/   # Image processing applications
+│   ├── image_completion/   # Image processing applications
+│   └── signal_processing/  # Signal processing applications
+│       └── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
 ├── scripts/                # Utility scripts
 ├── data/                   # Sample data and datasets
 │   ├── images/            # Sample images for testing
@@ -191,6 +208,39 @@ QuatIca/
   - Linear system solving with quaternions
   - Performance benchmarking
   - Best practices and key takeaways
+
+### **⚡ `qgmres` - Q-GMRES Linear System Solver**
+- **What it is**: Comprehensive test suite for the Q-GMRES iterative solver
+- **Perfect for**: Testing linear system solving with quaternions
+- **Duration**: ~1-2 minutes
+- **Output**: Detailed analysis and convergence plots in `output_figures/`:
+  - Q-GMRES convergence analysis for different matrix sizes
+  - Performance comparison with pseudoinverse method
+  - Accuracy verification on dense, sparse, and ill-conditioned matrices
+- **Covers**:
+  - Basic Q-GMRES functionality (3x3 to 15x15 systems)
+  - Convergence testing across different matrix sizes
+  - Sparse matrix support verification
+  - Ill-conditioned system handling
+  - Solution accuracy comparison with pseudoinverse
+  - Performance analysis and timing
+
+### **🌪️ `lorenz_signal` - Lorenz Attractor Signal Processing**
+- **What it is**: 3D signal processing application using Q-GMRES
+- **Perfect for**: Signal processing and dynamical systems analysis
+- **Duration**: ~30 seconds
+- **Output**: 6+ visualization files in `output_figures/lorenz_attractor/`:
+  - Original Lorenz attractor 3D trajectory
+  - Observed signal with noise (3D and time series)
+  - Q-GMRES reconstructed signal (3D and time series)
+  - Convergence residuals plot
+- **Covers**:
+  - Lorenz attractor signal generation
+  - Noise addition and signal corruption
+  - Quaternion matrix construction for signal filtering
+  - Q-GMRES-based signal reconstruction
+  - 3D trajectory visualization
+  - Time series analysis
 
 ### **🎯 `cifar10` - Most Comprehensive Analysis**
 - **Input**: 250 CIFAR-10 images (50 per class from 5 classes)
