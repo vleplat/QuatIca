@@ -14,6 +14,7 @@
 
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
+- **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method)
 - **Image Processing**: Complete missing pixels in images using quaternion math
 - **Signal Analysis**: Process 3D/4D signals with quaternion algebra
 - **Data Science**: Extract complex patterns from multi-dimensional data
@@ -152,7 +153,7 @@ python run_analysis.py
 ```
 QuatIca/
 ├── core/                    # Core library files
-│   ├── solver.py           # Deep linear solver and pseudoinverse algorithms
+│   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES, Q-SVD)
 │   ├── utils.py            # Quaternion operations and utilities
 │   ├── data_gen.py         # Matrix generation functions
 │   └── visualization.py    # Plotting and visualization tools
@@ -315,6 +316,17 @@ C = quat_matmat(A, B)
 # Compute pseudoinverse
 solver = NewtonSchulzPseudoinverse()
 A_pinv, residuals, covariances = solver.compute(A)
+
+# Solve linear system A*x = b using Q-GMRES
+from core.solver import QGMRESSolver
+
+# Create Q-GMRES solver
+qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False)
+
+# Solve the system
+x, info = qgmres_solver.solve(A, b)
+print(f"Solution found in {info['iterations']} iterations")
+print(f"Final residual: {info['residual']:.2e}")
 ```
 
 ### Deep Linear Networks
@@ -351,6 +363,7 @@ X_sparse = create_sparse_quat_matrix(m=100, n=50, density=0.1)
 The library includes comprehensive analysis tools:
 
 - **Pseudoinverse Analysis**: Study the structure and properties of quaternion pseudoinverses
+- **Q-GMRES Solver**: Iterative Krylov subspace method for solving quaternion linear systems A*x = b
 - **Class-aware Analysis**: Analyze pseudoinverses with respect to data classes (e.g., CIFAR-10)
 - **Spectral Analysis**: Examine singular value distributions and spectral properties
 - **Visualization**: Generate detailed plots of matrix properties, reconstruction filters, and more
@@ -407,6 +420,7 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 ## 📚 References
 
 - **Quaternion Pseudoinverse**: Huang, L., Wang, Q.-W., & Zhang, Y. (2015). The Moore–Penrose inverses of matrices over quaternion polynomial rings. Linear Algebra and its Applications, 475, 45-61.
+- **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
 - **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
 - **Deep Linear Networks**: Multi-layer matrix factorizations for complex matrix operations
 
