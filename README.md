@@ -111,7 +111,8 @@ python run_analysis.py <script_name>
 
 | Script Name | What It Does | Best For |
 |-------------|--------------|----------|
-| `cifar10` | **CIFAR-10 Image Analysis** - Analyzes 250 images with class insights | **Start here!** Most comprehensive analysis |
+| `tutorial` | **🎓 Quaternion Basics Tutorial** - Complete introduction with visualizations | **🚀 START HERE!** Learn the framework |
+| `cifar10` | **CIFAR-10 Image Analysis** - Analyzes 250 images with class insights | **Advanced analysis** with real data |
 | `pseudoinverse` | **Single Image Analysis** - Analyzes one image (kodim16.png) | Understanding pseudoinverse structure |
 | `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
 | `image_completion` | **Image Completion Demo** - Fills missing pixels in real images | **Practical application** |
@@ -121,7 +122,10 @@ python run_analysis.py <script_name>
 #### **🎯 Quick Examples:**
 
 ```bash
-# Start with the most comprehensive analysis
+# 🚀 START HERE: Learn the framework with interactive tutorial
+python run_analysis.py tutorial
+
+# Advanced analysis with real data
 python run_analysis.py cifar10
 
 # See image completion in action
@@ -153,7 +157,8 @@ QuatIca/
 │   ├── data_gen.py         # Matrix generation functions
 │   └── visualization.py    # Plotting and visualization tools
 ├── tests/
-│   ├── unit/               # Unit tests for core functionality
+│   ├── unit/               # Unit tests and tutorial
+│   │   └── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial
 │   └── pseudoinverse/      # Pseudoinverse analysis scripts
 ├── applications/
 │   └── image_completion/   # Image processing applications
@@ -161,12 +166,30 @@ QuatIca/
 ├── data/                   # Sample data and datasets
 │   ├── images/            # Sample images for testing
 │   └── cifar-10-batches-py/ # CIFAR-10 dataset
-├── output_figures/        # Generated plots and visualizations
+├── output_figures/        # Generated plots and visualizations (auto-created)
 ├── requirements.txt       # Python dependencies
 └── run_analysis.py       # Easy-to-use script runner
 ```
 
 ## 📊 What Each Script Produces
+
+### **🎓 `tutorial` - Complete Framework Introduction**
+- **What it is**: Interactive tutorial with beautiful visualizations
+- **Perfect for**: Learning the framework from scratch
+- **Duration**: ~2-3 minutes with visualizations
+- **Output**: 7+ visualization files in `output_figures/`:
+  - Matrix component heatmaps (real, i, j, k components)
+  - Convergence plots showing Newton-Schulz algorithm performance
+  - Performance scaling analysis across different matrix sizes
+  - Creative tutorial summary flowchart
+- **Covers**:
+  - Creating dense and sparse quaternion matrices
+  - Basic matrix operations (multiplication, norms)
+  - Advanced pseudoinverse computation
+  - Solution verification (`||A*x - b||_F` analysis)
+  - Linear system solving with quaternions
+  - Performance benchmarking
+  - Best practices and key takeaways
 
 ### **🎯 `cifar10` - Most Comprehensive Analysis**
 - **Input**: 250 CIFAR-10 images (50 per class from 5 classes)
@@ -240,6 +263,15 @@ QuatIca/
 - **Check numpy version**: Must be >= 2.3.2 for optimal performance
 - **Solution**: `pip install --upgrade numpy>=2.3.2`
 
+#### **❌ "No visualizations appear"**
+- **Solution**: Make sure matplotlib backend is working: `python -c "import matplotlib.pyplot as plt; plt.plot([1,2,3]); plt.show()"`
+- **Alternative**: Check if `output_figures/` directory exists and has write permissions
+- **Note**: Visualizations are automatically saved to `output_figures/` directory
+
+#### **⚠️ "DeprecationWarning about seaborn"**
+- **This is normal**: The warning about seaborn date parsing is harmless and doesn't affect functionality
+- **Solution**: Can be ignored - it's a known issue with seaborn and will be fixed in future versions
+
 ### **🔍 Verification Steps:**
 
 After installation, run these commands to verify everything works:
@@ -257,7 +289,10 @@ python -c "import numpy; print(f'numpy: {numpy.__version__}')"
 # 4. Test the runner script
 python run_analysis.py
 
-# 5. Run a simple test
+# 5. Run the tutorial (recommended first step)
+python run_analysis.py tutorial
+
+# 6. Run a simple test
 python run_analysis.py pseudoinverse
 ```
 

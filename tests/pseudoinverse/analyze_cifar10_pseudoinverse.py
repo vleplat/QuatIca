@@ -541,6 +541,10 @@ def analyze_cifar10_pseudoinverse(X, X_pinv, labels, class_names):
 
 # Remove all X^T analysis logic and restore main()
 def main():
+    # Ensure output directory exists
+    import os
+    os.makedirs('../../output_figures', exist_ok=True)
+    
     print("="*80)
     print("CIFAR-10 QUATERNION PSEUDOINVERSE ANALYSIS")
     print("="*80)

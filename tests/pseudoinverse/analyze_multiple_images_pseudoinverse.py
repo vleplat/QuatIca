@@ -550,6 +550,10 @@ def analyze_multiple_images_pseudoinverse(X, X_pinv, image_names, original_shape
     print(f"z-component: mean={z_comp.mean():.6f}, std={z_comp.std():.6f}, min={z_comp.min():.6f}, max={z_comp.max():.6f}")
 
 def main():
+    # Ensure output directory exists
+    import os
+    os.makedirs('../../output_figures', exist_ok=True)
+    
     print("="*80)
     print("MULTIPLE IMAGES QUATERNION PSEUDOINVERSE ANALYSIS")
     print("="*80)

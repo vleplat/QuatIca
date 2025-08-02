@@ -269,6 +269,10 @@ def visualize_pseudoinverse(X, X_pinv, original_shape):
     print("   - Edges/corners exhibit unique pseudoinverse signatures")
 
 def main():
+    # Ensure output directory exists
+    import os
+    os.makedirs('../../output_figures', exist_ok=True)
+    
     print("="*80)
     print("QUATERNION PSEUDOINVERSE ANALYSIS")
     print("="*80)

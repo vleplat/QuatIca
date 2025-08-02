@@ -18,6 +18,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python run_analysis.py <script_name>")
         print("\nAvailable scripts:")
+        print("  tutorial        - Quaternion basics tutorial (recommended to start here)")
         print("  cifar10         - CIFAR-10 pseudoinverse analysis")
         print("  pseudoinverse   - Single image pseudoinverse analysis")
         print("  multiple_images - Multiple images pseudoinverse analysis")
@@ -31,6 +32,7 @@ def main():
     
     # Map script names to file paths
     script_map = {
+        'tutorial': 'tests/unit/tutorial_quaternion_basics.py',
         'cifar10': 'tests/pseudoinverse/analyze_cifar10_pseudoinverse.py',
         'pseudoinverse': 'tests/pseudoinverse/analyze_pseudoinverse.py',
         'multiple_images': 'tests/pseudoinverse/analyze_multiple_images_pseudoinverse.py',

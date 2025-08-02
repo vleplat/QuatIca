@@ -355,6 +355,10 @@ def main() -> None:
     the accuracy of our implementation against known theoretical results.
     """
     
+    # Ensure output directory exists
+    import os
+    os.makedirs('../../output_figures', exist_ok=True)
+    
     print("="*80)
     print("QUATERNION MATRIX PSEUDOINVERSE COMPUTATION TEST SUITE")
     print("="*80)
