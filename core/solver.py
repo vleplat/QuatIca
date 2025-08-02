@@ -1,7 +1,9 @@
 from tabnanny import verbose
 import numpy as np
 import quaternion
-from utils import quat_matmat, quat_frobenius_norm, quat_hermitian, quat_eye
+from utils import (quat_matmat, quat_frobenius_norm, quat_hermitian, quat_eye,
+                   normQsparse, timesQsparse, A2A0123, Realp, ggivens, GRSGivens, 
+                   Hess_QR_ggivens, absQsparse, dotinvQsparse, UtriangleQsparse)
 
 class NewtonSchulzPseudoinverse:
     """Compute the Moore–Penrose pseudoinverse of quaternion matrices via damped Newton–Schulz."""
@@ -253,3 +255,312 @@ class DeepLinearNewtonSchulz:
                 break
         
         return weights, residuals, deviations
+
+
+class QGMRESSolver:
+    """
+    Quaternion Generalized Minimal Residual (Q-GMRES) solver.
+    
+    Implements the Q-GMRES algorithm for solving quaternion linear systems
+    A * x = b, where A is a quaternion matrix and b is a quaternion vector.
+    
+    Based on the implementation by Zhigang Jia and Michael K. Ng:
+    "Structure Preserving Quaternion Generalized Minimal Residual Method", SIMAX, 2021
+    """
+    
+    def __init__(self, tol: float = 1e-6, max_iter: int = None, verbose: bool = False) -> None:
+        """
+        Initialize Q-GMRES solver.
+        
+        Parameters:
+        -----------
+        tol : float, optional
+            Tolerance for convergence (default: 1e-6)
+        max_iter : int, optional
+            Maximum number of iterations (default: None, uses matrix dimension)
+        verbose : bool, optional
+            Whether to print convergence information (default: False)
+        """
+        self.tol = tol
+        self.max_iter = max_iter
+        self.verbose = verbose
+    
+    def solve(self, A: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, dict]:
+        """
+        Solve the quaternion linear system A * x = b using Q-GMRES.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix (m x n)
+        b : np.ndarray
+            Quaternion right-hand side vector (m x 1)
+        
+        Returns:
+        --------
+        x : np.ndarray
+            Solution vector (n x 1)
+        info : dict
+            Information about the solution process including:
+            - 'iterations': Number of iterations performed
+            - 'residual': Final residual norm
+            - 'residual_history': List of residual norms
+            - 'converged': Whether the method converged
+        """
+        # Convert quaternion matrices to component format
+        A0, A1, A2, A3 = self._quat_to_components(A)
+        b0, b1, b2, b3 = self._quat_to_components(b)
+        
+        # Check that A is square
+        if A0.shape[0] != A0.shape[1]:
+            raise ValueError(f"Q-GMRES requires square matrices. Got matrix of shape {A0.shape}")
+        
+        # Get dimensions
+        N = A0.shape[1]  # Number of columns in A
+        if self.max_iter is None:
+            self.max_iter = N
+        
+        # Call the core GMRES implementation
+        xm_0, xm_1, xm_2, xm_3, res, V0, V1, V2, V3, iter_count, resv = self._GMRESQsparse(
+            A0, A1, A2, A3, b0, b1, b2, b3, self.tol, self.max_iter
+        )
+        
+        # Convert solution back to quaternion format
+        x = self._components_to_quat(xm_0, xm_1, xm_2, xm_3)
+        
+        # Prepare info dictionary
+        info = {
+            'iterations': iter_count,
+            'residual': res,
+            'residual_history': resv if resv is not None else [],
+            'converged': res < self.tol,
+            'V0': V0, 'V1': V1, 'V2': V2, 'V3': V3  # Krylov basis vectors
+        }
+        
+        if self.verbose:
+            print(f"Q-GMRES converged in {iter_count} iterations with residual {res:.2e}")
+        
+        return x, info
+    
+    def _GMRESQsparse(self, A0, A1, A2, A3, b_0, b_1, b_2, b_3, tol, maxit):
+        """
+        Core Q-GMRES implementation in component format.
+        
+        This is a direct translation of the MATLAB GMRESQsparse function.
+        """
+        N = A0.shape[1]
+        ninf = normQsparse(A0, A1, A2, A3)
+        
+        if maxit is None:
+            maxit = N
+        
+        # Initialize solution
+        x0_0 = np.zeros((N, 1))
+        x0_1 = x0_0.copy()
+        x0_2 = x0_0.copy()
+        x0_3 = x0_0.copy()
+        
+        resv = []
+        
+        # Main GMRES loop: for m=1:N (building Krylov subspace incrementally)
+        for m in range(1, N + 1):
+            # Compute residual: r0 = b - A * x0
+            delta0, delta1, delta2, delta3 = timesQsparse(A0, A1, A2, A3, x0_0, x0_1, x0_2, x0_3)
+            r0_0 = b_0 - delta0
+            r0_2 = b_2 - delta2
+            r0_1 = b_1 - delta1
+            r0_3 = b_3 - delta3
+            
+            # Normalize residual to get first basis vector
+            beta = normQsparse(r0_0, r0_1, r0_2, r0_3)
+            v1_0 = r0_0 / beta
+            v1_1 = r0_1 / beta
+            v1_2 = r0_2 / beta
+            v1_3 = r0_3 / beta
+            
+            # Initialize Krylov basis
+            V0 = np.zeros((N, m))
+            V1 = np.zeros((N, m))
+            V2 = np.zeros((N, m))
+            V3 = np.zeros((N, m))
+            V0[:, 0] = v1_0.flatten()
+            V1[:, 0] = v1_1.flatten()
+            V2[:, 0] = v1_2.flatten()
+            V3[:, 0] = v1_3.flatten()
+            
+            # Initialize Hessenberg matrix (m+1 x m to accommodate subdiagonal)
+            H0 = np.zeros((m+1, m))
+            H1 = np.zeros((m+1, m))
+            H2 = np.zeros((m+1, m))
+            H3 = np.zeros((m+1, m))
+            
+            # Arnoldi iteration: for j=1:m
+            for j in range(m):
+                # Compute A * v_j
+                v_0, v_1, v_2, v_3 = timesQsparse(A0, A1, A2, A3, 
+                                                  V0[:, j:j+1], V1[:, j:j+1], 
+                                                  V2[:, j:j+1], V3[:, j:j+1])
+                
+                # Modified Gram-Schmidt orthogonalization: for i=1:j
+                for i in range(j + 1):
+                    # Compute inner product: <v_i, A*v_j>
+                    v_i_conj_0 = V0[:, i:i+1].T  # Shape: (1, N)
+                    v_i_conj_1 = -V1[:, i:i+1].T
+                    v_i_conj_2 = -V2[:, i:i+1].T
+                    v_i_conj_3 = -V3[:, i:i+1].T
+                    
+                    # Compute inner product using timesQsparse: (1×N) * (N×1) = (1×1)
+                    H0[i, j], H1[i, j], H2[i, j], H3[i, j] = timesQsparse(
+                        v_i_conj_0, v_i_conj_1, v_i_conj_2, v_i_conj_3,
+                        v_0, v_1, v_2, v_3
+                    )
+                    
+                    # The result should be a scalar (1x1 matrix), extract the scalar value
+                    if hasattr(H0[i, j], 'shape') and H0[i, j].shape == (1, 1):
+                        H0[i, j] = H0[i, j][0, 0]
+                        H1[i, j] = H1[i, j][0, 0]
+                        H2[i, j] = H2[i, j][0, 0]
+                        H3[i, j] = H3[i, j][0, 0]
+                    
+                    # Subtract projection: v = v - <v_i, A*v_j> * v_i
+                    delta0, delta1, delta2, delta3 = timesQsparse(
+                        V0[:, i:i+1], V1[:, i:i+1], V2[:, i:i+1], V3[:, i:i+1],
+                        H0[i, j], H1[i, j], H2[i, j], H3[i, j]
+                    )
+                    v_0 = v_0 - delta0
+                    v_1 = v_1 - delta1
+                    v_2 = v_2 - delta2
+                    v_3 = v_3 - delta3
+                
+                # Compute norm of remaining vector
+                if j < N:
+                    H0[j+1, j] = normQsparse(v_0, v_1, v_2, v_3)
+                    H1[j+1, j] = 0
+                    H2[j+1, j] = 0
+                    H3[j+1, j] = 0
+                    
+                    # Check for lucky breakdown
+                    if abs(H0[j+1, j]) + ninf == ninf:
+                        if self.verbose:
+                            print('Lucky breakdown occurred!')
+                        return x0_0, x0_1, x0_2, x0_3, 0, V0, V1, V2, V3, m, resv
+                    
+                    # Normalize next basis vector
+                    if j < m - 1:
+                        V0[:, j+1] = (v_0 / H0[j+1, j]).flatten()
+                        V1[:, j+1] = (v_1 / H0[j+1, j]).flatten()
+                        V2[:, j+1] = (v_2 / H0[j+1, j]).flatten()
+                        V3[:, j+1] = (v_3 / H0[j+1, j]).flatten()
+                    elif j == m - 1:
+                        v_0 = v_0 / H0[j+1, j]
+                        v_1 = v_1 / H0[j+1, j]
+                        v_2 = v_2 / H0[j+1, j]
+                        v_3 = v_3 / H0[j+1, j]
+            
+            # Construct full Krylov basis
+            if m < N:
+                Vm_0 = np.column_stack([V0, v_0])
+                Vm_1 = np.column_stack([V1, v_1])
+                Vm_2 = np.column_stack([V2, v_2])
+                Vm_3 = np.column_stack([V3, v_3])
+            else:
+                Vm_0, Vm_1, Vm_2, Vm_3 = V0, V1, V2, V3
+            
+            # Compute projection of right-hand side onto Krylov subspace
+            # Vm has shape (N, m+1) if m < N, or (N, m) if m == N
+            # We need to project r0 onto the Krylov subspace
+            bm_0, bm_1, bm_2, bm_3 = timesQsparse(
+                Vm_0.T, -Vm_1.T, -Vm_2.T, -Vm_3.T,
+                r0_0, r0_1, r0_2, r0_3
+            )
+            
+            # QR decomposition of Hessenberg matrix using Givens rotations
+            Hess = np.vstack([H0, H1, H2, H3])
+            U, R = Hess_QR_ggivens(Hess)
+            U0, U1, U2, U3 = A2A0123(U)
+            R0, R1, R2, R3 = A2A0123(R)
+            
+            # Apply Q^T to right-hand side
+            # Ensure bm has the correct shape to match U matrix
+            # U0 has shape (m, m), so bm should have shape (m, 1)
+            if bm_0.shape[0] != U0.shape[0]:
+                if bm_0.shape[0] > U0.shape[0]:
+                    # Truncate if too large
+                    bm_0 = bm_0[:U0.shape[0], :]
+                    bm_1 = bm_1[:U0.shape[0], :]
+                    bm_2 = bm_2[:U0.shape[0], :]
+                    bm_3 = bm_3[:U0.shape[0], :]
+                else:
+                    # Pad with zeros if too small
+                    bm_0 = np.vstack([bm_0, np.zeros((U0.shape[0] - bm_0.shape[0], 1))])
+                    bm_1 = np.vstack([bm_1, np.zeros((U0.shape[0] - bm_1.shape[0], 1))])
+                    bm_2 = np.vstack([bm_2, np.zeros((U0.shape[0] - bm_2.shape[0], 1))])
+                    bm_3 = np.vstack([bm_3, np.zeros((U0.shape[0] - bm_3.shape[0], 1))])
+            
+            bm2_0, bm2_1, bm2_2, bm2_3 = timesQsparse(
+                U0.T, -U1.T, -U2.T, -U3.T,
+                bm_0, bm_1, bm_2, bm_3
+            )
+            
+            # Solve upper triangular system R * y = Q^T * b
+            ym_0, ym_1, ym_2, ym_3 = UtriangleQsparse(
+                R0[:m, :m], R1[:m, :m], R2[:m, :m], R3[:m, :m],
+                bm2_0[:m], bm2_1[:m], bm2_2[:m], bm2_3[:m]
+            )
+            
+            # Compute solution: x = x0 + V * y
+            delta0, delta1, delta2, delta3 = timesQsparse(
+                V0, V1, V2, V3, ym_0, ym_1, ym_2, ym_3
+            )
+            xm_0 = delta0 + x0_0
+            xm_1 = delta1 + x0_1
+            xm_2 = delta2 + x0_2
+            xm_3 = delta3 + x0_3
+            
+            # Compute residual norm
+            delta0, delta1, delta2, delta3 = timesQsparse(A0, A1, A2, A3, xm_0, xm_1, xm_2, xm_3)
+            res_xm = normQsparse(b_0 - delta0, b_1 - delta1, b_2 - delta2, b_3 - delta3) / normQsparse(b_0, b_1, b_2, b_3)
+            res = res_xm
+            
+            # Store residual history
+            delta0, delta1, delta2, delta3 = timesQsparse(H0, H1, H2, H3, ym_0, ym_1, ym_2, ym_3)
+            res_ym = normQsparse(bm_0 - delta0, bm_1 - delta1, bm_2 - delta2, bm_3 - delta3) / normQsparse(bm_0, bm_1, bm_2, bm_3)
+            resv.append([m, res_ym, res_xm])
+            
+            # Check convergence (MATLAB: if res<tol || m>maxit)
+            if res < tol or m > maxit:
+                iter = m
+                break
+            else:
+                # Update initial guess for next iteration (restart)
+                x0_0, x0_1, x0_2, x0_3 = xm_0, xm_1, xm_2, xm_3
+                iter = m
+        
+        return xm_0, xm_1, xm_2, xm_3, res, V0, V1, V2, V3, iter, resv
+    
+    def _quat_to_components(self, A):
+        """Convert quaternion matrix to component format."""
+        # Check if it's a sparse quaternion matrix
+        if hasattr(A, 'real') and hasattr(A, 'i') and hasattr(A, 'j') and hasattr(A, 'k'):
+            # Sparse quaternion matrix
+            A0 = A.real.toarray()
+            A1 = A.i.toarray()
+            A2 = A.j.toarray()
+            A3 = A.k.toarray()
+        elif hasattr(A, 'dtype') and A.dtype == np.quaternion:
+            # Dense quaternion array
+            A_real = quaternion.as_float_array(A)
+            A0 = A_real[..., 0]
+            A1 = A_real[..., 1]
+            A2 = A_real[..., 2]
+            A3 = A_real[..., 3]
+        else:
+            # Assume it's already in component format
+            A0, A1, A2, A3 = A
+        return A0, A1, A2, A3
+    
+    def _components_to_quat(self, A0, A1, A2, A3):
+        """Convert component format back to quaternion matrix."""
+        # Stack components and convert to quaternion array
+        A_real = np.stack([A0, A1, A2, A3], axis=-1)
+        return quaternion.as_quat_array(A_real)

@@ -18,14 +18,16 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python run_analysis.py <script_name>")
         print("\nAvailable scripts:")
-        print("  tutorial        - Quaternion basics tutorial (recommended to start here)")
+        print("  tutorial - Quaternion basics tutorial (recommended to start here)")
+        print("  qgmres - Q-GMRES solver test (new!)")
+        print("  lorenz_signal - Lorenz attractor signal processing with Q-GMRES (new!)")
         print("  cifar10         - CIFAR-10 pseudoinverse analysis")
         print("  pseudoinverse   - Single image pseudoinverse analysis")
         print("  multiple_images - Multiple images pseudoinverse analysis")
         # print("  test_newton     - Test deep linear solver")  # Disabled - not working properly
         print("  image_completion - Real image completion example")
         print("  synthetic       - Synthetic image completion (controlled experiments)")
-        print("  synthetic_matrices - Pseudoinverse test on synthetic matrices (dense, sparse, ill-conditioned)")
+        print("  synthetic_matrices - Test pseudoinverse on synthetic matrices")
         return
     
     script_name = sys.argv[1]
@@ -33,6 +35,8 @@ def main():
     # Map script names to file paths
     script_map = {
         'tutorial': 'tests/unit/tutorial_quaternion_basics.py',
+        'qgmres': 'tests/QGMRES/test_qgmres_solver.py',
+        'lorenz_signal': 'applications/signal_processing/lorenz_attractor_qgmres.py',
         'cifar10': 'tests/pseudoinverse/analyze_cifar10_pseudoinverse.py',
         'pseudoinverse': 'tests/pseudoinverse/analyze_pseudoinverse.py',
         'multiple_images': 'tests/pseudoinverse/analyze_multiple_images_pseudoinverse.py',
