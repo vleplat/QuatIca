@@ -49,12 +49,8 @@ venv.bak/
 # Data files (large datasets)
 data/cifar-10-batches-py/
 data/cifar-10-python.tar.gz
-data/images/*.png
-data/images/*.jpg
-data/images/*.jpeg
-data/images/*.bmp
-data/images/*.tiff
-data/images/*.tif
+# Note: data/images/ is included in git for small test images
+# Large image files should be excluded individually if needed
 
 # Output figures (generated files)
 output_figures/
