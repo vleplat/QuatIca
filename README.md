@@ -223,8 +223,7 @@ QuatIca/
 ├── References_and_SuppMat/ # Research papers and supplementary materials
 ├── output_figures/        # Generated plots and visualizations (auto-created)
 ├── requirements.txt       # Python dependencies
-├── run_analysis.py       # Easy-to-use script runner
-└── venv/                 # Virtual environment (not in git)
+└── run_analysis.py       # Easy-to-use script runner
 ```
 
 ## 📊 What Each Script Produces
