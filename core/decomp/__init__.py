@@ -9,5 +9,11 @@ utilities from core.utils for quaternion matrix operations.
 """
 
 from .qsvd import classical_qsvd, classical_qsvd_full, rand_qsvd, pass_eff_qsvd
+from .eigen import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
+from .tridiagonalize import tridiagonalize
 
-__all__ = ['classical_qsvd', 'classical_qsvd_full', 'rand_qsvd', 'pass_eff_qsvd'] 
+__all__ = [
+    'classical_qsvd', 'classical_qsvd_full', 'rand_qsvd', 'pass_eff_qsvd',
+    'quaternion_eigendecomposition', 'quaternion_eigenvalues', 'quaternion_eigenvectors',
+    'tridiagonalize'
+] 

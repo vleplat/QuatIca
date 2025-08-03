@@ -32,6 +32,7 @@ def main():
         print("  image_completion - Real image completion example")
         print("  synthetic       - Synthetic image completion (controlled experiments)")
         print("  synthetic_matrices - Test pseudoinverse on synthetic matrices")
+        print("  eigenvalue_test - Eigenvalue decomposition test (tridiagonalization and eigendecomposition)")
         return
     
     script_name = sys.argv[1]
@@ -48,7 +49,8 @@ def main():
         'test_newton': 'tests/unit/test_simple_newton.py',  # Disabled - not working properly
         'image_completion': 'applications/image_completion/script_real_image_completion.py',
         'synthetic': 'applications/image_completion/script_synthetic_image_completion.py',  # Matrix completion on synthetic images
-        'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py'  # Pseudoinverse test on synthetic matrices
+        'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
+        'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py'  # Eigenvalue decomposition test
     }
     
     if script_name not in script_map:

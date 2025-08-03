@@ -9,9 +9,9 @@ import sys
 import os
 
 # Add core module to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
-from decomp.qsvd import qr_qua, classical_qsvd, classical_qsvd_full, rand_qsvd, pass_eff_qsvd
-from utils import quat_matmat, quat_hermitian, quat_frobenius_norm
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+from core.decomp.qsvd import qr_qua, classical_qsvd, classical_qsvd_full, rand_qsvd, pass_eff_qsvd
+from core.utils import quat_matmat, quat_hermitian, quat_frobenius_norm
 
 
 class TestQRQuaternion:
