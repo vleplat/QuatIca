@@ -254,8 +254,52 @@ QuatIca/
 ├── References_and_SuppMat/ # Research papers and supplementary materials
 ├── output_figures/        # Generated plots and visualizations (auto-created)
 ├── requirements.txt       # Python dependencies
-└── run_analysis.py       # Easy-to-use script runner
+├── run_analysis.py       # Easy-to-use script runner
+├── QuatIca_Core_Functionality_Demo.py     # Interactive demo script testing all core functionality
+├── QuatIca_Core_Functionality_Demo.ipynb  # Jupyter notebook version for interactive exploration
+└── README_Demo.md                         # Documentation for demo files
 ```
+
+## 🎯 Core Functionality Demo Files
+
+### **📋 `QuatIca_Core_Functionality_Demo.py` - Interactive Core Functionality Tests**
+- **What it is**: Comprehensive Python script testing all 8 core functionality areas
+- **Perfect for**: Verifying that all README code examples work correctly
+- **Duration**: ~30 seconds
+- **Output**: Detailed verification of all core functions with numerical accuracy metrics
+- **Covers**:
+  - Basic matrix operations (creation, multiplication, norms)
+  - QR decomposition with reconstruction verification
+  - Quaternion SVD (Q-SVD) - both truncated and full
+  - Eigenvalue decomposition for Hermitian matrices
+  - Tridiagonalization using Householder transformations
+  - Pseudoinverse computation using Newton-Schulz
+  - Linear system solving with Q-GMRES
+  - Matrix component visualization
+
+**Usage:**
+```bash
+python QuatIca_Core_Functionality_Demo.py
+```
+
+### **📓 `QuatIca_Core_Functionality_Demo.ipynb` - Jupyter Notebook Version**
+- **What it is**: Interactive Jupyter notebook version of the core functionality tests
+- **Perfect for**: Step-by-step exploration and learning
+- **Features**: 
+  - Cell-by-cell execution for detailed understanding
+  - Interactive visualizations
+  - Easy modification and experimentation
+  - Educational comments and explanations
+
+**Usage:**
+```bash
+jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
+```
+
+### **📖 `README_Demo.md` - Demo Documentation**
+- **What it is**: Detailed documentation explaining how to use the demo files
+- **Perfect for**: Understanding the demo structure and troubleshooting
+- **Contains**: Usage instructions, expected outputs, and troubleshooting tips
 
 ## 📊 What Each Script Produces
 
