@@ -23,6 +23,8 @@ def main():
         print("  lorenz_signal - Lorenz attractor signal processing with Q-GMRES (new!)")
         print("                Note: Use --num_points <N> to control resolution/execution time")
         print("                Examples: --num_points 100 (fast), --num_points 500 (high quality)")
+        print("  lorenz_benchmark - Lorenz attractor method comparison benchmark (new!)")
+        print("                    Compares Q-GMRES vs Newton-Schulz performance and accuracy")
         print("  cifar10         - CIFAR-10 pseudoinverse analysis")
         print("  pseudoinverse   - Single image pseudoinverse analysis")
         print("  multiple_images - Multiple images pseudoinverse analysis")
@@ -39,6 +41,7 @@ def main():
         'tutorial': 'tests/unit/tutorial_quaternion_basics.py',
         'qgmres': 'tests/QGMRES/test_qgmres_solver.py',
         'lorenz_signal': 'applications/signal_processing/lorenz_attractor_qgmres.py',
+        'lorenz_benchmark': 'applications/signal_processing/benchmark_lorenz_methods.py',
         'cifar10': 'tests/pseudoinverse/analyze_cifar10_pseudoinverse.py',
         'pseudoinverse': 'tests/pseudoinverse/analyze_pseudoinverse.py',
         'multiple_images': 'tests/pseudoinverse/analyze_multiple_images_pseudoinverse.py',
