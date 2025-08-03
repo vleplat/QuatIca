@@ -486,47 +486,47 @@ Pauli matrices are fundamental 2×2 matrices in quantum mechanics:
 - **σ₃ (sigma_z)**: `[[1, 0], [0, -1]]` - represents spin-z measurement
 - **σ₀ (identity)**: `[[1, 0], [0, 1]]` - identity matrix
 
-**Building Pauli Matrices as Quaternion Matrices:**
+**Building Pauli Matrices as Quaternion Matrices (Correct Method):**
 
 ```python
 import numpy as np
 import quaternion
 
 def create_pauli_matrices_quaternion():
-    """Create Pauli matrices in quaternion format"""
+    """Create Pauli matrices in quaternion format using the correct pattern"""
     
-    # Step 1: Define the 2x2 Pauli matrices
-    sigma_x = np.array([[0, 1], [1, 0]], dtype=float)
-    sigma_y = np.array([[0, -1j], [1j, 0]], dtype=complex)
-    sigma_z = np.array([[1, 0], [0, -1]], dtype=float)
-    sigma_0 = np.array([[1, 0], [0, 1]], dtype=float)
+    # Step 1: Create numpy arrays with shape (rows, cols, 4) for [real, i, j, k]
+    # Each matrix is 2x2, so we need (2, 2, 4) arrays
+    sigma_0_array = np.zeros((2, 2, 4), dtype=float)
+    sigma_x_array = np.zeros((2, 2, 4), dtype=float)
+    sigma_y_array = np.zeros((2, 2, 4), dtype=float)
+    sigma_z_array = np.zeros((2, 2, 4), dtype=float)
     
-    # Step 2: Convert to quaternion format [real, i, j, k]
-    # For complex numbers: a + bi → [a, b, 0, 0]
-    # For real numbers: a → [a, 0, 0, 0]
+    # Step 2: Fill the components [real, i, j, k]
+    # sigma_0 (identity): [1, 0, 0, 0] for diagonal, [0, 0, 0, 0] for off-diagonal
+    sigma_0_array[0, 0, 0] = 1.0  # real component of (0,0)
+    sigma_0_array[1, 1, 0] = 1.0  # real component of (1,1)
     
-    # Create quaternion arrays (2x2x4)
-    pauli_quat = np.zeros((4, 2, 2, 4), dtype=float)
+    # sigma_x: [0, 0, 0, 0] for diagonal, [0, 0, 0, 0] for (0,1), [1, 0, 0, 0] for (1,0)
+    sigma_x_array[0, 1, 0] = 1.0  # real component of (0,1)
+    sigma_x_array[1, 0, 0] = 1.0  # real component of (1,0)
     
-    # sigma_0 (identity) - real matrix
-    pauli_quat[0, :, :, 0] = sigma_0  # real component
+    # sigma_y: [0, 0, 0, 0] for diagonal, [0, -1, 0, 0] for (0,1), [0, 1, 0, 0] for (1,0)
+    sigma_y_array[0, 1, 1] = -1.0  # i component of (0,1)
+    sigma_y_array[1, 0, 1] = 1.0   # i component of (1,0)
     
-    # sigma_x - real matrix  
-    pauli_quat[1, :, :, 0] = sigma_x  # real component
+    # sigma_z: [1, 0, 0, 0] for (0,0), [-1, 0, 0, 0] for (1,1)
+    sigma_z_array[0, 0, 0] = 1.0   # real component of (0,0)
+    sigma_z_array[1, 1, 0] = -1.0  # real component of (1,1)
     
-    # sigma_y - purely imaginary matrix
-    pauli_quat[2, :, :, 1] = np.array([[0, -1], [1, 0]])  # i component
+    # Step 3: Convert to quaternion arrays using the correct pattern
+    # Pattern: quaternion.as_quat_array(array.reshape(-1, 4)).reshape(rows, cols)
+    sigma_0 = quaternion.as_quat_array(sigma_0_array.reshape(-1, 4)).reshape(2, 2)
+    sigma_x = quaternion.as_quat_array(sigma_x_array.reshape(-1, 4)).reshape(2, 2)
+    sigma_y = quaternion.as_quat_array(sigma_y_array.reshape(-1, 4)).reshape(2, 2)
+    sigma_z = quaternion.as_quat_array(sigma_z_array.reshape(-1, 4)).reshape(2, 2)
     
-    # sigma_z - real matrix
-    pauli_quat[3, :, :, 0] = sigma_z  # real component
-    
-    # Step 3: Convert to quaternion arrays
-    pauli_matrices = []
-    for i in range(4):
-        quat_matrix = quaternion.as_quat_array(pauli_quat[i])
-        pauli_matrices.append(quat_matrix)
-    
-    return pauli_matrices
+    return sigma_0, sigma_x, sigma_y, sigma_z
 
 # Usage example
 sigma_0, sigma_x, sigma_y, sigma_z = create_pauli_matrices_quaternion()
@@ -541,17 +541,20 @@ print(f"σ₃ (sigma_z):\n{sigma_z}")
 ##### **3. General Steps for Custom Matrices**
 
 ```python
-# Step 1: Create numpy array with 4 components
+# Step 1: Create numpy array with shape (rows, cols, 4) for [real, i, j, k]
 matrix_quat = np.zeros((rows, cols, 4), dtype=float)
 
-# Step 2: Fill the components
-matrix_quat[:, :, 0] = real_part      # Real component
-matrix_quat[:, :, 1] = i_part         # i component  
-matrix_quat[:, :, 2] = j_part         # j component
-matrix_quat[:, :, 3] = k_part         # k component
+# Step 2: Fill the components element by element
+for i in range(rows):
+    for j in range(cols):
+        matrix_quat[i, j, 0] = real_part[i, j]      # Real component
+        matrix_quat[i, j, 1] = i_part[i, j]         # i component  
+        matrix_quat[i, j, 2] = j_part[i, j]         # j component
+        matrix_quat[i, j, 3] = k_part[i, j]         # k component
 
-# Step 3: Convert to quaternion array
-quat_matrix = quaternion.as_quat_array(matrix_quat)
+# Step 3: Convert to quaternion array using the correct pattern
+# Pattern: quaternion.as_quat_array(array.reshape(-1, 4)).reshape(rows, cols)
+quat_matrix = quaternion.as_quat_array(matrix_quat.reshape(-1, 4)).reshape(rows, cols)
 ```
 
 ##### **4. Common Patterns**
@@ -559,18 +562,39 @@ quat_matrix = quaternion.as_quat_array(matrix_quat)
 ```python
 # Real matrix: [real, 0, 0, 0]
 real_matrix = np.zeros((2, 2, 4))
-real_matrix[:, :, 0] = [[1, 2], [3, 4]]
+real_matrix[0, 0, 0] = 1.0  # (0,0) real component
+real_matrix[0, 1, 0] = 2.0  # (0,1) real component
+real_matrix[1, 0, 0] = 3.0  # (1,0) real component
+real_matrix[1, 1, 0] = 4.0  # (1,1) real component
+real_quat = quaternion.as_quat_array(real_matrix.reshape(-1, 4)).reshape(2, 2)
 
 # Complex matrix: [real, i, 0, 0]  
 complex_matrix = np.zeros((2, 2, 4))
-complex_matrix[:, :, 0] = [[1, 0], [0, 1]]  # real part
-complex_matrix[:, :, 1] = [[0, 1], [-1, 0]] # i part
+complex_matrix[0, 0, 0] = 1.0  # (0,0) real part
+complex_matrix[0, 0, 1] = 0.0  # (0,0) i part
+complex_matrix[0, 1, 0] = 0.0  # (0,1) real part
+complex_matrix[0, 1, 1] = 1.0  # (0,1) i part
+complex_matrix[1, 0, 0] = 0.0  # (1,0) real part
+complex_matrix[1, 0, 1] = -1.0 # (1,0) i part
+complex_matrix[1, 1, 0] = 1.0  # (1,1) real part
+complex_matrix[1, 1, 1] = 0.0  # (1,1) i part
+complex_quat = quaternion.as_quat_array(complex_matrix.reshape(-1, 4)).reshape(2, 2)
 
 # Pure quaternion: [0, i, j, k]
 pure_quat = np.zeros((2, 2, 4))
-pure_quat[:, :, 1] = [[0, 1], [1, 0]]  # i part
-pure_quat[:, :, 2] = [[0, -1j], [1j, 0]]  # j part  
-pure_quat[:, :, 3] = [[1, 0], [0, -1]]  # k part
+pure_quat[0, 0, 1] = 0.0  # (0,0) i part
+pure_quat[0, 0, 2] = 0.0  # (0,0) j part
+pure_quat[0, 0, 3] = 1.0  # (0,0) k part
+pure_quat[0, 1, 1] = 1.0  # (0,1) i part
+pure_quat[0, 1, 2] = 0.0  # (0,1) j part
+pure_quat[0, 1, 3] = 0.0  # (0,1) k part
+pure_quat[1, 0, 1] = 1.0  # (1,0) i part
+pure_quat[1, 0, 2] = 0.0  # (1,0) j part
+pure_quat[1, 0, 3] = 0.0  # (1,0) k part
+pure_quat[1, 1, 1] = 0.0  # (1,1) i part
+pure_quat[1, 1, 2] = 0.0  # (1,1) j part
+pure_quat[1, 1, 3] = -1.0 # (1,1) k part
+pure_quat_result = quaternion.as_quat_array(pure_quat.reshape(-1, 4)).reshape(2, 2)
 ```
 
 ## 📊 Analysis and Visualization
