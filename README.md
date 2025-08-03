@@ -56,32 +56,7 @@
 
 
 
-## 📊 Visualization and Validation
 
-QuatIca includes a comprehensive visualization package for validating and demonstrating the correctness of our implementations:
-
-### **Q-SVD Reconstruction Error Analysis**
-```bash
-# Generate convincing visualizations of Q-SVD validation
-python tests/validation/qsvd_reconstruction_analysis.py
-```
-
-This creates professional-quality plots showing:
-- **Perfect monotonicity**: Reconstruction error decreases as rank increases
-- **Perfect reconstruction**: Full rank achieves 0.000000 error
-- **Consistent behavior**: Same patterns across different matrix sizes
-- **Mathematical correctness**: Our Q-SVD follows proper SVD principles
-
-**Generated plots:**
-- `qsvd_reconstruction_error_vs_rank.png` - Detailed analysis for each matrix size
-- `qsvd_relative_error_summary.png` - Summary with log scale convergence
-
-### **Why This Visualization is Convincing**
-1. **Mathematical Validation**: Shows expected SVD behavior
-2. **Visual Proof**: Clear graphs demonstrate monotonicity
-3. **Comprehensive Testing**: Multiple matrix sizes tested
-4. **Quantitative Results**: Exact error values provided
-5. **Professional Quality**: High-resolution plots suitable for presentations
 
 ## 🚀 Quick Start Guide
 
@@ -300,6 +275,33 @@ U_full, s_full, V_full = classical_qsvd_full(X_quat)
 - ✅ **Monotonic error decrease** with increasing rank
 - ✅ **Robust across matrix sizes** (tested on 4×3 to 8×6 matrices)
 - ✅ **Production-ready** with 10/10 tests passing
+
+## 📊 Visualization and Validation
+
+QuatIca includes a comprehensive visualization package for validating and demonstrating the correctness of our implementations:
+
+### **Q-SVD Reconstruction Error Analysis**
+```bash
+# Generate convincing visualizations of Q-SVD validation
+python tests/validation/qsvd_reconstruction_analysis.py
+```
+
+This creates professional-quality plots showing:
+- **Perfect monotonicity**: Reconstruction error decreases as rank increases
+- **Perfect reconstruction**: Full rank achieves 0.000000 error
+- **Consistent behavior**: Same patterns across different matrix sizes
+- **Mathematical correctness**: Our Q-SVD follows proper SVD principles
+
+**Generated plots:**
+- `qsvd_reconstruction_error_vs_rank.png` - Detailed analysis for each matrix size
+- `qsvd_relative_error_summary.png` - Summary with log scale convergence
+
+### **Why This Visualization is Convincing**
+1. **Mathematical Validation**: Shows expected SVD behavior
+2. **Visual Proof**: Clear graphs demonstrate monotonicity
+3. **Comprehensive Testing**: Multiple matrix sizes tested
+4. **Quantitative Results**: Exact error values provided
+5. **Professional Quality**: High-resolution plots suitable for presentations
 
 ## 📊 What Each Script Produces
 
