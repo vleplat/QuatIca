@@ -230,6 +230,7 @@ QuatIca/
   - Creative tutorial summary flowchart
 - **Covers**:
   - Creating dense and sparse quaternion matrices
+  - **Custom matrix creation** (including Pauli matrices example)
   - Basic matrix operations (multiplication, norms)
   - Advanced pseudoinverse computation
   - Solution verification (`||A*x - b||_F` analysis)
@@ -296,12 +297,22 @@ python run_analysis.py lorenz_signal --no_show
 
 #### **🔬 What It Covers:**
 - **Lorenz attractor signal generation** with configurable resolution
+- **Time simulation**: 10-second simulation window (parameter `T` in script)
 - **Noise addition and signal corruption** simulation
 - **Quaternion matrix construction** for signal filtering
 - **Q-GMRES-based signal reconstruction** with convergence analysis
 - **3D trajectory visualization** (classic butterfly pattern)
 - **Time series analysis** of signal components
 - **Performance scaling** with different system sizes
+
+#### **⏰ Time Parameter Configuration:**
+The script simulates the Lorenz attractor for **10 seconds** by default. To modify the simulation time:
+1. **Open the script**: `applications/signal_processing/lorenz_attractor_qgmres.py`
+2. **Find line ~140**: `T, delta, seed = 10.0, 1.0, 0`
+3. **Change the first value**: `T = 20.0` for 20 seconds, `T = 5.0` for 5 seconds
+4. **Run the script** with your desired `num_points` parameter
+
+**Note**: Longer simulation times require more `num_points` for good resolution.
 
 ### **🎯 `cifar10` - Most Comprehensive Analysis**
 - **Input**: 250 CIFAR-10 images (50 per class from 5 classes)
@@ -444,6 +455,7 @@ print(f"Final residual: {info['residual']:.2e}")
 
 ### Matrix Generation
 
+#### **🎲 Random Matrix Generation**
 ```python
 from core.data_gen import create_test_matrix, create_sparse_quat_matrix
 
@@ -452,6 +464,113 @@ X = create_test_matrix(m=100, n=50, rank=20)
 
 # Generate sparse matrix
 X_sparse = create_sparse_quat_matrix(m=100, n=50, density=0.1)
+```
+
+#### **🔧 Creating Custom Quaternion Matrices**
+
+**Step-by-Step Guide to Building Your Own Quaternion Matrices:**
+
+##### **1. Understanding Quaternion Format**
+Quaternion matrices in QuatIca use the format: `[real, i, j, k]` components
+- **Real component**: Scalar part (index 0)
+- **i component**: First imaginary part (index 1) 
+- **j component**: Second imaginary part (index 2)
+- **k component**: Third imaginary part (index 3)
+
+##### **2. Example: Pauli Matrices in Quaternion Format**
+
+**What are Pauli Matrices?**
+Pauli matrices are fundamental 2×2 matrices in quantum mechanics:
+- **σ₁ (sigma_x)**: `[[0, 1], [1, 0]]` - represents spin-x measurement
+- **σ₂ (sigma_y)**: `[[0, -i], [i, 0]]` - represents spin-y measurement  
+- **σ₃ (sigma_z)**: `[[1, 0], [0, -1]]` - represents spin-z measurement
+- **σ₀ (identity)**: `[[1, 0], [0, 1]]` - identity matrix
+
+**Building Pauli Matrices as Quaternion Matrices:**
+
+```python
+import numpy as np
+import quaternion
+
+def create_pauli_matrices_quaternion():
+    """Create Pauli matrices in quaternion format"""
+    
+    # Step 1: Define the 2x2 Pauli matrices
+    sigma_x = np.array([[0, 1], [1, 0]], dtype=float)
+    sigma_y = np.array([[0, -1j], [1j, 0]], dtype=complex)
+    sigma_z = np.array([[1, 0], [0, -1]], dtype=float)
+    sigma_0 = np.array([[1, 0], [0, 1]], dtype=float)
+    
+    # Step 2: Convert to quaternion format [real, i, j, k]
+    # For complex numbers: a + bi → [a, b, 0, 0]
+    # For real numbers: a → [a, 0, 0, 0]
+    
+    # Create quaternion arrays (2x2x4)
+    pauli_quat = np.zeros((4, 2, 2, 4), dtype=float)
+    
+    # sigma_0 (identity) - real matrix
+    pauli_quat[0, :, :, 0] = sigma_0  # real component
+    
+    # sigma_x - real matrix  
+    pauli_quat[1, :, :, 0] = sigma_x  # real component
+    
+    # sigma_y - purely imaginary matrix
+    pauli_quat[2, :, :, 1] = np.array([[0, -1], [1, 0]])  # i component
+    
+    # sigma_z - real matrix
+    pauli_quat[3, :, :, 0] = sigma_z  # real component
+    
+    # Step 3: Convert to quaternion arrays
+    pauli_matrices = []
+    for i in range(4):
+        quat_matrix = quaternion.as_quat_array(pauli_quat[i])
+        pauli_matrices.append(quat_matrix)
+    
+    return pauli_matrices
+
+# Usage example
+sigma_0, sigma_x, sigma_y, sigma_z = create_pauli_matrices_quaternion()
+
+print("Pauli matrices in quaternion format:")
+print(f"σ₀ (identity):\n{sigma_0}")
+print(f"σ₁ (sigma_x):\n{sigma_x}")
+print(f"σ₂ (sigma_y):\n{sigma_y}")
+print(f"σ₃ (sigma_z):\n{sigma_z}")
+```
+
+##### **3. General Steps for Custom Matrices**
+
+```python
+# Step 1: Create numpy array with 4 components
+matrix_quat = np.zeros((rows, cols, 4), dtype=float)
+
+# Step 2: Fill the components
+matrix_quat[:, :, 0] = real_part      # Real component
+matrix_quat[:, :, 1] = i_part         # i component  
+matrix_quat[:, :, 2] = j_part         # j component
+matrix_quat[:, :, 3] = k_part         # k component
+
+# Step 3: Convert to quaternion array
+quat_matrix = quaternion.as_quat_array(matrix_quat)
+```
+
+##### **4. Common Patterns**
+
+```python
+# Real matrix: [real, 0, 0, 0]
+real_matrix = np.zeros((2, 2, 4))
+real_matrix[:, :, 0] = [[1, 2], [3, 4]]
+
+# Complex matrix: [real, i, 0, 0]  
+complex_matrix = np.zeros((2, 2, 4))
+complex_matrix[:, :, 0] = [[1, 0], [0, 1]]  # real part
+complex_matrix[:, :, 1] = [[0, 1], [-1, 0]] # i part
+
+# Pure quaternion: [0, i, j, k]
+pure_quat = np.zeros((2, 2, 4))
+pure_quat[:, :, 1] = [[0, 1], [1, 0]]  # i part
+pure_quat[:, :, 2] = [[0, -1j], [1j, 0]]  # j part  
+pure_quat[:, :, 3] = [[1, 0], [0, -1]]  # k part
 ```
 
 ## 📊 Analysis and Visualization
