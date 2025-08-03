@@ -679,6 +679,57 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 - **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
 - **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
 
+## 🚀 Upcoming Features (Coming Soon!)
+
+### **🔬 Advanced Quaternion Matrix Algorithms**
+
+QuatIca is actively being extended with cutting-edge algorithms from recent research. The following features will be released soon:
+
+#### **📊 Efficient Q-SVD Computation**
+- **High-performance SVD** for quaternion matrices
+- **Optimized memory usage** for large-scale matrices
+- **Parallel computation** support for multi-core systems
+
+#### **⚡ Pass-Efficient Randomized Algorithms**
+
+Based on the latest research paper:
+
+**Ahmadi-Asl, S., Nobakht Kooshkghazi, M., & Leplat, V. (2025). Pass-efficient Randomized Algorithms for Low-rank Approximation of Quaternion Matrices.** *arXiv preprint arXiv:2507.13731*
+
+**🔬 Research Abstract:**
+> "Randomized algorithms for low-rank approximation of quaternion matrices have gained increasing attention in recent years. However, existing methods overlook pass efficiency, the ability to limit the number of passes over the input matrix—which is critical in modern computing environments dominated by communication costs. We address this gap by proposing a suite of pass-efficient randomized algorithms that let users directly trade pass budget for approximation accuracy."
+
+#### **🎯 Key Innovations Coming:**
+
+1. **🔄 Arbitrary-Pass Algorithms**
+   - User-specified number of matrix views
+   - Direct trade-off between pass budget and accuracy
+   - Exponential error decay with pass count
+
+2. **⚡ Block Krylov Subspace Methods**
+   - Accelerated convergence for slowly decaying spectra
+   - Pass-efficient implementation
+   - Enhanced performance for structured matrices
+
+3. **📈 Spectral Norm Error Bounds**
+   - Theoretical guarantees on approximation quality
+   - Predictable performance characteristics
+   - Confidence intervals for results
+
+#### **🔧 Practical Applications:**
+- **Quaternionic Data Compression**: Efficient storage of 4D data
+- **Matrix Completion**: Fill missing entries in quaternion matrices
+- **Image Super-Resolution**: High-quality image upscaling
+- **Deep Learning**: Quaternion neural network optimization
+
+#### **📊 Performance Benefits:**
+- **Communication-Efficient**: Minimizes data movement in distributed systems
+- **Memory-Optimized**: Reduced memory footprint for large matrices
+- **Scalable**: Handles matrices of arbitrary size
+- **Flexible**: User-controlled accuracy vs. performance trade-offs
+
+**Stay tuned for these exciting new features!** 🚀
+
 ## 🤝 Contributing
 
 This library is designed to be a comprehensive framework for quaternion linear algebra. Contributions are welcome for:
