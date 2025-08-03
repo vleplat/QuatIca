@@ -35,7 +35,7 @@
 - These packages pull in heavy dependencies that affect numpy performance
 - If you need these for matrix completion features, install them separately but be aware of the performance cost
 
-**Performance Benchmarks (800x1000 matrices):**
+**Performance Benchmarks (Newton-Schulz Pseudoinverse Computation on 800x1000 matrices):**
 - Dense matrices: ~16 seconds with numpy 2.3.2 (vs minutes/hours with 2.2.6)
 - Sparse matrices: ~9 seconds with numpy 2.3.2
 - Small matrices (200x200): ~0.4 seconds
