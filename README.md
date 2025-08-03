@@ -222,8 +222,7 @@ QuatIca/
 │   │   ├── test_qgmres_basics.py         # Q-GMRES basic functionality tests
 │   │   ├── test_qgmres_debug.py          # Q-GMRES debug tests
 │   │   ├── test_qgmres_simple.py         # Q-GMRES simple tests
-│   │   ├── test_real_image.py            # Real image processing tests
-│   │   └── test_simple_newton.py         # Newton-Schulz algorithm tests
+│   │   └── test_real_image.py            # Real image processing tests
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
@@ -829,16 +828,12 @@ If you need to run scripts directly or modify them:
 ```bash
 # From main directory
 python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
-python tests/unit/test_simple_newton.py
 python applications/image_completion/script_real_image_completion.py
 ```
 
 ### Running Tests
 
 ```bash
-# Run unit tests
-python tests/unit/test_simple_newton.py
-
 # Run pseudoinverse analysis
 python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 ```
