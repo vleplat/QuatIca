@@ -1,5 +1,9 @@
 # QuatIca: Quaternion Linear Algebra Library
 
+<div align="center">
+  <img src="Logo.png" alt="QuatIca Logo" width="200">
+</div>
+
 **A comprehensive Python library for Numerical Linear Algebra with Quaternions**
 
 ## 🤔 What is QuatIca?
