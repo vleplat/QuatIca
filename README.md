@@ -445,6 +445,10 @@ from core.solver import NewtonSchulzPseudoinverse
 A = quaternion.as_quat_array(...)
 B = quaternion.as_quat_array(...)
 
+# Compute the Frobenius norm of matrix A
+norm_A = quat_frobenius_norm(A)
+print(f"Frobenius norm of matrix A: {norm_A:.6f}")
+
 # Matrix multiplication
 C = quat_matmat(A, B)
 
