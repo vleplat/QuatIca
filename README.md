@@ -131,8 +131,11 @@ python run_analysis.py tutorial
 # Test Q-GMRES linear system solver
 python run_analysis.py qgmres
 
-# Process 3D signals with Lorenz attractor
+# Process 3D signals with Lorenz attractor (default quality)
 python run_analysis.py lorenz_signal
+
+# Process 3D signals with Lorenz attractor (fast testing)
+python run_analysis.py lorenz_signal --num_points 100
 
 # Advanced analysis with real data
 python run_analysis.py cifar10
