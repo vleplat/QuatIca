@@ -199,22 +199,32 @@ QuatIca/
 │   │   ├── test_qgmres_accuracy.py       # Q-GMRES accuracy tests
 │   │   ├── test_qgmres_basics.py         # Q-GMRES basic functionality tests
 │   │   ├── test_qgmres_debug.py          # Q-GMRES debug tests
-│   │   └── test_qgmres_simple.py         # Q-GMRES simple tests
+│   │   ├── test_qgmres_simple.py         # Q-GMRES simple tests
+│   │   ├── test_real_image.py            # Real image processing tests
+│   │   └── test_simple_newton.py         # Newton-Schulz algorithm tests
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
 │   └── pseudoinverse/      # Pseudoinverse analysis scripts
+│       ├── analyze_pseudoinverse.py      # Single image pseudoinverse analysis
+│       ├── analyze_multiple_images_pseudoinverse.py # Multiple images analysis
+│       ├── analyze_cifar10_pseudoinverse.py # CIFAR-10 dataset analysis
+│       └── script_synthetic_matrices.py  # Synthetic matrices testing
 ├── applications/
 │   ├── image_completion/   # Image processing applications
+│   │   ├── script_real_image_completion.py    # Real image completion
+│   │   ├── script_synthetic_image_completion.py # Synthetic image completion
+│   │   └── script_small_image_completion.py   # Small image completion
 │   └── signal_processing/  # Signal processing applications
 │       └── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
-
 ├── data/                   # Sample data and datasets
 │   ├── images/            # Sample images for testing
 │   └── cifar-10-batches-py/ # CIFAR-10 dataset
+├── References_and_SuppMat/ # Research papers and supplementary materials
 ├── output_figures/        # Generated plots and visualizations (auto-created)
 ├── requirements.txt       # Python dependencies
-└── run_analysis.py       # Easy-to-use script runner
+├── run_analysis.py       # Easy-to-use script runner
+└── venv/                 # Virtual environment (not in git)
 ```
 
 ## 📊 What Each Script Produces
