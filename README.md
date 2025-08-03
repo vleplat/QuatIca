@@ -260,47 +260,6 @@ QuatIca/
 └── README_Demo.md                         # Documentation for demo files
 ```
 
-## 🎯 Core Functionality Demo Files
-
-### **📋 `QuatIca_Core_Functionality_Demo.py` - Interactive Core Functionality Tests**
-- **What it is**: Comprehensive Python script testing all 8 core functionality areas
-- **Perfect for**: Verifying that all README code examples work correctly
-- **Duration**: ~30 seconds
-- **Output**: Detailed verification of all core functions with numerical accuracy metrics
-- **Covers**:
-  - Basic matrix operations (creation, multiplication, norms)
-  - QR decomposition with reconstruction verification
-  - Quaternion SVD (Q-SVD) - both truncated and full
-  - Eigenvalue decomposition for Hermitian matrices
-  - Tridiagonalization using Householder transformations
-  - Pseudoinverse computation using Newton-Schulz
-  - Linear system solving with Q-GMRES
-  - Matrix component visualization
-
-**Usage:**
-```bash
-python QuatIca_Core_Functionality_Demo.py
-```
-
-### **📓 `QuatIca_Core_Functionality_Demo.ipynb` - Jupyter Notebook Version**
-- **What it is**: Interactive Jupyter notebook version of the core functionality tests
-- **Perfect for**: Step-by-step exploration and learning
-- **Features**: 
-  - Cell-by-cell execution for detailed understanding
-  - Interactive visualizations
-  - Easy modification and experimentation
-  - Educational comments and explanations
-
-**Usage:**
-```bash
-jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
-```
-
-### **📖 `README_Demo.md` - Demo Documentation**
-- **What it is**: Detailed documentation explaining how to use the demo files
-- **Perfect for**: Understanding the demo structure and troubleshooting
-- **Contains**: Usage instructions, expected outputs, and troubleshooting tips
-
 ## 📊 What Each Script Produces
 
 ### **🎓 `tutorial` - Complete Framework Introduction**
@@ -843,6 +802,47 @@ The library includes comprehensive analysis tools:
 - **Class-aware Analysis**: Analyze pseudoinverses with respect to data classes (e.g., CIFAR-10)
 - **Spectral Analysis**: Examine singular value distributions and spectral properties
 - **Visualization**: Generate detailed plots of matrix properties, reconstruction filters, and more
+
+## 🎯 Core Functionality Demo Files
+
+### **📋 `QuatIca_Core_Functionality_Demo.py` - Interactive Core Functionality Tests**
+- **What it is**: Comprehensive Python script testing all 8 core functionality areas
+- **Perfect for**: Verifying that all README code examples work correctly
+- **Duration**: ~30 seconds
+- **Output**: Detailed verification of all core functions with numerical accuracy metrics
+- **Covers**:
+  - Basic matrix operations (creation, multiplication, norms)
+  - QR decomposition with reconstruction verification
+  - Quaternion SVD (Q-SVD) - both truncated and full
+  - Eigenvalue decomposition for Hermitian matrices
+  - Tridiagonalization using Householder transformations
+  - Pseudoinverse computation using Newton-Schulz
+  - Linear system solving with Q-GMRES
+  - Matrix component visualization
+
+**Usage:**
+```bash
+python QuatIca_Core_Functionality_Demo.py
+```
+
+### **📓 `QuatIca_Core_Functionality_Demo.ipynb` - Jupyter Notebook Version**
+- **What it is**: Interactive Jupyter notebook version of the core functionality tests
+- **Perfect for**: Step-by-step exploration and learning
+- **Features**: 
+  - Cell-by-cell execution for detailed understanding
+  - Interactive visualizations
+  - Easy modification and experimentation
+  - Educational comments and explanations
+
+**Usage:**
+```bash
+jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
+```
+
+### **📖 `README_Demo.md` - Demo Documentation**
+- **What it is**: Detailed documentation explaining how to use the demo files
+- **Perfect for**: Understanding the demo structure and troubleshooting
+- **Contains**: Usage instructions, expected outputs, and troubleshooting tips
 
 ## 🎯 Applications
 
