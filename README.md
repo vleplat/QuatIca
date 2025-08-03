@@ -205,10 +205,13 @@ python run_analysis.py image_completion
 ```
 QuatIca/
 ├── core/                    # Core library files
-│   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES, Q-SVD)
+│   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES)
 │   ├── utils.py            # Quaternion operations and utilities
 │   ├── data_gen.py         # Matrix generation functions
-│   └── visualization.py    # Plotting and visualization tools
+│   ├── visualization.py    # Plotting and visualization tools
+│   └── decomp/             # Matrix decomposition algorithms
+│       ├── __init__.py
+│       └── qsvd.py         # QR and Q-SVD implementations
 ├── tests/
 │   ├── unit/               # Unit tests and tutorial
 │   │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial
@@ -221,11 +224,17 @@ QuatIca/
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
-│   └── pseudoinverse/      # Pseudoinverse analysis scripts
-│       ├── analyze_pseudoinverse.py      # Single image pseudoinverse analysis
-│       ├── analyze_multiple_images_pseudoinverse.py # Multiple images analysis
-│       ├── analyze_cifar10_pseudoinverse.py # CIFAR-10 dataset analysis
-│       └── script_synthetic_matrices.py  # Synthetic matrices testing
+│   ├── pseudoinverse/      # Pseudoinverse analysis scripts
+│   │   ├── analyze_pseudoinverse.py      # Single image pseudoinverse analysis
+│   │   ├── analyze_multiple_images_pseudoinverse.py # Multiple images analysis
+│   │   ├── analyze_cifar10_pseudoinverse.py # CIFAR-10 dataset analysis
+│   │   └── script_synthetic_matrices.py  # Synthetic matrices testing
+│   ├── decomp/             # Matrix decomposition tests
+│   │   └── test_qsvd.py    # QR and Q-SVD unit tests
+│   └── validation/         # Validation and visualization scripts
+│       ├── __init__.py
+│       ├── README.md       # Validation package documentation
+│       └── qsvd_reconstruction_analysis.py # Q-SVD reconstruction error analysis
 ├── applications/
 │   ├── image_completion/   # Image processing applications
 │   │   ├── script_real_image_completion.py    # Real image completion
@@ -242,66 +251,6 @@ QuatIca/
 ├── requirements.txt       # Python dependencies
 └── run_analysis.py       # Easy-to-use script runner
 ```
-
-## 🔧 Matrix Decompositions
-
-QuatIca provides robust implementations of fundamental matrix decompositions for quaternion matrices:
-
-### **QR Decomposition**
-```python
-from core.decomp.qsvd import qr_qua
-
-# QR decomposition of quaternion matrix
-Q, R = qr_qua(X_quat)
-# X_quat = Q @ R, where Q has orthonormal columns and R is upper triangular
-```
-
-### **Quaternion SVD (Q-SVD)**
-```python
-from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
-
-# Truncated Q-SVD for low-rank approximation
-U, s, V = classical_qsvd(X_quat, R)
-# X_quat ≈ U @ diag(s) @ V^H
-
-# Full Q-SVD for complete decomposition
-U_full, s_full, V_full = classical_qsvd_full(X_quat)
-# X_quat = U_full @ Σ @ V_full^H
-```
-
-**Features:**
-- ✅ **Mathematically validated** with comprehensive tests
-- ✅ **Perfect reconstruction** at full rank
-- ✅ **Monotonic error decrease** with increasing rank
-- ✅ **Robust across matrix sizes** (tested on 4×3 to 8×6 matrices)
-- ✅ **Production-ready** with 10/10 tests passing
-
-## 📊 Visualization and Validation
-
-QuatIca includes a comprehensive visualization package for validating and demonstrating the correctness of our implementations:
-
-### **Q-SVD Reconstruction Error Analysis**
-```bash
-# Generate convincing visualizations of Q-SVD validation
-python tests/validation/qsvd_reconstruction_analysis.py
-```
-
-This creates professional-quality plots showing:
-- **Perfect monotonicity**: Reconstruction error decreases as rank increases
-- **Perfect reconstruction**: Full rank achieves 0.000000 error
-- **Consistent behavior**: Same patterns across different matrix sizes
-- **Mathematical correctness**: Our Q-SVD follows proper SVD principles
-
-**Generated plots:**
-- `qsvd_reconstruction_error_vs_rank.png` - Detailed analysis for each matrix size
-- `qsvd_relative_error_summary.png` - Summary with log scale convergence
-
-### **Why This Visualization is Convincing**
-1. **Mathematical Validation**: Shows expected SVD behavior
-2. **Visual Proof**: Clear graphs demonstrate monotonicity
-3. **Comprehensive Testing**: Multiple matrix sizes tested
-4. **Quantitative Results**: Exact error values provided
-5. **Professional Quality**: High-resolution plots suitable for presentations
 
 ## 📊 What Each Script Produces
 
@@ -721,6 +670,66 @@ pure_quat[1, 1, 3] = -1.0 # (1,1) k part
 pure_quat_result = quaternion.as_quat_array(pure_quat.reshape(-1, 4)).reshape(2, 2)
 ```
 
+## 🔧 Matrix Decompositions Included
+
+QuatIca provides robust implementations of fundamental matrix decompositions for quaternion matrices:
+
+### **QR Decomposition**
+```python
+from core.decomp.qsvd import qr_qua
+
+# QR decomposition of quaternion matrix
+Q, R = qr_qua(X_quat)
+# X_quat = Q @ R, where Q has orthonormal columns and R is upper triangular
+```
+
+### **Quaternion SVD (Q-SVD)**
+```python
+from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
+
+# Truncated Q-SVD for low-rank approximation
+U, s, V = classical_qsvd(X_quat, R)
+# X_quat ≈ U @ diag(s) @ V^H
+
+# Full Q-SVD for complete decomposition
+U_full, s_full, V_full = classical_qsvd_full(X_quat)
+# X_quat = U_full @ Σ @ V_full^H
+```
+
+**Features:**
+- ✅ **Mathematically validated** with comprehensive tests
+- ✅ **Perfect reconstruction** at full rank
+- ✅ **Monotonic error decrease** with increasing rank
+- ✅ **Robust across matrix sizes** (tested on 4×3 to 8×6 matrices)
+- ✅ **Production-ready** with 10/10 tests passing
+
+### **📊 Visualization and Validation**
+
+QuatIca includes a comprehensive visualization package for validating and demonstrating the correctness of our implementations:
+
+#### **Q-SVD Reconstruction Error Analysis**
+```bash
+# Generate convincing visualizations of Q-SVD validation
+python tests/validation/qsvd_reconstruction_analysis.py
+```
+
+This creates professional-quality plots showing:
+- **Perfect monotonicity**: Reconstruction error decreases as rank increases
+- **Perfect reconstruction**: Full rank achieves 0.000000 error
+- **Consistent behavior**: Same patterns across different matrix sizes
+- **Mathematical correctness**: Our Q-SVD follows proper SVD principles
+
+**Generated plots:**
+- `qsvd_reconstruction_error_vs_rank.png` - Detailed analysis for each matrix size
+- `qsvd_relative_error_summary.png` - Summary with log scale convergence
+
+#### **Why This Visualization is Convincing**
+1. **Mathematical Validation**: Shows expected SVD behavior
+2. **Visual Proof**: Clear graphs demonstrate monotonicity
+3. **Comprehensive Testing**: Multiple matrix sizes tested
+4. **Quantitative Results**: Exact error values provided
+5. **Professional Quality**: High-resolution plots suitable for presentations
+
 ## 📊 Analysis and Visualization
 
 The library includes comprehensive analysis tools:
@@ -772,6 +781,8 @@ python tests/unit/test_simple_newton.py
 # Run pseudoinverse analysis
 python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 ```
+
+
 
 ### Adding New Features
 
