@@ -54,38 +54,7 @@
 - **RAM**: 16GB for large-scale analysis
 - **CPU**: Multi-core processor for faster computation
 
-## 🔧 Matrix Decompositions
 
-QuatIca provides robust implementations of fundamental matrix decompositions for quaternion matrices:
-
-### **QR Decomposition**
-```python
-from core.decomp.qsvd import qr_qua
-
-# QR decomposition of quaternion matrix
-Q, R = qr_qua(X_quat)
-# X_quat = Q @ R, where Q has orthonormal columns and R is upper triangular
-```
-
-### **Quaternion SVD (Q-SVD)**
-```python
-from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
-
-# Truncated Q-SVD for low-rank approximation
-U, s, V = classical_qsvd(X_quat, R)
-# X_quat ≈ U @ diag(s) @ V^H
-
-# Full Q-SVD for complete decomposition
-U_full, s_full, V_full = classical_qsvd_full(X_quat)
-# X_quat = U_full @ Σ @ V_full^H
-```
-
-**Features:**
-- ✅ **Mathematically validated** with comprehensive tests
-- ✅ **Perfect reconstruction** at full rank
-- ✅ **Monotonic error decrease** with increasing rank
-- ✅ **Robust across matrix sizes** (tested on 4×3 to 8×6 matrices)
-- ✅ **Production-ready** with 10/10 tests passing
 
 ## 📊 Visualization and Validation
 
@@ -298,6 +267,39 @@ QuatIca/
 ├── requirements.txt       # Python dependencies
 └── run_analysis.py       # Easy-to-use script runner
 ```
+
+## 🔧 Matrix Decompositions
+
+QuatIca provides robust implementations of fundamental matrix decompositions for quaternion matrices:
+
+### **QR Decomposition**
+```python
+from core.decomp.qsvd import qr_qua
+
+# QR decomposition of quaternion matrix
+Q, R = qr_qua(X_quat)
+# X_quat = Q @ R, where Q has orthonormal columns and R is upper triangular
+```
+
+### **Quaternion SVD (Q-SVD)**
+```python
+from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
+
+# Truncated Q-SVD for low-rank approximation
+U, s, V = classical_qsvd(X_quat, R)
+# X_quat ≈ U @ diag(s) @ V^H
+
+# Full Q-SVD for complete decomposition
+U_full, s_full, V_full = classical_qsvd_full(X_quat)
+# X_quat = U_full @ Σ @ V_full^H
+```
+
+**Features:**
+- ✅ **Mathematically validated** with comprehensive tests
+- ✅ **Perfect reconstruction** at full rank
+- ✅ **Monotonic error decrease** with increasing rank
+- ✅ **Robust across matrix sizes** (tested on 4×3 to 8×6 matrices)
+- ✅ **Production-ready** with 10/10 tests passing
 
 ## 📊 What Each Script Produces
 
