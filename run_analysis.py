@@ -21,6 +21,8 @@ def main():
         print("  tutorial - Quaternion basics tutorial (recommended to start here)")
         print("  qgmres - Q-GMRES solver test (new!)")
         print("  lorenz_signal - Lorenz attractor signal processing with Q-GMRES (new!)")
+        print("                Note: Use --num_points <N> to control resolution/execution time")
+        print("                Examples: --num_points 100 (fast), --num_points 500 (high quality)")
         print("  cifar10         - CIFAR-10 pseudoinverse analysis")
         print("  pseudoinverse   - Single image pseudoinverse analysis")
         print("  multiple_images - Multiple images pseudoinverse analysis")
@@ -70,9 +72,17 @@ def main():
     try:
         # Change to the script's directory for proper relative path handling
         script_dir = os.path.dirname(script_path)
-        result = subprocess.run([sys.executable, os.path.basename(script_path)], 
-                              cwd=script_dir, 
-                              check=True)
+        
+        # Build command with arguments
+        cmd = [sys.executable, os.path.basename(script_path)]
+        
+        # Pass through additional arguments for specific scripts
+        if script_name == 'lorenz_signal' and len(sys.argv) > 2:
+            # Pass all remaining arguments to the Lorenz script
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to Lorenz script: {sys.argv[2:]}")
+        
+        result = subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "="*50)
         print("Script completed successfully!")
     except subprocess.CalledProcessError as e:

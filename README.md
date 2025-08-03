@@ -150,6 +150,31 @@ python run_analysis.py synthetic_matrices
 python run_analysis.py
 ```
 
+#### **🚀 Quick Reference - Most Common Commands:**
+
+```bash
+# 🎓 Learn the framework (START HERE)
+python run_analysis.py tutorial
+
+# ⚡ Test Q-GMRES solver
+python run_analysis.py qgmres
+
+# 🌪️ Lorenz attractor (fast testing)
+python run_analysis.py lorenz_signal --num_points 100
+
+# 🌪️ Lorenz attractor (default quality)
+python run_analysis.py lorenz_signal
+
+# 🌪️ Lorenz attractor (high quality)
+python run_analysis.py lorenz_signal --num_points 500
+
+# 🎯 Advanced analysis with real data
+python run_analysis.py cifar10
+
+# 🖼️ Image completion demo
+python run_analysis.py image_completion
+```
+
 #### **📊 What You Get:**
 
 - **All plots saved** in `output_figures/` directory
@@ -228,19 +253,52 @@ QuatIca/
 ### **🌪️ `lorenz_signal` - Lorenz Attractor Signal Processing**
 - **What it is**: 3D signal processing application using Q-GMRES
 - **Perfect for**: Signal processing and dynamical systems analysis
-- **Duration**: ~30 seconds
-- **Output**: 6+ visualization files in `output_figures/lorenz_attractor/`:
-  - Original Lorenz attractor 3D trajectory
-  - Observed signal with noise (3D and time series)
-  - Q-GMRES reconstructed signal (3D and time series)
-  - Convergence residuals plot
-- **Covers**:
-  - Lorenz attractor signal generation
-  - Noise addition and signal corruption
-  - Quaternion matrix construction for signal filtering
-  - Q-GMRES-based signal reconstruction
-  - 3D trajectory visualization
-  - Time series analysis
+- **Duration**: Configurable via `--num_points` parameter
+- **Output**: 6+ high-resolution visualization files in `output_figures/`:
+  - `lorenz_observed_components.png` - Noisy signal components (x, y, z)
+  - `lorenz_observed_trajectory.png` - 3D Lorenz attractor with noise
+  - `lorenz_reconstructed_components.png` - Cleaned signal components
+  - `lorenz_reconstructed_trajectory.png` - Reconstructed 3D trajectory
+  - `lorenz_rhs_components.png` - Right-hand side components
+  - `lorenz_rhs_trajectory.png` - RHS 3D trajectory
+  - `lorenz_residual_history.png` - Q-GMRES convergence plot
+
+#### **🎛️ Parameter Configuration:**
+The script accepts command-line arguments to control resolution and execution time:
+
+```bash
+# Fast testing (100 points, ~30 seconds)
+python run_analysis.py lorenz_signal --num_points 100
+
+# Balanced performance (200 points, ~75 seconds) - DEFAULT
+python run_analysis.py lorenz_signal
+
+# High resolution (500 points, ~5-10 minutes)
+python run_analysis.py lorenz_signal --num_points 500
+
+# Research quality (1000 points, ~20-30 minutes)
+python run_analysis.py lorenz_signal --num_points 1000
+
+# Save plots without displaying them
+python run_analysis.py lorenz_signal --no_show
+```
+
+#### **📊 Performance Guide:**
+| Points | Execution Time | Resolution | Use Case |
+|--------|----------------|------------|----------|
+| 100 | ~30 seconds | Low | Fast testing, development |
+| 200 | ~75 seconds | Good | **Default, balanced performance** |
+| 500 | ~5-10 minutes | High | Publication quality |
+| 1000 | ~20-30 minutes | Very High | Research, detailed analysis |
+
+#### **🔬 What It Covers:**
+- **Lorenz attractor signal generation** with configurable resolution
+- **Noise addition and signal corruption** simulation
+- **Quaternion matrix construction** for signal filtering
+- **Q-GMRES-based signal reconstruction** with convergence analysis
+- **3D trajectory visualization** (classic butterfly pattern)
+- **Time series analysis** of signal components
+- **Performance scaling** with different system sizes
 
 ### **🎯 `cifar10` - Most Comprehensive Analysis**
 - **Input**: 250 CIFAR-10 images (50 per class from 5 classes)
