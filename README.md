@@ -795,6 +795,7 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 
 - **Quaternion Pseudoinverse**: Huang, L., Wang, Q.-W., & Zhang, Y. (2015). The Moore–Penrose inverses of matrices over quaternion polynomial rings. Linear Algebra and its Applications, 475, 45-61.
 - **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
+- **Advanced Q-SVD Method**: Ma, R.-R., & Bai, Z.-J. (2018). A Structure-Preserving One-Sided Jacobi Method for Computing the SVD of a Quaternion Matrix. arXiv preprint arXiv:1811.08671.
 - **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
 
 ## 🚀 Upcoming Features (Coming Soon!)
@@ -804,7 +805,8 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 QuatIca is actively being extended with cutting-edge algorithms from recent research. The following features will be released soon:
 
 #### **📊 Efficient Q-SVD Computation**
-- **High-performance SVD** for quaternion matrices
+- **High-performance SVD** for quaternion matrices based on **Ma & Bai (2018)**
+- **Structure-preserving one-sided Jacobi method** for computing Q-SVD
 - **Optimized memory usage** for large-scale matrices
 - **Parallel computation** support for multi-core systems
 
