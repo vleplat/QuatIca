@@ -22,6 +22,14 @@ Algorithm: Householder Transformations
 Limitations:
 - Only works for Hermitian quaternion matrices
 - For non-Hermitian matrices, use adjoint matrix approach
+
+References:
+- Based on the MATLAB QTFM (Quaternion Toolbox for MATLAB) implementation
+- QTFM: http://qtfm.sourceforge.net/
+- Copyright © 2005 - 2025 Stephen J. Sangwine & Nicolas Le Bihan
+- Email: sangwine@users.sourceforge.net, nicolas.le-bihan@gipsa-lab.inpg.fr
+- This toolbox is free software under the GNU General Public License
+- Initially developed at the Laboratoire des Images & des Signaux (LIS), Grenoble
 """
 
 import sys
