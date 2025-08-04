@@ -964,7 +964,18 @@ This library is designed to be a comprehensive framework for quaternion linear a
 
 ## 📄 License
 
-[Add your license information here]
+This project is licensed under the **CC0 1.0 Universal** license - a public domain dedication that allows you to use, modify, and distribute this software freely for any purpose, including commercial use, without any restrictions.
+
+**Key Points:**
+- ✅ **Public Domain**: You can use this software for any purpose
+- ✅ **No Attribution Required**: You don't need to credit the original authors
+- ✅ **Commercial Use**: You can use it in commercial projects
+- ✅ **Modification**: You can modify and distribute your changes
+- ✅ **No Warranty**: The software is provided "as-is" without any warranties
+
+**Full License Text:** See [`LICENSE.txt`](LICENSE.txt) for the complete license terms.
+
+**Why CC0?** This license promotes the ideal of a free culture and encourages the further production of creative, cultural, and scientific works by allowing maximum freedom of use and redistribution.
 
 ---
 
