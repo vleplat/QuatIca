@@ -223,7 +223,8 @@ QuatIca/
 │   │   ├── test_qgmres_debug.py          # Q-GMRES debug tests
 │   │   ├── test_qgmres_simple.py         # Q-GMRES simple tests
 │   │   ├── test_real_image.py            # Real image processing tests
-│   │   └── test_normQsparse.py           # Matrix norm testing and comparison
+│   │   ├── test_normQsparse.py           # Matrix norm testing and comparison
+│   │   └── test_rand_qsvd.py             # Randomized Q-SVD comprehensive testing
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests

@@ -66,12 +66,25 @@ def qr_qua(X_quat):
     Qr, Rr = qr(A)                     # Qr: 4m×4m, Rr: 4m×4n
     
     # 3) Extract the relevant parts
-    Qr_thin = Qr[:, :4*n]              # 4m×4n (first 4n columns)
-    Rr_thin = Rr[:4*n, :]              # 4n×4n (first 4n rows)
+    # Handle the case where the matrix might be wide (m < n)
+    if 4*m >= 4*n:
+        # Tall matrix: extract thin QR
+        Qr_thin = Qr[:, :4*n]              # 4m×4n (first 4n columns)
+        Rr_thin = Rr[:4*n, :]              # 4n×4n (first 4n rows)
+    else:
+        # Wide matrix: use full QR
+        Qr_thin = Qr                       # 4m×4m (full Q)
+        Rr_thin = Rr                       # 4m×4n (full R)
     
     # 4) Convert back to quaternion using the original real_contract
-    Q_quat = real_contract(Qr_thin, m, n)
-    R_quat = real_contract(Rr_thin, n, n)
+    if 4*m >= 4*n:
+        # Tall matrix: standard conversion
+        Q_quat = real_contract(Qr_thin, m, n)
+        R_quat = real_contract(Rr_thin, n, n)
+    else:
+        # Wide matrix: adjust dimensions
+        Q_quat = real_contract(Qr_thin, m, m)  # Q is m×m
+        R_quat = real_contract(Rr_thin, m, n)  # R is m×n
     
     return Q_quat, R_quat
 
@@ -213,42 +226,65 @@ def rand_qsvd(X_quat, R, oversample=10, n_iter=2):
     Notes:
     ------
     Cost: O(mn(R+P)) + O((R+P)²n) where P = oversample.
-    ⚠️ PLACEHOLDER IMPLEMENTATION - needs proper testing and validation.
     """
     m, n = X_quat.shape
     P = oversample
     
-    # 1) Gaussian sketch
-    Omega = np.random.randn(n, R + P)
-    # Convert Omega to quaternion matrix
-    Omega_quat = quaternion.as_quat_array(Omega.reshape(n, R + P, 1))
-    Y = quat_matmat(X_quat, Omega_quat)
+    # 1) O=randn(n,R+P) - Create random matrix
+    O = np.random.randn(n, R + P)
+    # Convert to quaternion matrix (real part only)
+    O_components = np.zeros((n, R + P, 4))
+    O_components[..., 0] = O  # Real part
+    O_quat = quaternion.as_quat_array(O_components)
     
-    # 2) Orthonormalize
-    Q, _ = qr_qua(Y)
+    # 2) [Q_1,~]=qr_qua(X*O) - QR of X*O
+    Q1, _ = qr_qua(quat_matmat(X_quat, O_quat))
     
-    # 3) Power iterations
-    for _ in range(n_iter):
-        Q2, _ = qr_qua(quat_matmat(quat_hermitian(X_quat), Q))
-        Q, _ = qr_qua(quat_matmat(X_quat, Q2))
+    # 3) Power iterations: for i=1:q
+    for i in range(n_iter):
+        # [Q_2,~]=qr_qua(X'*Q_1)
+        Q2_temp = quat_matmat(quat_hermitian(X_quat), Q1)
+        # Handle the case where Q2_temp might not be tall enough for thin QR
+        if Q2_temp.shape[0] >= Q2_temp.shape[1]:
+            Q2, _ = qr_qua(Q2_temp)
+        else:
+            # Use full QR and take the first columns
+            Q2_full, _ = qr_qua(Q2_temp)
+            Q2 = Q2_full[:, :Q2_temp.shape[1]]
+        
+        # [Q_1,~]=qr_qua(X*Q_2)
+        Q1_temp = quat_matmat(X_quat, Q2)
+        if Q1_temp.shape[0] >= Q1_temp.shape[1]:
+            Q1, _ = qr_qua(Q1_temp)
+        else:
+            Q1_full, _ = qr_qua(Q1_temp)
+            Q1 = Q1_full[:, :Q1_temp.shape[1]]
     
-    # 4) Small projection
-    B = quat_matmat(quat_hermitian(Q), X_quat)  # (R+P)×n
+    # 4) [Q_2,RR]=qr_qua(X'*Q_1) - Final QR
+    Q2_temp = quat_matmat(quat_hermitian(X_quat), Q1)
+    if Q2_temp.shape[0] >= Q2_temp.shape[1]:
+        Q2, RR = qr_qua(Q2_temp)
+    else:
+        # Use full QR and take the first columns
+        Q2_full, RR_full = qr_qua(Q2_temp)
+        Q2 = Q2_full[:, :Q2_temp.shape[1]]
+        RR = RR_full[:Q2_temp.shape[1], :]
     
-    # 5) Real SVD
-    B_real = real_expand(B)                    # 4(R+P)×4n
-    U_r, s, Vt_r = np.linalg.svd(B_real, full_matrices=False)
+    # 5) [V_,S,U_]=svd(RR) - SVD of RR
+    RR_real = real_expand(RR)
+    V_, S, U_ = np.linalg.svd(RR_real, full_matrices=False)
     
-    # 6) Lift and truncate
-    U_small_reshaped = U_r[:, :R].reshape(Q.shape[1], 4, R).transpose(0, 2, 1)
-    U_small = quaternion.as_quat_array(U_small_reshaped)
-    V_small_reshaped = Vt_r[:R, :].T.reshape(n, 4, R).transpose(0, 2, 1)
-    V_small = quaternion.as_quat_array(V_small_reshaped)
+    # Take every 4th singular value for quaternion SVD
+    s = S[::4][:R]
     
-    U_quat = quat_matmat(Q, U_small)
-    V_quat = V_small
+    # 6) V=Q_2*V_; U=Q_1*U_ - Lift back
+    V_small = real_contract(V_[:, :4*R], Q2.shape[1], R)
+    U_small = real_contract(U_[:4*R, :].T, Q1.shape[1], R)
     
-    return U_quat, s[:R], V_quat
+    V_quat = quat_matmat(Q2, V_small)
+    U_quat = quat_matmat(Q1, U_small)
+    
+    return U_quat, s, V_quat
 
 
 def pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2):

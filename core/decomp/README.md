@@ -45,7 +45,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Input Matrix**: **General quaternion matrix** (any m×n)
 - **Algorithm**: Gaussian sketching + power iterations + QR
 - **Output**: `(U, s, V)` (approximate, rank-R)
-- **Status**: ⚠️ **PLACEHOLDER IMPLEMENTATION** (needs testing)
+- **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
 ### **6. Pass-Efficient Q-SVD**
 - **Function**: `pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2)`
@@ -171,9 +171,9 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - Classical Q-SVD (`classical_qsvd`, `classical_qsvd_full`)
 - Eigenvalue Decomposition (`quaternion_eigendecomposition`)
 - Tridiagonalization (`tridiagonalize`)
+- Randomized Q-SVD (`rand_qsvd`)
 
 ### **⚠️ Placeholder Implementations**
-- Randomized Q-SVD (`rand_qsvd`)
 - Pass-Efficient Q-SVD (`pass_eff_qsvd`)
 
 **Note**: Placeholder implementations exist but require additional testing and validation before production use.
