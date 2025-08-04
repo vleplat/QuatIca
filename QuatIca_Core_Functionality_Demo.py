@@ -97,7 +97,48 @@ print("  V_full shape:", V_full.shape)
 
 print("✅ Q-SVD works!")
 
-# ## 4. Eigenvalue Decomposition
+# ## 4. Randomized Q-SVD
+
+from core.decomp.qsvd import rand_qsvd
+from core.utils import quat_hermitian
+
+# Create a test matrix
+X_quat = create_test_matrix(8, 6)
+print("Input matrix X shape:", X_quat.shape)
+
+# Randomized Q-SVD with different parameters
+R = 3  # Target rank
+print(f"Target rank R = {R}")
+
+# Test with different power iterations
+for n_iter in [1, 2, 3]:
+    print(f"\nTesting with {n_iter} power iteration(s):")
+    
+    U, s, V = rand_qsvd(X_quat, R, oversample=5, n_iter=n_iter)
+    print(f"  U shape: {U.shape}")
+    print(f"  V shape: {V.shape}")
+    print(f"  s shape: {s.shape}")
+    print(f"  Singular values: {s}")
+    
+    # Test reconstruction
+    S_diag = np.diag(s)
+    X_recon = quat_matmat(quat_matmat(U, S_diag), quat_hermitian(V))
+    reconstruction_error = quat_frobenius_norm(X_quat - X_recon)
+    relative_error = reconstruction_error / quat_frobenius_norm(X_quat)
+    print(f"  Reconstruction error: {reconstruction_error:.6f}")
+    print(f"  Relative error: {relative_error:.6f}")
+
+# Test with full rank for perfect reconstruction
+print(f"\nTesting with full rank (R = {min(X_quat.shape)}):")
+U_full, s_full, V_full = rand_qsvd(X_quat, min(X_quat.shape), oversample=5, n_iter=2)
+S_full_diag = np.diag(s_full)
+X_recon_full = quat_matmat(quat_matmat(U_full, S_full_diag), quat_hermitian(V_full))
+reconstruction_error_full = quat_frobenius_norm(X_quat - X_recon_full)
+print(f"  Full rank reconstruction error: {reconstruction_error_full:.2e}")
+
+print("✅ Randomized Q-SVD works!")
+
+# ## 5. Eigenvalue Decomposition
 
 from core.decomp import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
 from core.utils import quat_hermitian
@@ -129,7 +170,7 @@ print("Maximum imaginary part:", max_imag)
 
 print("✅ Eigenvalue decomposition works!")
 
-# ## 5. Tridiagonalization
+# ## 6. Tridiagonalization
 
 from core.decomp import tridiagonalize
 
@@ -150,7 +191,7 @@ print("  Transformation error:", transformation_error)
 
 print("✅ Tridiagonalization works!")
 
-# ## 6. Pseudoinverse Computation
+# ## 7. Pseudoinverse Computation
 
 from core.solver import NewtonSchulzPseudoinverse
 
@@ -170,7 +211,7 @@ print("A^†^† shape:", A_pinv_H.shape)
 
 print("✅ Pseudoinverse computation works!")
 
-# ## 7. Linear System Solving
+# ## 8. Linear System Solving
 
 from core.solver import QGMRESSolver
 
@@ -193,7 +234,7 @@ print("Residual ||A*x - b||:", residual)
 
 print("✅ Linear system solving works!")
 
-# ## 8. Visualization
+# ## 9. Visualization
 
 from core.visualization import Visualizer
 
@@ -213,6 +254,7 @@ print("🎉 ALL CORE FUNCTIONALITY TESTS COMPLETED SUCCESSFULLY!")
 print("\n✅ Basic matrix operations")
 print("✅ QR decomposition")
 print("✅ Quaternion SVD (Q-SVD)")
+print("✅ Randomized Q-SVD")
 print("✅ Eigenvalue decomposition")
 print("✅ Tridiagonalization")
 print("✅ Pseudoinverse computation")
