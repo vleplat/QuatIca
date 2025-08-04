@@ -682,6 +682,8 @@ pure_quat_result = quaternion.as_quat_array(pure_quat.reshape(-1, 4)).reshape(2,
 
 QuatIca provides robust implementations of fundamental matrix decompositions for quaternion matrices:
 
+**📖 For a comprehensive overview of all decomposition methods, algorithms, and usage recommendations, see [`core/decomp/README.md`](core/decomp/README.md).**
+
 ### **QR Decomposition**
 ```python
 from core.decomp.qsvd import qr_qua
