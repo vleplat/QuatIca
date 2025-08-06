@@ -850,7 +850,7 @@ def det(X, d):
     
     if d in ['Dieudonné', 'Dieudonne']:
         # Dieudonné determinant: product of singular values
-        from core.decomp.qsvd import classical_qsvd_full
+        from decomp.qsvd import classical_qsvd_full
         _, s, _ = classical_qsvd_full(X)
         return np.prod(s)
     
@@ -865,7 +865,7 @@ def det(X, d):
         if not ishermitian(X):
             raise ValueError('Cannot compute Moore determinant of a non-Hermitian matrix.')
         
-        from core.decomp import quaternion_eigenvalues
+        from decomp import quaternion_eigenvalues
         eigenvalues = quaternion_eigenvalues(X)
         return np.prod(eigenvalues)
     
