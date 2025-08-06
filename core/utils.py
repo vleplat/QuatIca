@@ -777,3 +777,97 @@ def UtriangleQsparse(R0, R1, R2, R3, b0, b1, b2, b3, tol=1e-14):
         raise ValueError("The sizes of R and b are not consistent!")
     
     return b0, b1, b2, b3
+
+def ishermitian(A, tol=None):
+    """
+    Check if a quaternion matrix is Hermitian to within the given tolerance.
+    
+    Parameters:
+    -----------
+    A : numpy.ndarray with dtype=quaternion
+        Quaternion matrix to test
+    tol : float, optional
+        Tolerance for comparison (default: machine epsilon)
+    
+    Returns:
+    --------
+    bool : True if matrix is Hermitian within tolerance
+    
+    Notes:
+    ------
+    A matrix A is Hermitian if A = A^H where A^H is the conjugate transpose.
+    """
+    if tol is None:
+        tol = np.finfo(float).eps
+    
+    r, c = A.shape
+    
+    if r != c:
+        raise ValueError('Cannot test whether a non-square matrix is Hermitian.')
+    
+    # Compute A - A^H and check if it's within tolerance
+    A_H = quat_hermitian(A)
+    diff = A - A_H
+    
+    # Normalize by maximum absolute value
+    max_abs = np.max(np.abs(A))
+    if max_abs == 0:
+        return True  # Zero matrix is Hermitian
+    
+    # Check if normalized difference is within tolerance
+    normalized_diff = np.abs(diff) / max_abs
+    return not np.any(normalized_diff > tol)
+
+
+def det(X, d):
+    """
+    Compute determinant of a quaternion matrix.
+    
+    Parameters:
+    -----------
+    X : numpy.ndarray with dtype=quaternion
+        Square quaternion matrix
+    d : str
+        Determinant type:
+        - 'Moore': Product of eigenvalues (requires Hermitian matrix)
+        - 'Dieudonné' or 'Dieudonne': Product of singular values
+        - 'Study': Determinant of the adjoint matrix
+    
+    Returns:
+    --------
+    complex or float : The computed determinant
+    
+    Notes:
+    ------
+    - Moore determinant can be negative or complex, but requires Hermitian matrix
+    - Dieudonné determinant is always real
+    - Study determinant is the square of Dieudonné determinant
+    """
+    r, c = X.shape
+    
+    if r != c:
+        raise ValueError('Matrix must be square.')
+    
+    if d in ['Dieudonné', 'Dieudonne']:
+        # Dieudonné determinant: product of singular values
+        from core.decomp.qsvd import classical_qsvd_full
+        _, s, _ = classical_qsvd_full(X)
+        return np.prod(s)
+    
+    elif d == 'Study':
+        # Study determinant: determinant of the adjoint
+        # For now, we'll use a simplified approach
+        # TODO: Implement proper adjoint computation
+        raise NotImplementedError('Study determinant not yet implemented')
+    
+    elif d == 'Moore':
+        # Moore determinant: product of eigenvalues (requires Hermitian)
+        if not ishermitian(X):
+            raise ValueError('Cannot compute Moore determinant of a non-Hermitian matrix.')
+        
+        from core.decomp import quaternion_eigenvalues
+        eigenvalues = quaternion_eigenvalues(X)
+        return np.prod(eigenvalues)
+    
+    else:
+        raise ValueError(f'Unrecognized determinant type: {d}')
