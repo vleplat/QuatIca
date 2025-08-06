@@ -871,3 +871,47 @@ def det(X, d):
     
     else:
         raise ValueError(f'Unrecognized determinant type: {d}')
+
+
+def rank(X, tol=None):
+    """
+    Compute the rank of a quaternion matrix by counting non-zero singular values.
+    
+    Parameters:
+    -----------
+    X : numpy.ndarray with dtype=quaternion
+        Quaternion matrix of any shape (m, n)
+    tol : float, optional
+        Tolerance for considering singular values as non-zero
+        (default: machine epsilon * max(m,n) * max singular value)
+    
+    Returns:
+    --------
+    int : The rank of the matrix (number of non-zero singular values)
+    
+    Notes:
+    ------
+    The rank is computed by:
+    1. Computing the SVD of the matrix: X = U @ S @ V^H
+    2. Counting singular values above the tolerance threshold
+    3. The rank equals the number of non-zero singular values
+    
+    The tolerance is automatically adjusted based on matrix size and magnitude
+    to handle numerical precision issues.
+    """
+    m, n = X.shape
+    
+    # Compute SVD
+    from decomp.qsvd import classical_qsvd_full
+    _, s, _ = classical_qsvd_full(X)
+    
+    # Set tolerance if not provided
+    if tol is None:
+        # Use machine epsilon scaled by matrix size and largest singular value
+        max_sv = np.max(s) if len(s) > 0 else 0
+        tol = np.finfo(float).eps * max(m, n) * max_sv
+    
+    # Count singular values above tolerance
+    rank_count = np.sum(s > tol)
+    
+    return int(rank_count)
