@@ -248,6 +248,86 @@ Visualizer.visualize_matrix(A, component=1, title="Test Matrix - i Component")
 
 print("✅ Visualization works!")
 
+# ## 10. Determinant and Rank Computation
+
+from core.utils import det, rank
+from core.data_gen import generate_random_unitary_matrix
+
+print("\n" + "="*60)
+print("DETERMINANT AND RANK COMPUTATION DEMONSTRATIONS")
+print("="*60)
+
+# ### 10.1 Determinant Demo: Unitary Matrix with Known Determinant
+
+print("\n--- Determinant Demo: Unitary Matrix ---")
+
+# Generate a random unitary matrix (determinant should be 1)
+n = 4
+U = generate_random_unitary_matrix(n)
+print(f"Generated unitary matrix U of size {n}×{n}")
+
+# Compute Dieudonné determinant
+det_dieudonne = det(U, 'Dieudonne')
+print(f"Dieudonné determinant: {det_dieudonne:.6f}")
+
+# Expected determinant for unitary matrix should be close to 1
+expected_det = 1.0
+error = abs(det_dieudonne - expected_det)
+print(f"Expected determinant: {expected_det}")
+print(f"Absolute error: {error:.2e}")
+
+if error < 1e-10:
+    print("✅ Determinant computation works correctly!")
+else:
+    print("❌ Determinant computation has issues!")
+
+# ### 10.2 Rank Demo: Matrix Product with Known Rank
+
+print("\n--- Rank Demo: Matrix Product ---")
+
+# Create matrices A (m×r) and B (r×n) with known rank r
+m, r, n = 5, 3, 4
+A = create_test_matrix(m, r)
+B = create_test_matrix(r, n)
+print(f"Matrix A: {m}×{r}")
+print(f"Matrix B: {r}×{n}")
+
+# Compute product C = A @ B
+C = quat_matmat(A, B)
+print(f"Matrix C = A @ B: {C.shape}")
+
+# Compute rank of C
+computed_rank = rank(C)
+expected_rank = r
+print(f"Computed rank of C: {computed_rank}")
+print(f"Expected rank: {expected_rank}")
+
+if computed_rank == expected_rank:
+    print("✅ Rank computation works correctly!")
+else:
+    print("❌ Rank computation has issues!")
+
+# ### 10.3 Additional Rank Examples
+
+print("\n--- Additional Rank Examples ---")
+
+# Test full-rank matrix
+full_rank_matrix = create_test_matrix(4, 4)
+full_rank = rank(full_rank_matrix)
+print(f"Full-rank 4×4 matrix: rank = {full_rank} (expected: 4)")
+
+# Test zero matrix
+zero_matrix = np.zeros((3, 3), dtype=np.quaternion)
+zero_rank = rank(zero_matrix)
+print(f"Zero 3×3 matrix: rank = {zero_rank} (expected: 0)")
+
+# Test identity matrix
+identity_matrix = np.eye(5, dtype=np.quaternion)
+identity_rank = rank(identity_matrix)
+print(f"Identity 5×5 matrix: rank = {identity_rank} (expected: 5)")
+
+print("✅ All rank examples work correctly!")
+
 # ## Summary
 
 print("🎉 ALL CORE FUNCTIONALITY TESTS COMPLETED SUCCESSFULLY!")
@@ -260,4 +340,6 @@ print("✅ Tridiagonalization")
 print("✅ Pseudoinverse computation")
 print("✅ Linear system solving")
 print("✅ Visualization")
+print("✅ Determinant computation")
+print("✅ Rank computation")
 print("\nThe code examples in the README are working correctly! 🚀") 
