@@ -915,3 +915,113 @@ def rank(X, tol=None):
     rank_count = np.sum(s > tol)
     
     return int(rank_count)
+
+
+def power_iteration(A, max_iterations=100, tol=1e-10, return_eigenvalue=False, verbose=False):
+    """
+    Compute the dominant eigenvector of a quaternion matrix using power iteration.
+    
+    Parameters:
+    -----------
+    A : numpy.ndarray with dtype=quaternion
+        Square quaternion matrix of size n×n
+    max_iterations : int, optional
+        Maximum number of iterations (default: 100)
+    tol : float, optional
+        Convergence tolerance for vector norm difference (default: 1e-10)
+    return_eigenvalue : bool, optional
+        If True, also return the corresponding eigenvalue (default: False)
+    verbose : bool, optional
+        If True, print convergence information (default: False)
+    
+    Returns:
+    --------
+    numpy.ndarray or tuple:
+        - If return_eigenvalue=False: dominant eigenvector (n×1 quaternion vector)
+        - If return_eigenvalue=True: (eigenvector, eigenvalue) tuple
+    
+    Notes:
+    ------
+    The power iteration method finds the eigenvector corresponding to the 
+    eigenvalue with largest magnitude. The algorithm:
+    1. Start with a random vector
+    2. Iteratively compute: v_{k+1} = A * v_k / ||A * v_k||
+    3. Stop when ||v_{k+1} - v_k|| < tol or max_iterations reached
+    
+    The method is guaranteed to converge for diagonalizable matrices with
+    a unique dominant eigenvalue.
+    """
+    from data_gen import create_test_matrix
+    
+    # Input validation
+    if A.shape[0] != A.shape[1]:
+        raise ValueError("Matrix A must be square")
+    
+    n = A.shape[0]
+    if n == 0:
+        raise ValueError("Matrix A cannot be empty")
+    
+    # Initialize with random vector
+    v_k = create_test_matrix(n, 1)  # n×1 random quaternion vector
+    
+    # Normalize initial vector
+    v_k_norm = quat_frobenius_norm(v_k)
+    if v_k_norm == 0:
+        raise ValueError("Initial vector has zero norm")
+    v_k = v_k / v_k_norm
+    
+    prev_norm_diff = float('inf')
+    
+    for iteration in range(max_iterations):
+        # Compute A * v_k
+        Av_k = quat_matmat(A, v_k)
+        
+        # Compute norm of result
+        Av_k_norm = quat_frobenius_norm(Av_k)
+        
+        # Check for breakdown (zero norm)
+        if Av_k_norm == 0:
+            if verbose:
+                print(f"Breakdown at iteration {iteration}: Av_k has zero norm")
+            break
+        
+        # Store previous vector for convergence check
+        v_k_prev = v_k.copy()
+        
+        # Normalize to get new vector
+        v_k = Av_k / Av_k_norm
+        
+        # Check convergence: ||v_k - v_k_prev||
+        norm_diff = quat_frobenius_norm(v_k - v_k_prev)
+        
+        if verbose:
+            print(f"Iteration {iteration}: norm_diff = {norm_diff:.2e}")
+        
+        # Check if convergence criterion is met
+        if norm_diff < tol:
+            if verbose:
+                print(f"Converged at iteration {iteration} with norm_diff = {norm_diff:.2e}")
+            break
+        
+        # Check for stagnation (no improvement)
+        if abs(norm_diff - prev_norm_diff) < tol * 1e-3:
+            if verbose:
+                print(f"Stagnation detected at iteration {iteration}")
+            break
+        
+        prev_norm_diff = norm_diff
+    
+    # Compute eigenvalue if requested
+    if return_eigenvalue:
+        # Rayleigh quotient: λ = (v^H * A * v) / (v^H * v)
+        v_H = quat_hermitian(v_k)
+        numerator = quat_matmat(quat_matmat(v_H, A), v_k)
+        denominator = quat_matmat(v_H, v_k)
+        
+        # For quaternion matrices, eigenvalue might be complex
+        # We return the magnitude as the eigenvalue
+        eigenvalue = quat_frobenius_norm(numerator) / quat_frobenius_norm(denominator)
+        
+        return v_k, eigenvalue
+    
+    return v_k
