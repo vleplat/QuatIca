@@ -8,6 +8,9 @@ import quaternion
 from scipy import sparse
 from utils import quat_matmat, SparseQuaternionMatrix
 
+# Import QR decomposition from decomp module
+from decomp.qsvd import qr_qua
+
 
 def create_sparse_quat_matrix(m: int, n: int, density: float = 0.1) -> SparseQuaternionMatrix:
     """Create a random sparse quaternion matrix of size m×n using CSR format."""
@@ -36,6 +39,45 @@ def create_test_matrix(m: int, n: int, rank: int = None, cond_number: float = No
     B_quat = quaternion.as_quat_array(B_real.reshape(-1, 4)).reshape(rank, n)
     # Return product A * B
     return quat_matmat(A_quat, B_quat)
+
+
+def generate_random_unitary_matrix(n: int) -> np.ndarray:
+    """
+    Generate a random unitary quaternion matrix of size n×n.
+    
+    This function creates a random unitary matrix by:
+    1. Generating a random n×n quaternion matrix
+    2. Computing its QR decomposition
+    3. Returning the Q matrix, which is guaranteed to be unitary
+    
+    Parameters:
+    -----------
+    n : int
+        Size of the square unitary matrix to generate
+        
+    Returns:
+    --------
+    np.ndarray
+        An n×n unitary quaternion matrix Q satisfying Q^H * Q = I
+        
+    Notes:
+    ------
+    The generated matrix is truly unitary (orthogonal in quaternion space)
+    and can be used for various applications including:
+    - Random rotations in 4D space
+    - Unitary transformations
+    - Orthogonal basis generation
+    - Testing unitary matrix algorithms
+    """
+    # Generate a random n×n quaternion matrix
+    random_matrix = create_test_matrix(n, n)
+    
+    # Compute QR decomposition
+    Q, R = qr_qua(random_matrix)
+    
+    # Return the Q matrix (unitary part)
+    return Q
+
 
 def small_test_Mat() -> np.ndarray:
     """
