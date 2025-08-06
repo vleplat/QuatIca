@@ -207,7 +207,7 @@ python run_analysis.py image_completion
 QuatIca/
 ├── core/                    # Core library files
 │   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES)
-│   ├── utils.py            # Quaternion operations and utilities
+│   ├── utils.py            # Quaternion operations, utilities, and power iteration
 │   ├── data_gen.py         # Matrix generation functions
 │   ├── visualization.py    # Plotting and visualization tools
 │   └── decomp/             # Matrix decomposition algorithms
@@ -224,7 +224,8 @@ QuatIca/
 │   │   ├── test_qgmres_simple.py         # Q-GMRES simple tests
 │   │   ├── test_real_image.py            # Real image processing tests
 │   │   ├── test_normQsparse.py           # Matrix norm testing and comparison
-│   │   └── test_rand_qsvd.py             # Randomized Q-SVD comprehensive testing
+│   │   ├── test_rand_qsvd.py             # Randomized Q-SVD comprehensive testing
+│   │   └── test_power_iteration_simple.py # Power iteration validation tests
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests

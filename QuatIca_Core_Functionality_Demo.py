@@ -328,6 +328,92 @@ print(f"Identity 5×5 matrix: rank = {identity_rank} (expected: 5)")
 
 print("✅ All rank examples work correctly!")
 
+# ## 11. Power Iteration for Dominant Eigenvector
+
+from core.utils import power_iteration
+from core.decomp.eigen import quaternion_eigendecomposition
+
+print("\n" + "="*60)
+print("POWER ITERATION FOR DOMINANT EIGENVECTOR")
+print("="*60)
+
+# ### 11.1 Power Iteration Demo: Comparison with Eigendecomposition
+
+print("\n--- Power Iteration vs Eigendecomposition ---")
+
+# Create Hermitian matrix: A = B^H @ B (positive definite)
+B = create_test_matrix(5, 5)
+A = quat_matmat(quat_hermitian(B), B)
+print(f"Created Hermitian matrix A of size {A.shape}")
+
+# Run power iteration
+print("\nRunning power iteration...")
+power_eigenvector, power_eigenvalue = power_iteration(A, return_eigenvalue=True, verbose=True)
+
+# Run eigendecomposition
+print("\nRunning eigendecomposition...")
+eigenvalues, eigenvectors = quaternion_eigendecomposition(A, verbose=False)
+
+# Find dominant eigenvalue and eigenvector
+dominant_idx = np.argmax(np.abs(eigenvalues))
+dominant_eigenvalue = eigenvalues[dominant_idx]
+dominant_eigenvector = eigenvectors[:, dominant_idx:dominant_idx+1]
+
+print(f"\nComparison Results:")
+print(f"Power iteration eigenvalue: {power_eigenvalue:.6f}")
+print(f"Eigendecomposition dominant eigenvalue: {dominant_eigenvalue:.6f}")
+print(f"Eigenvalue difference: {abs(power_eigenvalue - abs(dominant_eigenvalue)):.2e}")
+
+# Compare eigenvectors
+power_norm = quat_frobenius_norm(power_eigenvector)
+decomp_norm = quat_frobenius_norm(dominant_eigenvector)
+
+power_normalized = power_eigenvector / power_norm
+decomp_normalized = dominant_eigenvector / decomp_norm
+
+dot_product = quat_matmat(quat_hermitian(power_normalized), decomp_normalized)
+dot_product_norm = quat_frobenius_norm(dot_product)
+
+print(f"Eigenvector alignment: {dot_product_norm:.6f}")
+
+# Verify results
+eigenvalue_error = abs(power_eigenvalue - abs(dominant_eigenvalue))
+eigenvector_error = abs(dot_product_norm - 1.0)
+
+if eigenvalue_error < 1e-6 and eigenvector_error < 1e-6:
+    print("✅ Power iteration matches eigendecomposition perfectly!")
+else:
+    print("❌ Power iteration has issues!")
+
+# ### 11.2 Power Iteration Performance Across Sizes
+
+print("\n--- Performance Across Matrix Sizes ---")
+
+sizes = [3, 6, 9]
+for size in sizes:
+    print(f"\nTesting {size}×{size} matrix:")
+    
+    # Create test matrix
+    B = create_test_matrix(size, size)
+    A = quat_matmat(quat_hermitian(B), B)
+    
+    # Time power iteration
+    import time
+    start_time = time.time()
+    eigenvector, eigenvalue = power_iteration(A, return_eigenvalue=True, verbose=False)
+    power_time = time.time() - start_time
+    
+    # Time eigendecomposition
+    start_time = time.time()
+    eigenvalues, eigenvectors = quaternion_eigendecomposition(A, verbose=False)
+    decomp_time = time.time() - start_time
+    
+    print(f"  Power iteration: {power_time:.3f}s")
+    print(f"  Eigendecomposition: {decomp_time:.3f}s")
+    print(f"  Speedup: {decomp_time/power_time:.1f}x faster")
+
+print("✅ Power iteration performance analysis complete!")
+
 # ## Summary
 
 print("🎉 ALL CORE FUNCTIONALITY TESTS COMPLETED SUCCESSFULLY!")
@@ -342,4 +428,5 @@ print("✅ Linear system solving")
 print("✅ Visualization")
 print("✅ Determinant computation")
 print("✅ Rank computation")
+print("✅ Power iteration")
 print("\nThe code examples in the README are working correctly! 🚀") 
