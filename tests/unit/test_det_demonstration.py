@@ -112,8 +112,8 @@ def test_dieudonne_determinant_svd_decomposition():
 def main():
     """Run the demonstration."""
     print("Demonstrating Dieudonné determinant using SVD decomposition")
-    print("This shows the mathematical concept without relying on the det() function")
-    print("which has import issues in the current test environment.")
+    print("This shows the mathematical concept and verification of the det() function")
+    print("which now works properly in the test environment.")
     print()
     
     test_dieudonne_determinant_svd_decomposition()
@@ -127,8 +127,8 @@ def main():
     print("3. Verification through SVD computation and reconstruction")
     print("4. Unitarity properties of U and V matrices")
     print()
-    print("The mathematical concept is verified, even though the det() function")
-    print("has import issues in the current test environment.")
+    print("The mathematical concept is verified and the det() function")
+    print("now works correctly in the test environment.")
 
 
 if __name__ == "__main__":
