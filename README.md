@@ -446,74 +446,7 @@ python run_analysis.py lorenz_benchmark
 - **Shows**: Algorithm performance on different matrix types, including known theoretical result from Huang et al. (2015)
 - **Note**: Generates interactive plots (not saved to files) for convergence analysis
 
-## 🔧 Troubleshooting
 
-### **Common Issues and Solutions:**
-
-#### **❌ "Command not found: python"**
-- **Solution**: Install Python from [python.org](https://python.org)
-- **Alternative**: Try `python3` instead of `python`
-
-#### **❌ "pip: command not found"**
-- **Solution**: Python comes with pip. Try `python -m pip` instead of `pip`
-- **Alternative**: Install pip separately: `python -m ensurepip --upgrade`
-
-#### **❌ "Permission denied" when installing packages**
-- **Solution**: Use virtual environment (see installation steps above)
-- **Alternative**: Add `--user` flag: `pip install --user -r requirements.txt`
-
-#### **❌ "numpy version too old"**
-- **Solution**: Upgrade numpy: `pip install --upgrade numpy>=2.3.2`
-- **Check version**: `python -c "import numpy; print(numpy.__version__)"`
-
-#### **❌ "Script not found"**
-- **Solution**: Make sure you're in the correct directory (`QuatIca`)
-- **Check**: Run `ls` or `dir` to see if `run_analysis.py` exists
-
-#### **❌ "Import error"**
-- **Solution**: Activate virtual environment: `source venv/bin/activate` (Mac/Linux) or `venv\Scripts\activate` (Windows)
-- **Check**: You should see `(venv)` at the start of your command line
-
-#### **❌ "Memory error"**
-- **Solution**: Close other applications to free RAM
-- **Alternative**: Use smaller datasets or reduce matrix sizes in scripts
-
-#### **❌ "Slow performance"**
-- **Check numpy version**: Must be >= 2.3.2 for optimal performance
-- **Solution**: `pip install --upgrade numpy>=2.3.2`
-
-#### **❌ "No visualizations appear"**
-- **Solution**: Make sure matplotlib backend is working: `python -c "import matplotlib.pyplot as plt; plt.plot([1,2,3]); plt.show()"`
-- **Alternative**: Check if `output_figures/` directory exists and has write permissions
-- **Note**: Visualizations are automatically saved to `output_figures/` directory
-
-#### **⚠️ "DeprecationWarning about seaborn"**
-- **This is normal**: The warning about seaborn date parsing is harmless and doesn't affect functionality
-- **Solution**: Can be ignored - it's a known issue with seaborn and will be fixed in future versions
-
-### **🔍 Verification Steps:**
-
-After installation, run these commands to verify everything works:
-
-```bash
-# 1. Check Python version
-python --version
-
-# 2. Check numpy version (should be >= 2.3.2)
-python -c "import numpy; print(f'numpy: {numpy.__version__}')"
-
-# 3. Check if virtual environment is active (should see (venv))
-# If not, activate it: source venv/bin/activate
-
-# 4. Test the runner script
-python run_analysis.py
-
-# 5. Run the tutorial (recommended first step)
-python run_analysis.py tutorial
-
-# 6. Run a simple test
-python run_analysis.py pseudoinverse
-```
 
 ## 🔬 Core Functionality
 
@@ -970,6 +903,75 @@ Based on the latest research paper:
 - **Flexible**: User-controlled accuracy vs. performance trade-offs
 
 **Stay tuned for these exciting new features!** 🚀
+
+## 🔧 Troubleshooting
+
+### **Common Issues and Solutions:**
+
+#### **❌ "Command not found: python"**
+- **Solution**: Install Python from [python.org](https://python.org)
+- **Alternative**: Try `python3` instead of `python`
+
+#### **❌ "pip: command not found"**
+- **Solution**: Python comes with pip. Try `python -m pip` instead of `pip`
+- **Alternative**: Install pip separately: `python -m ensurepip --upgrade`
+
+#### **❌ "Permission denied" when installing packages**
+- **Solution**: Use virtual environment (see installation steps above)
+- **Alternative**: Add `--user` flag: `pip install --user -r requirements.txt`
+
+#### **❌ "numpy version too old"**
+- **Solution**: Upgrade numpy: `pip install --upgrade numpy>=2.3.2`
+- **Check version**: `python -c "import numpy; print(numpy.__version__)"`
+
+#### **❌ "Script not found"**
+- **Solution**: Make sure you're in the correct directory (`QuatIca`)
+- **Check**: Run `ls` or `dir` to see if `run_analysis.py` exists
+
+#### **❌ "Import error"**
+- **Solution**: Activate virtual environment: `source quatica/bin/activate` (Mac/Linux) or `quatica\Scripts\activate` (Windows)
+- **Check**: You should see `(quatica)` at the start of your command line
+
+#### **❌ "Memory error"**
+- **Solution**: Close other applications to free RAM
+- **Alternative**: Use smaller datasets or reduce matrix sizes in scripts
+
+#### **❌ "Slow performance"**
+- **Check numpy version**: Must be >= 2.3.2 for optimal performance
+- **Solution**: `pip install --upgrade numpy>=2.3.2`
+
+#### **❌ "No visualizations appear"**
+- **Solution**: Make sure matplotlib backend is working: `python -c "import matplotlib.pyplot as plt; plt.plot([1,2,3]); plt.show()"`
+- **Alternative**: Check if `output_figures/` directory exists and has write permissions
+- **Note**: Visualizations are automatically saved to `output_figures/` directory
+
+#### **⚠️ "DeprecationWarning about seaborn"**
+- **This is normal**: The warning about seaborn date parsing is harmless and doesn't affect functionality
+- **Solution**: Can be ignored - it's a known issue with seaborn and will be fixed in future versions
+
+### **🔍 Verification Steps:**
+
+After installation, run these commands to verify everything works:
+
+```bash
+# 1. Check Python version
+python --version
+
+# 2. Check numpy version (should be >= 2.3.2)
+python -c "import numpy; print(f'numpy: {numpy.__version__}')"
+
+# 3. Check if virtual environment is active (should see (quatica))
+# If not, activate it: source quatica/bin/activate
+
+# 4. Test the runner script
+python run_analysis.py
+
+# 5. Run the tutorial (recommended first step)
+python run_analysis.py tutorial
+
+# 6. Run a simple test
+python run_analysis.py pseudoinverse
+```
 
 ## 🤝 Contributing
 
