@@ -72,7 +72,7 @@ If you don't have Python installed:
 #### **Step 2: Download QuatIca**
 ```bash
 # Clone the repository (if you have git)
-git clone <repository-url>
+git clone https://github.com/vleplat/QuatIca.git
 cd QuatIca
 
 # OR download as ZIP and extract to a folder
@@ -81,16 +81,32 @@ cd QuatIca
 #### **Step 3: Set Up Environment**
 ```bash
 # Create a virtual environment (isolated Python environment)
-python3 -m venv venv
+python3 -m venv quatica
 
 # Activate the environment
 # On Mac/Linux:
-source venv/bin/activate
+source quatica/bin/activate
 # On Windows:
-venv\Scripts\activate
+quatica\Scripts\activate
 
-# You should see (venv) at the start of your command line
+# You should see (quatica) at the start of your command line
 ```
+
+#### **Alternative: Docker Setup (For Advanced Users)**
+For maximum reproducibility, you can also use Docker:
+
+```bash
+# Build the Docker image
+docker build -t quatica .
+
+# Run the container
+docker run -it --rm quatica
+
+# Or run a specific script
+docker run -it --rm quatica python run_analysis.py tutorial
+```
+
+*Note: Docker setup is optional. The virtual environment approach above works perfectly for most users.*
 
 #### **Step 4: Install Dependencies**
 ```bash
