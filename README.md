@@ -232,8 +232,8 @@ QuatIca/
 │       ├── eigen.py         # Eigenvalue decomposition for Hermitian matrices
 │       └── tridiagonalize.py # Tridiagonalization using Householder transformations
 ├── tests/
+│   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
 │   ├── unit/               # Unit tests for core functionality
-│   │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial
 │   │   └── [See tests/unit/README.md for complete list]
 │   │   # Covers: Q-GMRES, Q-SVD, Randomized Q-SVD, Pass-Efficient Q-SVD, Power Iteration, etc.
 │   ├── QGMRES/             # Q-GMRES solver tests

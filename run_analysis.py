@@ -18,7 +18,8 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python run_analysis.py <script_name>")
         print("\nAvailable scripts:")
-        print("  tutorial - Quaternion basics tutorial (recommended to start here)")
+        print("  tutorial - Quaternion basics tutorial with visualizations (recommended to start here)")
+        print("  demo - Core functionality demo (alternative comprehensive overview)")
         print("  qgmres - Q-GMRES solver test (new!)")
         print("  lorenz_signal - Lorenz attractor signal processing with Q-GMRES (new!)")
         print("                Note: Use --num_points <N> to control resolution/execution time")
@@ -39,7 +40,8 @@ def main():
     
     # Map script names to file paths
     script_map = {
-        'tutorial': 'tests/unit/tutorial_quaternion_basics.py',
+        'tutorial': 'tests/tutorial_quaternion_basics.py',
+        'demo': 'QuatIca_Core_Functionality_Demo.py',
         'qgmres': 'tests/QGMRES/test_qgmres_solver.py',
         'lorenz_signal': 'applications/signal_processing/lorenz_attractor_qgmres.py',
         'lorenz_benchmark': 'applications/signal_processing/benchmark_lorenz_methods.py',
@@ -58,6 +60,8 @@ def main():
         print("Available scripts:", list(script_map.keys()))
         return
     
+
+    
     # Check if script is disabled
     if script_name == 'test_newton':
         print("❌ test_newton is currently disabled (deep linear solver not working properly)")
@@ -75,11 +79,17 @@ def main():
     
     # Run the script
     try:
-        # Change to the script's directory for proper relative path handling
-        script_dir = os.path.dirname(script_path)
-        
-        # Build command with arguments
-        cmd = [sys.executable, os.path.basename(script_path)]
+        # Special handling for files in root directory
+        if script_name in ['demo', 'tutorial']:
+            script_dir = '.'  # Root directory for demo, tests directory for tutorial
+            if script_name == 'demo':
+                cmd = [sys.executable, script_path]
+            else:
+                cmd = [sys.executable, script_path]
+        else:
+            # Change to the script's directory for proper relative path handling
+            script_dir = os.path.dirname(script_path)
+            cmd = [sys.executable, os.path.basename(script_path)]
         
         # Pass through additional arguments for specific scripts
         if script_name == 'lorenz_signal' and len(sys.argv) > 2:

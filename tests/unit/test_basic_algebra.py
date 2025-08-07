@@ -15,9 +15,9 @@ import quaternion
 import unittest
 
 # Add core module to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from core.utils import ishermitian, det, quat_hermitian
-from core.data_gen import create_test_matrix
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
+from utils import ishermitian, det, quat_hermitian
+from data_gen import create_test_matrix
 
 
 class TestBasicAlgebra(unittest.TestCase):

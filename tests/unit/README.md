@@ -7,9 +7,9 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 ## 📋 Test Files Overview
 
 ### **🎓 Tutorial and Learning**
-| File | Purpose | What It Tests |
-|------|---------|---------------|
-| `tutorial_quaternion_basics.py` | **Interactive Tutorial** | Complete introduction to quaternion matrices, operations, and basic concepts |
+| File | Purpose | What It Covers |
+|------|---------|----------------|
+| `../tutorial_quaternion_basics.py` | **Interactive Tutorial** | Complete introduction to quaternion matrices, operations, and basic concepts with visualizations |
 
 ### **🔧 Core Matrix Operations**
 | File | Purpose | What It Tests |
@@ -155,7 +155,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 ## 🎯 Key Test Files for Different Use Cases
 
 ### **🚀 For Beginners**
-- `tutorial_quaternion_basics.py` - Start here to learn the framework
+- `../tutorial_quaternion_basics.py` - Start here to learn the framework (with visualizations)
 
 ### **🔧 For Developers**
 - `test_basic_algebra.py` - Core matrix operations
