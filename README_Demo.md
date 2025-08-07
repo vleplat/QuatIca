@@ -27,7 +27,7 @@ Or simply open and play with the Jupyter notebook `QuatIca_Core_Functionality_De
 
 ## What the Demo Tests
 
-The demo script tests all 11 core functionality areas:
+The demo script tests all 12 core functionality areas:
 
 1. **Basic Matrix Operations** - Matrix creation, multiplication, and norms
 2. **QR Decomposition** - QR factorization of quaternion matrices
