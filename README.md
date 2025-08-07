@@ -718,7 +718,7 @@ L_perm, U_perm = quaternion_lu(A_quat, return_p=False)
 - ✅ **Two output modes** - with/without permutation matrix
 - ✅ **Perfect reconstruction** - P*A = L*U or A = L*U depending on mode
 - ✅ **Production-ready** with comprehensive test suite
-- ✅ **Based on MATLAB QTFM** - follows established mathematical approach
+- ✅ **Based on MATLAB QTFM** 
 - ✅ **Handles rectangular matrices** - works for m×n matrices
 
 ### **Tridiagonalization (Householder Transformations)**
@@ -884,6 +884,7 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 - **Quaternion Pseudoinverse**: Huang, L., Wang, Q.-W., & Zhang, Y. (2015). The Moore–Penrose inverses of matrices over quaternion polynomial rings. Linear Algebra and its Applications, 475, 45-61.
 - **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
 - **Advanced Q-SVD Method**: Ma, R.-R., & Bai, Z.-J. (2018). A Structure-Preserving One-Sided Jacobi Method for Computing the SVD of a Quaternion Matrix. arXiv preprint arXiv:1811.08671.
+- **Pass-Efficient Randomized Algorithms**: Ahmadi-Asl, S., Nobakht Kooshkghazi, M., & Leplat, V. (2025). Pass-efficient Randomized Algorithms for Low-rank Approximation of Quaternion Matrices. arXiv preprint arXiv:2507.13731.
 - **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
 
 ## 🚀 Upcoming Features (Coming Soon!)
@@ -898,45 +899,21 @@ QuatIca is actively being extended with cutting-edge algorithms from recent rese
 - **Optimized memory usage** for large-scale matrices
 - **Parallel computation** support for multi-core systems
 
-#### **⚡ Pass-Efficient Randomized Algorithms**
+#### **🎵 Advanced Signal Processing Tools**
+- **Quaternion Fourier Transform** for 3D/4D signal analysis
+- **Frequency domain processing** with quaternion algebra
+- **Spectral analysis** for multi-dimensional signals
+- **Filter design** and signal reconstruction capabilities
 
-Based on the latest research paper:
-
-**Ahmadi-Asl, S., Nobakht Kooshkghazi, M., & Leplat, V. (2025). Pass-efficient Randomized Algorithms for Low-rank Approximation of Quaternion Matrices.** *arXiv preprint arXiv:2507.13731*
-
-**🔬 Research Abstract:**
-> "Randomized algorithms for low-rank approximation of quaternion matrices have gained increasing attention in recent years. However, existing methods overlook pass efficiency, the ability to limit the number of passes over the input matrix—which is critical in modern computing environments dominated by communication costs. We address this gap by proposing a suite of pass-efficient randomized algorithms that let users directly trade pass budget for approximation accuracy."
-
-#### **🎯 Key Innovations Coming:**
-
-1. **🔄 Arbitrary-Pass Algorithms**
-   - User-specified number of matrix views
-   - Direct trade-off between pass budget and accuracy
-   - Exponential error decay with pass count
-
-2. **⚡ Block Krylov Subspace Methods**
-   - Accelerated convergence for slowly decaying spectra
-   - Pass-efficient implementation
-   - Enhanced performance for structured matrices
-
-3. **📈 Spectral Norm Error Bounds**
-   - Theoretical guarantees on approximation quality
-   - Predictable performance characteristics
-   - Confidence intervals for results
-
-#### **🔧 Practical Applications:**
-- **Quaternionic Data Compression**: Efficient storage of 4D data
-- **Matrix Completion**: Fill missing entries in quaternion matrices
-- **Image Super-Resolution**: High-quality image upscaling
-- **Deep Learning**: Quaternion neural network optimization
-
-#### **📊 Performance Benefits:**
-- **Communication-Efficient**: Minimizes data movement in distributed systems
-- **Memory-Optimized**: Reduced memory footprint for large matrices
-- **Scalable**: Handles matrices of arbitrary size
-- **Flexible**: User-controlled accuracy vs. performance trade-offs
+#### **🔢 Numerical Linear Algebra (NLA) Tools**
+- **Schur Decomposition** using QR algorithm for quaternion matrices
+- **Eigenvalue computation** via iterative QR method
+- **Matrix diagonalization** for non-Hermitian quaternion matrices
+- **Structured eigenvalue problems** with quaternion arithmetic
 
 **Stay tuned for these exciting new features!** 🚀
+
+
 
 ## 🔧 Troubleshooting
 
