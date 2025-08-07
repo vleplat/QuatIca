@@ -22,11 +22,8 @@ jupytext --to notebook QuatIca_Core_Functionality_Demo.py
 jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
 ```
 
-### Option 3: Manual Jupyter Notebook Creation
-1. Open Jupyter Notebook or JupyterLab
-2. Create a new Python notebook
-3. Copy and paste sections from `QuatIca_Core_Functionality_Demo.py` into separate cells
-4. Run each cell to see the functionality in action
+### Option 3: Use the Jupyter Notebook
+Or simply open and play with the Jupyter notebook `QuatIca_Core_Functionality_Demo.ipynb`
 
 ## What the Demo Tests
 
