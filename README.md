@@ -232,16 +232,10 @@ QuatIca/
 │       ├── eigen.py         # Eigenvalue decomposition for Hermitian matrices
 │       └── tridiagonalize.py # Tridiagonalization using Householder transformations
 ├── tests/
-│   ├── unit/               # Unit tests and tutorial
+│   ├── unit/               # Unit tests for core functionality
 │   │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial
-│   │   ├── test_qgmres_accuracy.py       # Q-GMRES accuracy tests
-│   │   ├── test_qgmres_basics.py         # Q-GMRES basic functionality tests
-│   │   ├── test_qgmres_debug.py          # Q-GMRES debug tests
-│   │   ├── test_qgmres_simple.py         # Q-GMRES simple tests
-│   │   ├── test_real_image.py            # Real image processing tests
-│   │   ├── test_normQsparse.py           # Matrix norm testing and comparison
-│   │   ├── test_rand_qsvd.py             # Randomized Q-SVD comprehensive testing
-│   │   └── test_power_iteration_simple.py # Power iteration validation tests
+│   │   └── [See tests/unit/README.md for complete list]
+│   │   # Covers: Q-GMRES, Q-SVD, Randomized Q-SVD, Pass-Efficient Q-SVD, Power Iteration, etc.
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
