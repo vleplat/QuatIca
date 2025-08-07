@@ -312,36 +312,54 @@ def pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2):
     Notes:
     ------
     Advantage: fewer large passes over X, good cache behavior.
-    ⚠️ PLACEHOLDER IMPLEMENTATION - needs proper testing and validation.
     """
     m, n = X_quat.shape
     P, v = oversample, n_passes
     
-    # 1) Initial random matrix (dense real)
+    # 1) Initial random matrix (dense real) - same as MATLAB
     Q1 = np.random.randn(n, R + P)
     
-    for i in range(1, v + 1):
-        if i % 2 == 1:
-            # Convert Q1 to quaternion matrix
-            Q1_quat = quaternion.as_quat_array(Q1.reshape(n, R + P, 1))
+    # 2) Alternating passes - matching MATLAB logic
+    for i in range(1, v + 1):  # MATLAB: for i=1:v
+        if i % 2 == 1:  # MATLAB: if rem(i,2)~=0
+            # [Q_2,R_2]=qr_qua(X*Q_1)
+            # Convert real matrix to quaternion matrix properly
+            if isinstance(Q1, np.ndarray) and Q1.dtype != np.quaternion:
+                Q1_components = np.zeros((n, R + P, 4))
+                Q1_components[..., 0] = Q1  # Real part
+                Q1_quat = quaternion.as_quat_array(Q1_components)
+            else:
+                Q1_quat = Q1  # Already quaternion
             Q2, R2 = qr_qua(quat_matmat(X_quat, Q1_quat))
         else:
+            # [Q_1,R_1]=qr_qua(X'*Q_2)
             Q1, R1 = qr_qua(quat_matmat(quat_hermitian(X_quat), Q2))
     
-    # 2) Small Rmat
-    Rmat = R1 if v % 2 == 0 else R2
+    # 3) Final SVD - matching MATLAB logic
+    if v % 2 == 0:  # MATLAB: if rem(v,2)==0
+        # [V_,S,U_]=svd(R_1)
+        R_real = real_expand(R1)
+        V_, S, U_ = np.linalg.svd(R_real, full_matrices=False)
+    else:
+        # [U_,S,V_]=svd(R_2)
+        R_real = real_expand(R2)
+        U_, S, V_ = np.linalg.svd(R_real, full_matrices=False)
     
-    # 3) SVD on Rmat
-    R_real = real_expand(Rmat)
-    U_r, s, Vt_r = np.linalg.svd(R_real, full_matrices=False)
+    # 4) Lift back - matching MATLAB: V=Q_1*V_; U=Q_2*U_
+    # Take every 4th singular value for quaternion SVD (like rand_qsvd)
+    s = S[::4][:R]
     
-    # 4) Lift & truncate
-    U_small_reshaped = U_r[:, :R].reshape(Q2.shape[1], 4, R).transpose(0, 2, 1)
-    U_small = quaternion.as_quat_array(U_small_reshaped)
-    V_small_reshaped = Vt_r[:R, :].T.reshape(Q1.shape[1], 4, R).transpose(0, 2, 1)
-    V_small = quaternion.as_quat_array(V_small_reshaped)
+    if v % 2 == 0:
+        # V=Q_1*V_; U=Q_2*U_
+        V_small = real_contract(V_[:, :4*R], Q1.shape[1], R)
+        U_small = real_contract(U_[:4*R, :].T, Q2.shape[1], R)
+        V_quat = quat_matmat(Q1, V_small)
+        U_quat = quat_matmat(Q2, U_small)
+    else:
+        # U=Q_2*U_; V=Q_1*V_
+        U_small = real_contract(U_[:, :4*R], Q2.shape[1], R)
+        V_small = real_contract(V_[:4*R, :].T, Q1.shape[1], R)
+        U_quat = quat_matmat(Q2, U_small)
+        V_quat = quat_matmat(Q1, V_small)
     
-    U_quat = quat_matmat(Q2 if v % 2 else Q1, U_small)
-    V_quat = quat_matmat(Q1 if v % 2 else Q2, V_small)
-    
-    return U_quat, s[:R], V_quat 
+    return U_quat, s, V_quat 
