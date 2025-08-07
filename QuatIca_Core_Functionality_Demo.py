@@ -170,7 +170,53 @@ print("Maximum imaginary part:", max_imag)
 
 print("✅ Eigenvalue decomposition works!")
 
-# ## 6. Tridiagonalization
+# ## 6. LU Decomposition
+
+from core.decomp import quaternion_lu, verify_lu_decomposition
+
+# Create a test matrix
+A = create_test_matrix(50, 50)
+print("Matrix A shape:", A.shape)
+
+# LU decomposition
+L, U = quaternion_lu(A)
+print("LU decomposition:")
+print("  L shape:", L.shape)
+print("  U shape:", U.shape)
+
+# Verify reconstruction
+LU = quat_matmat(L, U)
+reconstruction_error = quat_frobenius_norm(A - LU)
+relative_error = reconstruction_error / quat_frobenius_norm(A)
+print("  Reconstruction error:", reconstruction_error)
+print("  Relative error:", relative_error)
+
+# Verify L is lower triangular with unit diagonal
+L_float = quaternion.as_float_array(L)
+L_real = L_float[:, :, 0]  # Real part
+is_lower_triangular = np.allclose(L_real, np.tril(L_real), atol=1e-12)
+has_unit_diagonal = np.allclose(np.diag(L_real), np.ones(L.shape[0]), atol=1e-12)
+print("  L is lower triangular:", is_lower_triangular)
+print("  L has unit diagonal:", has_unit_diagonal)
+
+# Verify U is upper triangular
+U_float = quaternion.as_float_array(U)
+U_real = U_float[:, :, 0]  # Real part
+is_upper_triangular = np.allclose(U_real, np.triu(U_real), atol=1e-12)
+print("  U is upper triangular:", is_upper_triangular)
+
+# Test with permutation matrix
+L_p, U_p, P = quaternion_lu(A, return_p=True)
+print("\nWith permutation matrix:")
+print("  P shape:", P.shape)
+PA = quat_matmat(P, A)
+LU_p = quat_matmat(L_p, U_p)
+permutation_error = quat_frobenius_norm(PA - LU_p)
+print("  P*A = L*U error:", permutation_error)
+
+print("✅ LU decomposition works!")
+
+# ## 7. Tridiagonalization
 
 from core.decomp import tridiagonalize
 
@@ -191,7 +237,7 @@ print("  Transformation error:", transformation_error)
 
 print("✅ Tridiagonalization works!")
 
-# ## 7. Pseudoinverse Computation
+# ## 8. Pseudoinverse Computation
 
 from core.solver import NewtonSchulzPseudoinverse
 
@@ -211,7 +257,7 @@ print("A^†^† shape:", A_pinv_H.shape)
 
 print("✅ Pseudoinverse computation works!")
 
-# ## 8. Linear System Solving
+# ## 9. Linear System Solving
 
 from core.solver import QGMRESSolver
 
@@ -234,7 +280,7 @@ print("Residual ||A*x - b||:", residual)
 
 print("✅ Linear system solving works!")
 
-# ## 9. Visualization
+# ## 10. Visualization
 
 from core.visualization import Visualizer
 
@@ -248,7 +294,7 @@ Visualizer.visualize_matrix(A, component=1, title="Test Matrix - i Component")
 
 print("✅ Visualization works!")
 
-# ## 10. Determinant and Rank Computation
+# ## 11. Determinant and Rank Computation
 
 from core.utils import det, rank
 from core.data_gen import generate_random_unitary_matrix
@@ -328,7 +374,7 @@ print(f"Identity 5×5 matrix: rank = {identity_rank} (expected: 5)")
 
 print("✅ All rank examples work correctly!")
 
-# ## 11. Power Iteration for Dominant Eigenvector
+# ## 12. Power Iteration for Dominant Eigenvector
 
 from core.utils import power_iteration
 from core.decomp.eigen import quaternion_eigendecomposition
@@ -422,6 +468,7 @@ print("✅ QR decomposition")
 print("✅ Quaternion SVD (Q-SVD)")
 print("✅ Randomized Q-SVD")
 print("✅ Eigenvalue decomposition")
+print("✅ LU decomposition")
 print("✅ Tridiagonalization")
 print("✅ Pseudoinverse computation")
 print("✅ Linear system solving")

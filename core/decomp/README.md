@@ -19,28 +19,35 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(Q, R)` where Q has orthonormal columns, R is upper triangular
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **2. Quaternion SVD (Q-SVD) - Classical Method**
+### **2. LU Decomposition**
+- **Function**: `quaternion_lu(A_quat, return_p=False)`
+- **Input Matrix**: **General quaternion matrix** (any m×n)
+- **Algorithm**: Gaussian elimination with partial pivoting (MATLAB QTFM implementation)
+- **Output**: `(L, U)` or `(L, U, P)` where L is lower triangular with unit diagonal, U is upper triangular, P is permutation matrix
+- **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
+
+### **3. Quaternion SVD (Q-SVD) - Classical Method**
 - **Function**: `classical_qsvd(X_quat, R)` (truncated) / `classical_qsvd_full(X_quat)` (full)
 - **Input Matrix**: **General quaternion matrix** (any m×n)
 - **Algorithm**: Real-block embedding + LAPACK SVD + contraction
 - **Output**: `(U, s, V)` where U, V have orthonormal columns, s contains singular values
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **3. Eigenvalue Decomposition**
+### **4. Eigenvalue Decomposition**
 - **Function**: `quaternion_eigendecomposition(A_quat)`
 - **Input Matrix**: **Hermitian quaternion matrix only** (square, A = A^H)
 - **Algorithm**: Tridiagonalization + numpy.linalg.eig + back transformation
 - **Output**: `(eigenvalues, eigenvectors)` where eigenvalues are real
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **4. Tridiagonalization**
+### **5. Tridiagonalization**
 - **Function**: `tridiagonalize(A_quat)`
 - **Input Matrix**: **Hermitian quaternion matrix only** (square, A = A^H)
 - **Algorithm**: Householder transformations
 - **Output**: `(P, B)` where P*A*P^H = B and B is tridiagonal
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **5. Randomized Q-SVD**
+### **6. Randomized Q-SVD**
 - **Function**: `rand_qsvd(X_quat, R, oversample=10, n_iter=2)`
 - **Input Matrix**: **General quaternion matrix** (any m×n)
 - **Algorithm**: Gaussian sketching + power iterations + QR
@@ -61,6 +68,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 | **Decomposition** | **Matrix Type** | **Shape** | **Conditions** |
 |-------------------|-----------------|-----------|----------------|
 | **QR** | General | m×n | None |
+| **LU** | General | m×n | None |
 | **Q-SVD (Classical)** | General | m×n | None |
 | **Eigenvalue** | Hermitian | n×n | A = A^H |
 | **Tridiagonalization** | Hermitian | n×n | A = A^H |
@@ -80,6 +88,17 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Complexity**: O((4m)(4n)min(4m,4n))
 - **Advantages**: Leverages highly optimized real matrix libraries
 - **Disadvantages**: Memory overhead due to 4× expansion
+
+### **Gaussian Elimination with Partial Pivoting** (LU Decomposition)
+- **Principle**: Factorizes matrix into lower and upper triangular factors
+- **Process**:
+  1. Apply partial pivoting to ensure numerical stability
+  2. Perform Gaussian elimination in-place
+  3. Extract L (lower triangular with unit diagonal) and U (upper triangular)
+  4. Handle permutation matrix for row exchanges
+- **Complexity**: O(mn²) for m×n matrix
+- **Advantages**: Numerically stable with pivoting, handles rectangular matrices
+- **Disadvantages**: Requires non-singular leading principal minors
 
 ### **Householder Transformations** (Tridiagonalization)
 - **Principle**: Uses Householder reflections to eliminate subdiagonal elements
