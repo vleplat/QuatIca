@@ -20,7 +20,10 @@ from matplotlib.patches import Rectangle
 import matplotlib.patches as mpatches
 
 # Add core directory to path to import our framework functions
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
+# When run from project root, we need to add core to path
+sys.path.insert(0, 'core')
+
+# Import with explicit module paths
 from utils import quat_frobenius_norm, quat_matmat, SparseQuaternionMatrix
 from data_gen import create_test_matrix, create_sparse_quat_matrix
 from solver import NewtonSchulzPseudoinverse

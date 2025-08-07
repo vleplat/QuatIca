@@ -80,12 +80,12 @@ def main():
     # Run the script
     try:
         # Special handling for files in root directory
-        if script_name in ['demo', 'tutorial']:
-            script_dir = '.'  # Root directory for demo, tests directory for tutorial
-            if script_name == 'demo':
-                cmd = [sys.executable, script_path]
-            else:
-                cmd = [sys.executable, script_path]
+        if script_name == 'demo':
+            script_dir = '.'  # Root directory
+            cmd = [sys.executable, script_path]
+        elif script_name == 'tutorial':
+            script_dir = '.'  # Run from project root for proper imports
+            cmd = [sys.executable, script_path]
         else:
             # Change to the script's directory for proper relative path handling
             script_dir = os.path.dirname(script_path)
