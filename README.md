@@ -18,7 +18,7 @@
 
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
-- **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), and **Eigenvalue Decomposition** for quaternion matrices
+- **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, and **Eigenvalue Decomposition** for quaternion matrices
 - **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method)
 - **Image Processing**: Complete missing pixels in images using quaternion math
 - **Signal Analysis**: Process 3D/4D signals with quaternion algebra
@@ -661,6 +661,22 @@ U_full, s_full, V_full = classical_qsvd_full(X_quat)
 - ✅ **Robust across matrix sizes** (tested on 4×3 to 8×6 matrices)
 - ✅ **Production-ready** with 10/10 tests passing
 
+### **Randomized Q-SVD (Fast Approximation)**
+```python
+from core.decomp.qsvd import rand_qsvd
+
+# Fast randomized Q-SVD for large matrices
+U, s, V = rand_qsvd(X_quat, R, oversample=10, n_iter=2)
+# X_quat ≈ U @ diag(s) @ V^H (approximate, rank-R)
+```
+
+**Features:**
+- ✅ **Fast approximation** for large matrices
+- ✅ **Configurable accuracy** via power iterations and oversampling
+- ✅ **Memory efficient** compared to full Q-SVD
+- ✅ **Production-ready** with comprehensive test suite
+- ✅ **Based on Gaussian sketching** with power iterations
+
 ### **Eigenvalue Decomposition (Hermitian Matrices)**
 ```python
 from core.decomp import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
@@ -682,6 +698,28 @@ eigenvecs = quaternion_eigenvectors(A_quat)
 - ✅ **High accuracy** - residuals < 10^-15
 - ✅ **Production-ready** with 15/15 tests passing
 - ✅ **Based on MATLAB QTFM** - follows established mathematical approach
+
+### **LU Decomposition (Gaussian Elimination with Partial Pivoting)**
+```python
+from core.decomp import quaternion_lu
+
+# LU decomposition with permutation: P @ A = L @ U
+L, U, P = quaternion_lu(A_quat, return_p=True)
+# A_quat = (P^T @ L) @ U, where L is lower triangular with unit diagonal
+# U is upper triangular, P is permutation matrix
+
+# LU decomposition without permutation: A = L @ U
+L_perm, U_perm = quaternion_lu(A_quat, return_p=False)
+# A_quat = L_perm @ U_perm, where L_perm is permuted version of L
+```
+
+**Features:**
+- ✅ **Partial pivoting** - numerically stable for ill-conditioned matrices
+- ✅ **Two output modes** - with/without permutation matrix
+- ✅ **Perfect reconstruction** - P*A = L*U or A = L*U depending on mode
+- ✅ **Production-ready** with comprehensive test suite
+- ✅ **Based on MATLAB QTFM** - follows established mathematical approach
+- ✅ **Handles rectangular matrices** - works for m×n matrices
 
 ### **Tridiagonalization (Householder Transformations)**
 ```python

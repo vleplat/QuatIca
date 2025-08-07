@@ -98,6 +98,9 @@ dmypy.json
 .ropeproject
 
 # mkdocs documentation
+
+# Development notes and insights (not for git)
+core/decomp/*_insights.txt
 /site
 
 # Pyre type checker

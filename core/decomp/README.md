@@ -154,6 +154,12 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Example**: `Q, R = qr_qua(X_quat)`
 - **Best for**: Small to medium matrices where exact factorization is needed
 
+#### **LU Decomposition**
+- **When to use**: Linear system solving, matrix inversion, determinant computation
+- **Example**: `L, U, P = quaternion_lu(A_quat, return_p=True)` (with permutation)
+- **Example**: `L, U = quaternion_lu(A_quat, return_p=False)` (without permutation)
+- **Best for**: Small to medium matrices where exact triangular factorization is needed, especially for solving linear systems
+
 #### **Q-SVD (Classical)**
 - **When to use**: Exact SVD, spectral analysis, matrix approximation
 - **Example**: `U, s, V = classical_qsvd(X_quat, R)` (truncated)

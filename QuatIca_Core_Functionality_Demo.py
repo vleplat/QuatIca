@@ -175,7 +175,7 @@ print("✅ Eigenvalue decomposition works!")
 from core.decomp import quaternion_lu, verify_lu_decomposition
 
 # Create a test matrix
-A = create_test_matrix(50, 50)
+A = create_test_matrix(4, 4)
 print("Matrix A shape:", A.shape)
 
 # LU decomposition
@@ -213,6 +213,19 @@ PA = quat_matmat(P, A)
 LU_p = quat_matmat(L_p, U_p)
 permutation_error = quat_frobenius_norm(PA - LU_p)
 print("  P*A = L*U error:", permutation_error)
+
+# Test the alternative form: A = (P^T * L) * U
+P_T = quat_hermitian(P)  # P^T
+P_T_L = quat_matmat(P_T, L_p)  # P^T * L
+A_recon_alt = quat_matmat(P_T_L, U_p)  # (P^T * L) * U
+alt_error = quat_frobenius_norm(A - A_recon_alt)
+print("  A = (P^T * L) * U error:", alt_error)
+
+# Check if P^T * L is lower triangular (only true when no pivoting needed)
+P_T_L_float = quaternion.as_float_array(P_T_L)
+P_T_L_real = P_T_L_float[:, :, 0]  # Real part
+is_P_T_L_lower_triangular = np.allclose(P_T_L_real, np.tril(P_T_L_real), atol=1e-12)
+print("  P^T * L is lower triangular:", is_P_T_L_lower_triangular, "(only when no pivoting needed)")
 
 print("✅ LU decomposition works!")
 
