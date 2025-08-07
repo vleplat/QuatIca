@@ -88,8 +88,8 @@ def visualize_quaternion_matrix(A, name="Matrix", save_plot=True):
     if save_plot:
         # Ensure output directory exists
         import os
-        os.makedirs('../../output_figures', exist_ok=True)
-        plt.savefig(f'../../output_figures/{name.replace(" ", "_").lower()}_visualization.png', 
+        os.makedirs('output_figures', exist_ok=True)
+        plt.savefig(f'output_figures/{name.replace(" ", "_").lower()}_visualization.png', 
                    dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -128,8 +128,8 @@ def plot_convergence(residuals, covariances, title="Newton-Schulz Convergence", 
     if save_plot:
         # Ensure output directory exists
         import os
-        os.makedirs('../../output_figures', exist_ok=True)
-        plt.savefig(f'../../output_figures/{title.replace(" ", "_").lower()}_convergence.png', 
+        os.makedirs('output_figures', exist_ok=True)
+        plt.savefig(f'output_figures/{title.replace(" ", "_").lower()}_convergence.png', 
                    dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -170,8 +170,8 @@ def plot_performance_comparison(sizes, times, iterations, title="Performance Sca
     if save_plot:
         # Ensure output directory exists
         import os
-        os.makedirs('../../output_figures', exist_ok=True)
-        plt.savefig(f'../../output_figures/{title.replace(" ", "_").lower()}_performance.png', 
+        os.makedirs('output_figures', exist_ok=True)
+        plt.savefig(f'output_figures/{title.replace(" ", "_").lower()}_performance.png', 
                    dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -499,8 +499,8 @@ def main():
         plt.tight_layout()
         # Ensure output directory exists
         import os
-        os.makedirs('../../output_figures', exist_ok=True)
-        plt.savefig('../../output_figures/tutorial_summary.png', dpi=300, bbox_inches='tight')
+        os.makedirs('output_figures', exist_ok=True)
+        plt.savefig('output_figures/tutorial_summary.png', dpi=300, bbox_inches='tight')
         plt.show()
     
     create_summary_visualization()
