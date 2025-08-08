@@ -40,8 +40,10 @@ def run_case(m: int, n: int, max_iter: int = 80):
 
 def visualize(results, sizes, out_dir='output_figures'):
     import os
-    # Save only into output_figures (high-DPI)
-    out_fig_dir = out_dir
+    # Always save in project root output_figures, regardless of cwd
+    script_dir = os.path.dirname(__file__)
+    root_dir = os.path.abspath(os.path.join(script_dir, '..', '..'))
+    out_fig_dir = os.path.join(root_dir, 'output_figures')
     os.makedirs(out_fig_dir, exist_ok=True)
     for (m, n), (nsd_res, nsd_time), (nsu_res, nsu_time), (hon_res, hon_time) in zip(sizes, results[0], results[1], results[2]):
         fig, ax = plt.subplots(1, 2, figsize=(12, 4))
@@ -65,6 +67,11 @@ def visualize(results, sizes, out_dir='output_figures'):
         fig.tight_layout(rect=[0,0,1,0.95])
         path_hd = os.path.join(out_fig_dir, f'ns_vs_hon_{m}x{n}.png')
         fig.savefig(path_hd, dpi=300)
+        # Display the figure for interactive runs
+        try:
+            plt.show()
+        except Exception:
+            pass
         plt.close(fig)
         print(f'Saved {path_hd}')
 
