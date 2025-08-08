@@ -79,7 +79,18 @@ def createfigure4(X1, Y1, Z1, title: str = '3D Trajectory'):
     ax.set_xlabel('x(t)', fontsize=14)
     ax.set_ylabel('y(t)', fontsize=14)
     ax.set_zlabel('z(t)', fontsize=14)
+    # Title inside the figure
     ax.set_title(title, fontsize=16, fontweight='bold')
+    # Also set the window title so multiple displayed windows are clearly distinguishable
+    try:
+        fig.canvas.manager.set_window_title(title)
+    except Exception:
+        pass
+    # Add a small anchored label inside the axes for extra clarity
+    try:
+        ax.text2D(0.02, 0.98, title, transform=ax.transAxes, fontsize=10, va='top', ha='left')
+    except Exception:
+        pass
     ax.grid(True)
     ax.view_init(elev=30, azim=-37.5)  # Match MATLAB's default view
     return fig
