@@ -34,6 +34,7 @@ def main():
         print("  synthetic       - Synthetic image completion (controlled experiments)")
         print("  synthetic_matrices - Test pseudoinverse on synthetic matrices")
         print("  eigenvalue_test - Eigenvalue decomposition test (tridiagonalization and eigendecomposition)")
+        print("  ns_compare      - Compare NS vs Higher-Order NS (saves plots to output_figures)")
         return
     
     script_name = sys.argv[1]
@@ -52,7 +53,8 @@ def main():
         'image_completion': 'applications/image_completion/script_real_image_completion.py',
         'synthetic': 'applications/image_completion/script_synthetic_image_completion.py',  # Matrix completion on synthetic images
         'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
-        'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py'  # Eigenvalue decomposition test
+        'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py',  # Eigenvalue decomposition test
+        'ns_compare': 'tests/unit/compare_ns_vs_higher_order.py'  # NS vs Higher-Order NS comparison
     }
     
     if script_name not in script_map:

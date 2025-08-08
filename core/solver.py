@@ -1,5 +1,6 @@
 from tabnanny import verbose
 import numpy as np
+import time
 import quaternion
 from utils import (quat_matmat, quat_frobenius_norm, quat_hermitian, quat_eye,
                    normQsparse, timesQsparse, A2A0123, Realp, ggivens, GRSGivens, 
@@ -70,6 +71,60 @@ class NewtonSchulzPseudoinverse:
                     break
         return X, residuals, covariances
 
+
+class HigherOrderNewtonSchulzPseudoinverse:
+    """
+    Third-order Newton–Schulz pseudoinverse solver (no damping).
+
+    Iteration (T := X_k):
+      X_{k+1} = 3 T - 3 T A T + T (A T)^2
+
+    Initialization:
+      T_0 = A^H / ||A||_F^2
+
+    Residuals tracked per iteration:
+      E1 = ||A X A - A||_F
+      E2 = ||X A X - X||_F
+      E3 = ||(A X)^H - A X||_F
+      E4 = ||(X A)^H - X A||_F
+    """
+    def __init__(self, max_iter: int = 100, tol: float = 0.0, verbose: bool = False) -> None:
+        self.max_iter = max_iter
+        self.tol = tol
+        self.verbose = verbose
+
+    def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict[str, list[float]], list[float]]:
+        m, n = A.shape
+        # Initialization
+        alpha = 1.0 / (quat_frobenius_norm(A)**2 + 1e-30)
+        T = alpha * quat_hermitian(A)
+        residuals = {'AXA-A': [], 'XAX-X': [], 'AX-herm': [], 'XA-herm': []}
+        times_per_iter: list[float] = []
+
+        for k in range(self.max_iter):
+            t0 = time.time()
+            # Core third-order NS update
+            AT = quat_matmat(A, T)
+            AT_sq = quat_matmat(AT, AT)
+            TAT = quat_matmat(quat_matmat(T, A), T)
+            T = 3 * T - 3 * TAT + quat_matmat(T, AT_sq)
+
+            # Residuals
+            AX = quat_matmat(A, T)
+            XA = quat_matmat(T, A)
+            residuals['AXA-A'].append(quat_frobenius_norm(quat_matmat(AX, A) - A))
+            residuals['XAX-X'].append(quat_frobenius_norm(quat_matmat(XA, T) - T))
+            residuals['AX-herm'].append(quat_frobenius_norm(AX - quat_hermitian(AX)))
+            residuals['XA-herm'].append(quat_frobenius_norm(XA - quat_hermitian(XA)))
+            times_per_iter.append(time.time() - t0)
+
+            if self.verbose and (k < 5 or k % 10 == 0):
+                print(f"Iter {k+1}: E1={residuals['AXA-A'][-1]:.2e} E2={residuals['XAX-X'][-1]:.2e}")
+
+            if self.tol > 0.0 and residuals['AXA-A'][-1] < self.tol:
+                break
+
+        return T, residuals, times_per_iter
 
 class DeepLinearNewtonSchulz:
     """

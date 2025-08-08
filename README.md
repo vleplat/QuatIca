@@ -142,6 +142,7 @@ python run_analysis.py <script_name>
 | `qgmres` | **Q-GMRES Solver Test** - Tests the iterative Krylov subspace solver | **Linear system solving** with quaternions |
 | `lorenz_signal` | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES | **Signal processing** applications |
 | `lorenz_benchmark` | **🏆 Method Comparison Benchmark** - Q-GMRES vs Newton-Schulz performance comparison | **Algorithm selection** and performance analysis |
+| `ns_compare` | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots | **Pseudoinverse** benchmarking |
 | `cifar10` | **CIFAR-10 Image Analysis** - Analyzes 250 images with class insights | **Advanced analysis** with real data |
 | `pseudoinverse` | **Single Image Analysis** - Analyzes one image (kodim16.png) | Understanding pseudoinverse structure |
 | `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
@@ -179,6 +180,9 @@ python run_analysis.py synthetic
 
 # Test pseudoinverse on synthetic matrices
 python run_analysis.py synthetic_matrices
+
+# Compare Newton–Schulz variants (saves plots to output_figures)
+python run_analysis.py ns_compare
 
 # Get help and see all options
 python run_analysis.py
