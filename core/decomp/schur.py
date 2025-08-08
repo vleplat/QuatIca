@@ -44,6 +44,47 @@ def _quat_scalar_abs(q: quaternion.quaternion) -> float:
 # (Legacy helper removed: deflation handled inline in algorithms)
 
 
+def _estimate_shifts_power_deflate(H: np.ndarray, steps: int = 5) -> list[float]:
+    """Estimate a schedule of real scalar shifts via power iteration with simple deflation.
+
+    Strategy: for k = n, n-1, ..., 1 run 'steps' power iterations on the
+    leading k x k block H[:k,:k], compute the Rayleigh quotient (real scalar part),
+    and record it as a shift. This provides a bottom-up schedule suitable for
+    deflating trailing positions during QR.
+    """
+    n = H.shape[0]
+    shifts: list[float] = []
+    rng = np.random.default_rng(0)
+    for k in range(n, 0, -1):
+        Hk = H[:k, :k]
+        # initialize random quaternion vector length k
+        xr = rng.standard_normal((k,))
+        xi = rng.standard_normal((k,))
+        xj = rng.standard_normal((k,))
+        xk = rng.standard_normal((k,))
+        x = quaternion.as_quat_array(np.stack([xr, xi, xj, xk], axis=-1))  # (k,)
+        x = x.reshape(k, 1)
+        # normalize
+        def _vec_norm(v: np.ndarray) -> float:
+            vf = quaternion.as_float_array(v.reshape(-1))  # (k,4)
+            return float(np.sqrt(np.sum(vf * vf)))
+        nrm = _vec_norm(x)
+        if nrm > 0:
+            x = x / nrm
+        for _ in range(steps):
+            x = quat_matmat(Hk, x)
+            nrm = _vec_norm(x)
+            if not np.isfinite(nrm) or nrm == 0.0:
+                break
+            x = x / nrm
+        xH = quat_hermitian(x)
+        num = quat_matmat(xH, quat_matmat(Hk, x))[0, 0]
+        den = quat_matmat(xH, x)[0, 0]
+        mu = float(num.w) / (float(den.w) + 1e-30)
+        shifts.append(mu)
+    return shifts
+
+
 def quaternion_schur(
     A: np.ndarray,
     max_iter: int = 5000,
@@ -489,6 +530,8 @@ def quaternion_schur_unified(
     max_iter: int = 1000,
     tol: float = 1e-10,
     aed_factor: float | None = None,
+    precompute_shifts: bool = False,
+    power_shift_steps: int = 5,
     verbose: bool = False,
     return_diagnostics: bool = False,
 ):
@@ -521,6 +564,12 @@ def quaternion_schur_unified(
     H = check_hessenberg(H)
     Q_accum = np.eye(n, dtype=np.quaternion)
     diag = {"iterations": [], "converged": False, "iterations_run": 0}
+
+    # Optional: precompute a schedule of scalar shifts using power iteration
+    shift_schedule: list[float] | None = None
+    shift_idx = 0
+    if precompute_shifts:
+        shift_schedule = _estimate_shifts_power_deflate(H, steps=power_shift_steps)
 
     def apply_left_rows(M: np.ndarray, s_idx: int, B: np.ndarray) -> None:
         a, b = B[0, 0], B[0, 1]
@@ -555,19 +604,27 @@ def quaternion_schur_unified(
         # Select shifts
         if variant == "ds" and n >= 2:
             # Double-shift surrogate: two scalar shifts from trailing 2x2 (real parts)
-            w11 = float(H[n - 2, n - 2].w)
-            w12 = float(H[n - 2, n - 1].w)
-            w21 = float(H[n - 1, n - 2].w)
-            w22 = float(H[n - 1, n - 1].w)
-            B2 = np.array([[w11, w12], [w21, w22]], dtype=float)
-            evals = np.linalg.eigvals(B2)
-            sigmas = [float(np.real(evals[0])), float(np.real(evals[1]))]
+            if precompute_shifts and shift_schedule is not None and shift_idx + 1 < len(shift_schedule):
+                sigmas = [float(shift_schedule[shift_idx]), float(shift_schedule[shift_idx + 1])]
+                shift_idx += 2
+            else:
+                w11 = float(H[n - 2, n - 2].w)
+                w12 = float(H[n - 2, n - 1].w)
+                w21 = float(H[n - 1, n - 2].w)
+                w22 = float(H[n - 1, n - 1].w)
+                B2 = np.array([[w11, w12], [w21, w22]], dtype=float)
+                evals = np.linalg.eigvals(B2)
+                sigmas = [float(np.real(evals[0])), float(np.real(evals[1]))]
         else:
-            sigmas = [float(H[n - 1, n - 1].w)]
+            if precompute_shifts and shift_schedule is not None and shift_idx < len(shift_schedule):
+                sigmas = [float(shift_schedule[shift_idx])]
+                shift_idx += 1
+            else:
+                sigmas = [float(H[n - 1, n - 1].w)]
 
         for sigma in sigmas:
             qs = quaternion.quaternion(float(sigma), 0.0, 0.0, 0.0)
-            # Bulge init + chase via 2x2 Householders
+            # Bulge init + chase via 2x2 Householders with per-step left/right updates (safer)
             for s in range(0, n - 1):
                 v0 = H[s, s] - qs
                 v1 = H[s + 1, s]
@@ -594,6 +651,8 @@ def quaternion_schur_unified(
             if variant in ("aed", "ds") and sv <= aed_factor * tol * max(1.0, dscale):
                 H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
             max_sub = max(max_sub, sv)
+
+        # Note: no projection; rely on similarity updates to maintain structure
 
         if return_diagnostics:
             diag["iterations"].append({"iter": k, "max_subdiag": float(max_sub)})

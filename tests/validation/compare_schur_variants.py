@@ -40,7 +40,7 @@ if core_path not in sys.path:
     sys.path.insert(0, core_path)
 
 from core.decomp.schur import quaternion_schur_unified
-from core.data_gen import create_test_matrix
+from core.data_gen import create_test_matrix, create_sparse_quat_matrix
 from core.utils import (
     quat_matmat,
     quat_hermitian,
@@ -77,15 +77,36 @@ def _max_below_diagonal(T: np.ndarray) -> float:
 ## Note: all algorithmic variants are provided by core.decomp.schur (unified API).
 
 
-def run_variants(A: np.ndarray, n: int, iters: int, tol: float, out_dir: Path, tag: str = "") -> None:
+def run_variants(
+    A: np.ndarray,
+    n: int,
+    iters: int,
+    tol: float,
+    out_dir: Path,
+    tag: str = "",
+    precompute_shifts: bool = False,
+    power_steps: int = 5,
+) -> None:
     # Variants to compare (unified API)
-    variants = [("rayleigh", "rayleigh"), ("implicit+AED", "aed"), ("implicit+DS", "ds")]
+    variants = [
+        ("rayleigh", "rayleigh"),
+        ("implicit+AED", "aed"),
+        ("implicit+DS", "ds"),
+    ]
 
     curves = {}
     Ts = {}
     for name, vkey in variants:
         t0 = os.times()[4]
-        Q, T, diag = quaternion_schur_unified(A, variant=vkey, max_iter=iters, tol=tol, return_diagnostics=True)
+        Q, T, diag = quaternion_schur_unified(
+            A,
+            variant=vkey,
+            max_iter=iters,
+            tol=tol,
+            precompute_shifts=precompute_shifts,
+            power_shift_steps=power_steps,
+            return_diagnostics=True,
+        )
         t1 = os.times()[4]
         cpu = t1 - t0
         curve = _extract_curve(diag)
@@ -138,7 +159,10 @@ def main():
     parser.add_argument("--iters", type=int, default=1000)
     parser.add_argument("--tol", type=float, default=1e-10)
     parser.add_argument("--hermitian", action="store_true", help="Use A = B^H @ B (Hermitian)")
+    parser.add_argument("--sparse", action="store_true", help="Use a random sparse quaternion matrix")
     parser.add_argument("--tag", type=str, default="", help="Optional tag to append to output filenames")
+    parser.add_argument("--precompute_shifts", action="store_true", help="Use power-iteration with deflation to schedule shifts")
+    parser.add_argument("--power_steps", type=int, default=5, help="Number of power-iteration steps per deflation stage")
     # keep script simple: no balancing knobs
     args = parser.parse_args()
 
@@ -148,10 +172,31 @@ def main():
             B = create_test_matrix(n, n)
             A = quat_matmat(quat_hermitian(B), B)
             tag = args.tag or "herm"
+        elif args.sparse:
+            S = create_sparse_quat_matrix(n, n, density=0.05)
+            # Convert sparse to dense quaternion array
+            A = quaternion.as_quat_array(
+                np.stack([
+                    S.real.toarray(),
+                    S.i.toarray(),
+                    S.j.toarray(),
+                    S.k.toarray()
+                ], axis=-1)
+            )
+            tag = args.tag or "sparse"
         else:
             A = create_test_matrix(n, n)
             tag = args.tag or "rand"
-        run_variants(A, n=n, iters=args.iters, tol=args.tol, out_dir=out_dir, tag=tag)
+        run_variants(
+            A,
+            n=n,
+            iters=args.iters,
+            tol=args.tol,
+            out_dir=out_dir,
+            tag=tag,
+            precompute_shifts=args.precompute_shifts,
+            power_steps=args.power_steps,
+        )
     print("Done.")
 
 
