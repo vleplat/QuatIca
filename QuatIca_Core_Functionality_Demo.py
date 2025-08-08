@@ -174,8 +174,8 @@ print("✅ Eigenvalue decomposition works!")
 
 from core.decomp import quaternion_lu, verify_lu_decomposition
 
-# Create a test matrix
-A = create_test_matrix(4, 4)
+# Create a test matrix (set to 300x600 to validate rectangular LU)
+A = create_test_matrix(300, 600)
 print("Matrix A shape:", A.shape)
 
 # LU decomposition
@@ -184,26 +184,12 @@ print("LU decomposition:")
 print("  L shape:", L.shape)
 print("  U shape:", U.shape)
 
-# Verify reconstruction
+# Verify reconstruction (A = L @ U)
 LU = quat_matmat(L, U)
 reconstruction_error = quat_frobenius_norm(A - LU)
 relative_error = reconstruction_error / quat_frobenius_norm(A)
 print("  Reconstruction error:", reconstruction_error)
 print("  Relative error:", relative_error)
-
-# Verify L is lower triangular with unit diagonal
-L_float = quaternion.as_float_array(L)
-L_real = L_float[:, :, 0]  # Real part
-is_lower_triangular = np.allclose(L_real, np.tril(L_real), atol=1e-12)
-has_unit_diagonal = np.allclose(np.diag(L_real), np.ones(L.shape[0]), atol=1e-12)
-print("  L is lower triangular:", is_lower_triangular)
-print("  L has unit diagonal:", has_unit_diagonal)
-
-# Verify U is upper triangular
-U_float = quaternion.as_float_array(U)
-U_real = U_float[:, :, 0]  # Real part
-is_upper_triangular = np.allclose(U_real, np.triu(U_real), atol=1e-12)
-print("  U is upper triangular:", is_upper_triangular)
 
 # Test with permutation matrix
 L_p, U_p, P = quaternion_lu(A, return_p=True)
@@ -221,9 +207,24 @@ A_recon_alt = quat_matmat(P_T_L, U_p)  # (P^T * L) * U
 alt_error = quat_frobenius_norm(A - A_recon_alt)
 print("  A = (P^T * L) * U error:", alt_error)
 
-# Check if P^T * L is lower triangular (only true when no pivoting needed)
+# Structural checks on pivoted factors (valid for rectangular matrices):
+N = min(A.shape[0], A.shape[1])
+
+# L_p should be lower-triangular (lower-trapezoidal) with unit diagonal on the leading N×N block
+L_p_real = quaternion.as_float_array(L_p)[:, :, 0]
+is_Lp_lower = np.allclose(L_p_real, np.tril(L_p_real), atol=1e-12)
+unit_diag = np.allclose(np.diag(L_p_real[:N, :N]), np.ones(N), atol=1e-12)
+print("  L (pivoted) is lower-triangular:", is_Lp_lower)
+print("  L (pivoted) has unit diagonal (first N):", unit_diag)
+
+# U_p (N×n) should be upper-triangular (upper-trapezoidal)
+U_p_real = quaternion.as_float_array(U_p)[:, :, 0]
+is_Up_upper = np.allclose(U_p_real, np.triu(U_p_real), atol=1e-12)
+print("  U (pivoted) is upper-triangular:", is_Up_upper)
+
+# Check if P^T * L is lower triangular (only when no pivoting needed)
 P_T_L_float = quaternion.as_float_array(P_T_L)
-P_T_L_real = P_T_L_float[:, :, 0]  # Real part
+P_T_L_real = P_T_L_float[:, :, 0]
 is_P_T_L_lower_triangular = np.allclose(P_T_L_real, np.tril(P_T_L_real), atol=1e-12)
 print("  P^T * L is lower triangular:", is_P_T_L_lower_triangular, "(only when no pivoting needed)")
 
