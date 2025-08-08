@@ -28,12 +28,12 @@ def quaternion_to_rgb(Q):
 def gen_mask(shape, missing_rate):
     return (np.random.rand(*shape) > missing_rate).astype(np.float32)
 
-def MRQ(A, max_iter=25):
+def MRQ(A, max_iter=100):
     solver = NewtonSchulzPseudoinverse(gamma=1.0, max_iter=max_iter, tol=1e-6, verbose=False)
     A_pinv, _, _ = solver.compute(A)
     return A_pinv
 
-def CURT(X, R1, R2, max_it=25):
+def CURT(X, R1, R2, max_it=100):
     m, n = X.shape
     I = np.random.choice(n, R1, replace=False)
     J = np.random.choice(m, R2, replace=False)
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     n_iter = 100
     rank_col = 60
     rank_row = 60
-    max_it_pinv = 25
+    max_it_pinv = 100
 
     # Track PSNR over iterations
     psnr_history = []
