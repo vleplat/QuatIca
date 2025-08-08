@@ -35,6 +35,7 @@ from utils import (
     GRSGivens,
 )
 from .hessenberg import hessenbergize, check_hessenberg
+from .tridiagonalize import householder_matrix
 
 
 def _quat_scalar_abs(q: quaternion.quaternion) -> float:
@@ -318,3 +319,92 @@ def quaternion_schur(
 __all__ = ["quaternion_schur"]
 
 
+
+
+def quaternion_schur_pure(
+    A: np.ndarray,
+    max_iter: int = 500,
+    tol: float = 1e-10,
+    verbose: bool = False,
+    return_diagnostics: bool = False,
+):
+    """Pure quaternion QR iteration (unshifted), no real expansion.
+
+    Algorithm:
+      1) Reduce A to Hessenberg H via quaternion Householder similarity.
+      2) For k=1..max_iter: compute QR of H using quaternion Householders (left)
+         then set H <- R @ Q (QR iteration). Accumulate Q_total.
+
+    Note: Convergence is generally slower than shifted QR; intended as a
+    structure-preserving baseline for Lead 2 experiments.
+    """
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError("quaternion_schur_pure requires a square matrix")
+
+    n = A.shape[0]
+    if n == 0:
+        I0 = np.eye(0, dtype=np.quaternion)
+        return I0, I0
+
+    # Step 1: Hessenberg reduction (quaternion Householders)
+    P0, H = hessenbergize(A)
+    H = check_hessenberg(H)
+
+    Q_accum = np.eye(n, dtype=np.quaternion)
+    diag = {"iterations": [], "converged": False, "iterations_run": 0}
+
+    for k in range(max_iter):
+        # Build Q_iter (product of Householders) such that R = Q_iter @ H is upper triangular
+        Q_iter = np.eye(n, dtype=np.quaternion)
+        R_work = H.copy()
+        for j in range(n - 1):
+            # Form Householder on subvector R_work[j:, j] to zero entries below j
+            col = R_work[j:, j].copy()
+            # If already zero below diagonal, skip
+            if all((col[t].w == 0 and col[t].x == 0 and col[t].y == 0 and col[t].z == 0) for t in range(1, col.shape[0])):
+                continue
+            # Target vector e1 (real), mapping col -> * e1
+            e1 = np.zeros(col.shape[0])
+            e1[0] = 1.0
+            Hj_sub = householder_matrix(col, e1)
+            Hj = np.eye(n, dtype=np.quaternion)
+            Hj[j:, j:] = Hj_sub
+            # Left-apply to R_work; accumulate Q_iter = Hj @ Q_iter
+            R_work = quat_matmat(Hj, R_work)
+            Q_iter = quat_matmat(Hj, Q_iter)
+
+        # Now R_work ≈ Q_left * H. In QR iteration, set H <- R * Q_k with Q_k = Q_left^H
+        Qk = quat_hermitian(Q_iter)
+        H = quat_matmat(R_work, Qk)
+        Q_accum = quat_matmat(Q_accum, Qk)
+
+        # Clean tiny subdiagonals and check convergence
+        max_sub = 0.0
+        for i in range(1, n):
+            h = H[i, i - 1]
+            sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
+            max_sub = max(max_sub, sv)
+            dscale = (
+                (H[i - 1, i - 1].w ** 2 + H[i - 1, i - 1].x ** 2 + H[i - 1, i - 1].y ** 2 + H[i - 1, i - 1].z ** 2) ** 0.5
+                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2) ** 0.5
+                + 1e-30
+            )
+            if sv <= tol * max(1.0, dscale):
+                H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
+
+        if return_diagnostics:
+            diag["iterations"].append({"iter": k, "max_subdiag": float(max_sub)})
+        if verbose and (k % 25 == 0 or max_sub <= tol):
+            print(f"pure-QR iter {k}: max subdiag {max_sub:.2e}")
+        if max_sub <= tol:
+            if return_diagnostics:
+                diag["converged"] = True
+                diag["iterations_run"] = k + 1
+            break
+
+    # Compose final Q: A = Q_total T Q_total^H with Q_total = P0^H Q_accum
+    Q_total = quat_matmat(quat_hermitian(P0), Q_accum)
+    T = H
+    if return_diagnostics:
+        return Q_total, T, diag
+    return Q_total, T
