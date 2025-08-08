@@ -231,7 +231,8 @@ QuatIca/
 │       ├── qsvd.py         # QR and Q-SVD implementations
 │       ├── eigen.py         # Eigenvalue decomposition for Hermitian matrices
 │       ├── LU.py           # LU decomposition with partial pivoting
-│       └── tridiagonalize.py # Tridiagonalization using Householder transformations
+│       ├── tridiagonalize.py # Tridiagonalization using Householder transformations
+│       └── hessenberg.py    # Upper Hessenberg reduction using Householder similarity
 ├── tests/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
 │   ├── unit/               # Unit tests for core functionality
@@ -250,7 +251,8 @@ QuatIca/
 │   │   ├── test_eigen.py   # Eigenvalue decomposition unit tests
 │   │   ├── test_LU.py      # LU decomposition unit tests
 │   │   ├── test_tridiagonalize.py # Tridiagonalization unit tests
-│   │   └── eigenvalue_demo.py # Demonstration of eigenvalue decomposition
+│   │   ├── eigenvalue_demo.py # Demonstration of eigenvalue decomposition
+│   │   └── test_hessenberg.py  # Hessenberg reduction unit tests
 │   └── validation/         # Validation and visualization scripts
 │       ├── __init__.py
 │       ├── README.md       # Validation package documentation
