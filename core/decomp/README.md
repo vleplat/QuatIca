@@ -69,7 +69,24 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
 ### Schur Decomposition (Under Development)
-- Note: A prototype quaternion Schur routine exists (`core/decomp/schur.py`), but it is under active development. It is not yet production-ready and should not be relied upon. We do not guarantee correctness or convergence for general inputs at this time.
+- Note: A prototype quaternion Schur routine exists (`core/decomp/schur.py`), but it is under active development. It is not yet production-ready and should not be relied upon for general inputs. However, for Hermitian quaternion matrices (A = A^H), the Schur pipeline empirically converges to a diagonal T (as predicted by theory for unitary similarity), providing a strong validation signal.
+
+- Reproducible validation (visual and numeric):
+  - Run the comparison/visualization script to compare stable variants and view Schur form plots:
+    - Random matrices:
+      ```bash
+      PYTHONPATH=$PWD:$PWD/core python tests/validation/compare_schur_variants.py --sizes 50 --iters 1500 --tol 1e-10 --tag rand
+      ```
+    - Hermitian matrices (A = B^H @ B):
+      ```bash
+      PYTHONPATH=$PWD:$PWD/core python tests/validation/compare_schur_variants.py --sizes 50 --iters 1000 --tol 1e-10 --hermitian --tag herm50
+      ```
+  - The script saves convergence plots and Schur T visualizations (real component) into `validation_output/`:
+    - `schur_lead2_variants_<tag>_n<size>.png`
+    - `schur_T_<tag>_n<size>_<variant>_real.png`
+  - Observed behavior:
+    - Hermitian: both Rayleigh-shift and implicit+AED variants converge to diagonal T quickly; implicit+AED is markedly faster, Rayleigh is slightly more accurate (lower similarity residual).
+    - Random: Rayleigh achieves stronger deflation with sufficient iterations but is slower; implicit+AED offers speed with higher residual.
 
 
 ---
