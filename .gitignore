@@ -104,4 +104,4 @@ core/decomp/*_insights.txt
 /site
 
 # Pyre type checker
-.pyre/ 
+.pyre/ validation_output/*
