@@ -1,16 +1,17 @@
 """
-Quaternion Schur Decomposition via Hessenberg reduction and shifted QR.
+Quaternion Schur Decomposition via Hessenberg reduction and implicit shifted QR.
 
 Strategy:
 - Reduce once to Hessenberg: H0 = P0 * A * P0^H
-- Iterate implicit shifted QR steps in real-block representation:
-  HR_{k+1} = R_k @ Q_k + sigma_k I, where Q_k R_k = HR_k - sigma_k I
+- Iterate implicit shifted QR steps in Realp (4n x 4n) using quaternion-structured
+  Givens rotations and optional Francis double-shift for improved convergence:
+    HR_{k+1} = R_k @ Q_k + sigma_k I, where Q_k R_k ≈ HR_k - sigma_k I
 - Accumulate total Q in real block, then contract to quaternion and combine with P0
 
 Notes:
-- We use numpy.linalg.qr on the 4n x 4n real-block matrix for robustness and simplicity.
-- Shift: Rayleigh quotient using trailing 1x1 (real part of H[-1, -1]).
-- Deflation: zero H[i, i-1] when sufficiently small.
+- Shift: Rayleigh, Wilkinson (1x1/2x2 trailing block), or double (Francis-style two shifts)
+- Deflation: aggressively zero H[i, i-1] when sufficiently small within the active window
+- All operations preserve quaternion structure through Realp mapping + fixed 8x8 permutation
 """
 
 from __future__ import annotations
@@ -71,7 +72,7 @@ def quaternion_schur(
     - A: square quaternion matrix (n x n)
     - max_iter: maximum number of QR iterations
     - tol: deflation tolerance for subdiagonal entries
-    - shift: 'rayleigh' currently supported
+    - shift: 'rayleigh' | 'wilkinson' | 'double' (Francis two-shift surrogate)
     - verbose: print progress
 
     Returns:
@@ -134,9 +135,15 @@ def quaternion_schur(
 
     # Helper: apply a single implicit shift sweep (bulge chase) with given sigma
     def _apply_single_shift(HR_in: np.ndarray, sigma_val: float, m_sz: int) -> Tuple[np.ndarray, np.ndarray]:
+        """Apply one implicit single-shift sweep (bulge init + full-window chase).
+
+        We construct rotations from the shifted matrix HR - sigma I to properly
+        initialize the bulge and then chase it across the active window.
+        """
         HRs = HR_in - sigma_val * eye4n
         Qk = np.eye(4 * n)
-        H_curr = real_contract(HRs + sigma_val * eye4n, n, n)  # reconstruct to read components
+        # Read components from the shifted matrix (avoid cancelling the shift)
+        H_curr = real_contract(HRs, n, n)
         for s in range(0, m_sz - 1):
             h11 = H_curr[s, s]
             h21 = H_curr[s + 1, s]
@@ -152,6 +159,7 @@ def quaternion_schur(
             HRs[row_idx, :] = Gc_left @ HRs[row_idx, :]
             HRs[:, col_idx] = HRs[:, col_idx] @ Gc_right
             Qk[:, col_idx] = Qk[:, col_idx] @ Gc_right
+        # Add back the shift
         HR_out = HRs + sigma_val * eye4n
         return HR_out, Qk
 
@@ -214,8 +222,13 @@ def quaternion_schur(
         prev_max_sub = subdiag_norm
 
         current_shift_mode = shift
+        # If stagnating, switch strategy (toggle between wilkinson and rayleigh)
         if stagnation_count >= 50:
             current_shift_mode = "rayleigh" if shift == "wilkinson" else "wilkinson"
+            stagnation_count = 0
+        # If still stagnating for long, try a double-shift step
+        if stagnation_count >= 20 and m_active >= 2:
+            current_shift_mode = "double"
             stagnation_count = 0
 
         # Choose shift(s) from trailing block of active window
@@ -227,7 +240,8 @@ def quaternion_schur(
             B = np.array([[w11, w12], [w21, w22]], dtype=float)
             evals = np.linalg.eigvals(B)
             evals_real = np.real(evals)
-            if current_shift_mode == "double" and evals_real.shape[0] >= 2:
+            # Prefer a true double-shift when a 2x2 is available
+            if evals_real.shape[0] >= 2:
                 mu, nu = float(evals_real[0]), float(evals_real[1])
                 sigma_list = [mu, nu]
             else:
@@ -255,12 +269,23 @@ def quaternion_schur(
         }
         diag["iterations"].append(diag_entry)
 
-        # Apply one or two shifts as a Francis double-shift surrogate
+        # Apply one or two shifts (Francis double-shift surrogate when len>1)
         Qk_real_total = np.eye(4 * n)
         for sigma in sigma_list:
             HR, Qk_part = _apply_single_shift(HR, sigma, m_active)
             Qk_real_total = Qk_real_total @ Qk_part
         Q_real = Q_real @ Qk_real_total
+
+        # Re-enforce Hessenberg structure and apply strong deflation sweep
+        H_tmp = real_contract(HR, n, n)
+        H_tmp = check_hessenberg(H_tmp)
+        # Zero very small subdiagonals relative to local scale
+        for i in range(1, m_active):
+            h_sub = H_tmp[i, i - 1]
+            denom = _quat_scalar_abs(H_tmp[i - 1, i - 1]) + _quat_scalar_abs(H_tmp[i, i]) + 1e-30
+            if _quat_scalar_abs(h_sub) <= 1e-2 * tol * max(1.0, denom):
+                H_tmp[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
+        HR = real_expand(H_tmp)
 
         if verbose and (k % 50 == 0):
             H_tmp = real_contract(HR, n, n)
