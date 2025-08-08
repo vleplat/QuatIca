@@ -327,6 +327,7 @@ def quaternion_schur_pure(
     tol: float = 1e-10,
     verbose: bool = False,
     return_diagnostics: bool = False,
+    shift_mode: str = "none",
 ):
     """Pure quaternion QR iteration (unshifted), no real expansion.
 
@@ -354,9 +355,18 @@ def quaternion_schur_pure(
     diag = {"iterations": [], "converged": False, "iterations_run": 0}
 
     for k in range(max_iter):
+        # Optional simple Rayleigh shift using bottom-right scalar part
+        sigma = 0.0
+        if shift_mode == "rayleigh":
+            sigma = float(H[n - 1, n - 1].w)
+        qsigma = quaternion.quaternion(float(sigma), 0.0, 0.0, 0.0)
+
         # Build Q_iter (product of Householders) such that R = Q_iter @ H is upper triangular
         Q_iter = np.eye(n, dtype=np.quaternion)
         R_work = H.copy()
+        if sigma != 0.0:
+            for i in range(n):
+                R_work[i, i] = R_work[i, i] - qsigma
         for j in range(n - 1):
             # Form Householder on subvector R_work[j:, j] to zero entries below j
             col = R_work[j:, j].copy()
@@ -373,9 +383,12 @@ def quaternion_schur_pure(
             R_work = quat_matmat(Hj, R_work)
             Q_iter = quat_matmat(Hj, Q_iter)
 
-        # Now R_work ≈ Q_left * H. In QR iteration, set H <- R * Q_k with Q_k = Q_left^H
+        # Now R_work ≈ Q_left * (H - sigma I). In QR iteration, set H <- R * Q_k + sigma I with Q_k = Q_left^H
         Qk = quat_hermitian(Q_iter)
         H = quat_matmat(R_work, Qk)
+        if sigma != 0.0:
+            for i in range(n):
+                H[i, i] = H[i, i] + qsigma
         Q_accum = quat_matmat(Q_accum, Qk)
 
         # Clean tiny subdiagonals and check convergence
