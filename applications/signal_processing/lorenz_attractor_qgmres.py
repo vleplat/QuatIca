@@ -51,8 +51,8 @@ import argparse
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
 
 # Fixed plotting functions to match MATLAB's behavior
-def createfigure3(YMatrix1):
-    """Create 2D time series plot matching MATLAB's style"""
+def createfigure3(YMatrix1, title: str = 'Signal Components'):
+    """Create 2D time series plot matching MATLAB's style with configurable title"""
     fig = plt.figure(figsize=(12, 8), facecolor='white')
     ax = fig.add_subplot(111)
     
@@ -63,7 +63,7 @@ def createfigure3(YMatrix1):
     
     ax.set_xlabel('Time', fontsize=14)
     ax.set_ylabel('Amplitude', fontsize=14)
-    ax.set_title('3D Signal Components', fontsize=16, fontweight='bold')
+    ax.set_title(title, fontsize=16, fontweight='bold')
     ax.grid(True)
     ax.legend(fontsize=12, loc='upper right')
     plt.tight_layout()
@@ -79,18 +79,7 @@ def createfigure4(X1, Y1, Z1, title: str = '3D Trajectory'):
     ax.set_xlabel('x(t)', fontsize=14)
     ax.set_ylabel('y(t)', fontsize=14)
     ax.set_zlabel('z(t)', fontsize=14)
-    # Title inside the figure
     ax.set_title(title, fontsize=16, fontweight='bold')
-    # Also set the window title so multiple displayed windows are clearly distinguishable
-    try:
-        fig.canvas.manager.set_window_title(title)
-    except Exception:
-        pass
-    # Add a small anchored label inside the axes for extra clarity
-    try:
-        ax.text2D(0.02, 0.98, title, transform=ax.transAxes, fontsize=10, va='top', ha='left')
-    except Exception:
-        pass
     ax.grid(True)
     ax.view_init(elev=30, azim=-37.5)  # Match MATLAB's default view
     return fig
@@ -252,10 +241,10 @@ def main():
     # 7) Plot observed signal - CORRECT COMPONENT ORDER
     # Observed signal components: x, y, z (skip real part)
     obs_xyz = obs[:, 1:4]  # Columns 1,2,3 = x,y,z
-    fig1 = createfigure3(obs_xyz)
+    fig1 = createfigure3(obs_xyz, title='Observed Components (corrupted)')
     save_high_res_plot(fig1, 'lorenz_observed_components.png', output_dir, show_plot=SHOW_PLOTS)
     
-    fig2 = createfigure4(obs[:,1], obs[:,2], obs[:,3], title='Observed Trajectory (corrupted)')
+    fig2 = createfigure4(obs[:,1], obs[:,2], obs[:,3], title='Observed Trajectory')
     save_high_res_plot(fig2, 'lorenz_observed_trajectory.png', output_dir, show_plot=SHOW_PLOTS)
 
     # 8) Reconstruct signal - CORRECT COMPONENT ORDER
@@ -265,7 +254,7 @@ def main():
     # Create reconstructed signal matrix
     reconstructed = np.column_stack((dy1, dy2, dy3))  # x,y,z components
     
-    fig3 = createfigure3(reconstructed)
+    fig3 = createfigure3(reconstructed, title='Recovered Components')
     save_high_res_plot(fig3, 'lorenz_reconstructed_components.png', output_dir, show_plot=SHOW_PLOTS)
     
     fig4 = createfigure4(dy1, dy2, dy3, title='Recovered Trajectory')
