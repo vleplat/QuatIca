@@ -473,6 +473,44 @@ for size in sizes:
 
 print("✅ Power iteration performance analysis complete!")
 
+# ## 13. Hessenberg Form (Upper Hessenberg Reduction)
+
+from core.decomp.hessenberg import hessenbergize, is_hessenberg
+from core.utils import quat_eye
+
+print("\n" + "="*60)
+print("HESSENBERG FORM (UPPER HESSENBERG REDUCTION)")
+print("="*60)
+
+# Create a random quaternion matrix (general, non-Hermitian)
+X = create_test_matrix(6, 6)
+print("Random matrix X shape:", X.shape)
+
+# Compute Hessenberg form
+P_hess, H = hessenbergize(X)
+print("Hessenberg reduction:")
+print("  P shape:", P_hess.shape)
+print("  H shape:", H.shape)
+
+# Verify unitarity of P: P^H P = I
+P_hess_H = quat_hermitian(P_hess)
+I_check = quat_matmat(P_hess_H, P_hess)
+is_unitary = np.allclose(I_check, quat_eye(P_hess.shape[0]), atol=1e-10)
+print("  P is unitary (P^H P = I):", is_unitary)
+
+# Verify similarity relation: H = P * X * P^H
+PX = quat_matmat(P_hess, X)
+PXPH = quat_matmat(PX, P_hess_H)
+sim_error = quat_frobenius_norm(PXPH - H)
+print(f"  Similarity error ||P X P^H - H||_F: {sim_error:.2e}")
+
+# Check Hessenberg structure
+print("  is_hessenberg(H):", is_hessenberg(H))
+
+# Visualize the real component to illustrate Hessenberg pattern
+from core.visualization import Visualizer
+Visualizer.visualize_matrix(H, component=0, title="Hessenberg H - Real Component")
+
 # ## Summary
 
 print("🎉 ALL CORE FUNCTIONALITY TESTS COMPLETED SUCCESSFULLY!")
@@ -489,4 +527,5 @@ print("✅ Visualization")
 print("✅ Determinant computation")
 print("✅ Rank computation")
 print("✅ Power iteration")
+print("✅ Hessenberg form")
 print("\nThe code examples in the README are working correctly! 🚀") 

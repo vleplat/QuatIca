@@ -61,6 +61,13 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(U, s, V)` (approximate, rank-R)
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
+### **7. Hessenberg Reduction (Upper Hessenberg Form)**
+- **Function**: `hessenbergize(A_quat)`
+- **Input Matrix**: **General quaternion matrix** (square n×n)
+- **Algorithm**: Householder similarity transformations (zero below first subdiagonal)
+- **Output**: `(P, H)` where `H = P * A * P^H` is upper Hessenberg and `P` is unitary
+- **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
+
 ---
 
 ## 📊 Matrix Type Requirements
@@ -74,6 +81,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 | **Tridiagonalization** | Hermitian | n×n | A = A^H |
 | **Randomized Q-SVD** | General | m×n | None |
 | **Pass-Efficient Q-SVD** | General | m×n | None |
+| **Hessenberg Reduction** | General | n×n | None |
 
 ---
 
@@ -109,6 +117,16 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Complexity**: O(n³)
 - **Advantages**: Numerically stable, preserves structure
 - **Disadvantages**: Requires Hermitian input
+
+### **Householder Similarity (Hessenberg Reduction)**
+- **Principle**: Use Householder reflectors to introduce zeros below first subdiagonal
+- **Process**:
+  1. For each column k, build a reflector acting on rows/cols k+1..n
+  2. Apply similarity transform `H ← Hk * H * Hk^H`
+  3. Accumulate unitary `P ← Hk * P`
+- **Complexity**: O(n³)
+- **Advantages**: Numerically stable, prepares matrix for QR algorithm / Schur form
+- **Disadvantages**: General (non-Hermitian) reduction; not tridiagonal
 
 ### **Tridiagonalization + Eigendecomposition**
 - **Principle**: Two-step process for Hermitian matrices
@@ -175,6 +193,11 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Example**: `U, s, V = pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2)`
 - **Best for**: Systems with limited memory, low-rank matrices, 2.8x faster than rand_qsvd
 
+#### **Hessenberg Reduction**
+- **When to use**: Preprocessing for QR/Schur algorithms on general (non-Hermitian) matrices
+- **Example**: `P, H = hessenbergize(A_quat)`
+- **Best for**: Eigenvalue computations and Schur decomposition pipelines
+
 ### **For Hermitian Matrices:**
 
 #### **Eigenvalue Decomposition**
@@ -198,6 +221,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - Tridiagonalization (`tridiagonalize`)
 - Randomized Q-SVD (`rand_qsvd`)
 - Pass-Efficient Q-SVD (`pass_eff_qsvd`) - **NEW: MATLAB validated, unit tested, performance benchmarked**
+- Hessenberg Reduction (`hessenbergize`) - **NEW**
 
 **Note**: All methods have been thoroughly tested and validated for production use.
 

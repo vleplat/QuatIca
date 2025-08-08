@@ -18,7 +18,7 @@
 
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
-- **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, and **Eigenvalue Decomposition** for quaternion matrices
+ - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, and **Eigenvalue Decomposition** for quaternion matrices
 - **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method)
 - **Image Processing**: Complete missing pixels in images using quaternion math
 - **Signal Analysis**: Process 3D/4D signals with quaternion algebra
@@ -737,6 +737,22 @@ P, B = tridiagonalize(A_quat)
 - ✅ **Unitary transformations** - preserves eigenvalues
 - ✅ **Production-ready** with 13/13 tests passing
 - ✅ **Recursive algorithm** - handles matrices of any size
+
+### **Hessenberg Form (Upper Hessenberg Reduction)**
+```python
+from core.decomp.hessenberg import hessenbergize, is_hessenberg
+from core.utils import quat_hermitian, quat_matmat
+
+# Reduce a general quaternion matrix to Hessenberg form
+P, H = hessenbergize(X_quat)
+# Verify: H = P @ X_quat @ P^H and H is upper Hessenberg
+```
+
+**Features:**
+- ✅ **Householder similarity transforms** - numerically stable
+- ✅ **Unitarity preserved** - P is unitary (P^H P = I)
+- ✅ **Structure** - H has zeros strictly below the first subdiagonal
+- ✅ **Works for general (non-Hermitian) matrices**
 
 ### **📊 Visualization and Validation**
 
