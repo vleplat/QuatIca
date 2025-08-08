@@ -316,7 +316,7 @@ def quaternion_schur(
     return Q_total, H_final
 
 
-__all__ = ["quaternion_schur"]
+__all__ = ["quaternion_schur", "quaternion_schur_pure"]
 
 
 
