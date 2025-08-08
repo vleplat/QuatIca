@@ -32,7 +32,6 @@ from utils import (
     real_contract,
     quat_eye,
     ggivens,
-    GRSGivens,
 )
 from .hessenberg import hessenbergize, check_hessenberg
 from .tridiagonalize import householder_matrix
@@ -42,21 +41,7 @@ def _quat_scalar_abs(q: quaternion.quaternion) -> float:
     return float(np.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z))
 
 
-def _deflate_in_place(H: np.ndarray, tol: float) -> bool:
-    """Perform simple 1x1 deflation: set tiny subdiagonal entries to zero.
-
-    Returns True if any deflation occurred.
-    """
-    n = H.shape[0]
-    changed = False
-    for i in range(1, n):
-        h_sub = H[i, i - 1]
-        denom = _quat_scalar_abs(H[i - 1, i - 1]) + _quat_scalar_abs(H[i, i]) + 1e-30
-        if _quat_scalar_abs(h_sub) <= tol * denom:
-            if (h_sub.w != 0) or (h_sub.x != 0) or (h_sub.y != 0) or (h_sub.z != 0):
-                H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
-                changed = True
-    return changed
+# (Legacy helper removed: deflation handled inline in algorithms)
 
 
 def quaternion_schur(
@@ -97,28 +82,7 @@ def quaternion_schur(
 
     eye4n = np.eye(4 * n)
 
-    def _current_shift(hmat_quat: np.ndarray) -> float:
-        # Returns a real scalar shift
-        if shift == "rayleigh":
-            return float(hmat_quat[-1, -1].w)
-        elif shift == "wilkinson":
-            # Build 2x2 real proxy matrix from real parts of trailing 2x2 quaternion block
-            nloc = hmat_quat.shape[0]
-            w11 = float(hmat_quat[nloc - 2, nloc - 2].w)
-            w12 = float(hmat_quat[nloc - 2, nloc - 1].w)
-            w21 = float(hmat_quat[nloc - 1, nloc - 2].w)
-            w22 = float(hmat_quat[nloc - 1, nloc - 1].w)
-            B = np.array([[w11, w12], [w21, w22]], dtype=float)
-            evals = np.linalg.eigvals(B)
-            # Choose eigenvalue closest to bottom-right entry
-            if evals.shape[0] == 0:
-                return w22
-            # ensure real part only if complex
-            evals_real = np.real(evals)
-            idx = np.argmin(np.abs(evals_real - w22))
-            return float(evals_real[idx])
-        else:
-            return float(hmat_quat[-1, -1].w)
+    # (Legacy shift helper removed; shift selection performed inline)
 
     # Fixed 8x8 permutation mapping contiguous [w_i,x_i,y_i,z_i,w_{i+1},x_{i+1},y_{i+1},z_{i+1}]
     # to stacked [w_i,w_{i+1},x_i,x_{i+1},y_i,y_{i+1},z_i,z_{i+1}]
@@ -316,7 +280,12 @@ def quaternion_schur(
     return Q_total, H_final
 
 
-__all__ = ["quaternion_schur", "quaternion_schur_pure", "quaternion_schur_pure_implicit"]
+__all__ = [
+    "quaternion_schur",
+    "quaternion_schur_pure",
+    "quaternion_schur_pure_implicit",
+    "quaternion_schur_unified",
+]
 
 
 
@@ -501,6 +470,135 @@ def quaternion_schur_pure_implicit(
             diag["iterations"].append({"iter": k, "max_subdiag": float(max_sub)})
         if verbose and (k % 25 == 0 or max_sub <= tol):
             print(f"implicit-QR iter {k}: max subdiag {max_sub:.2e}")
+        if max_sub <= tol:
+            if return_diagnostics:
+                diag["converged"] = True
+                diag["iterations_run"] = k + 1
+            break
+
+    Q_total = quat_matmat(quat_hermitian(P0), Q_accum)
+    T = H
+    if return_diagnostics:
+        return Q_total, T, diag
+    return Q_total, T
+
+
+def quaternion_schur_unified(
+    A: np.ndarray,
+    variant: str = "rayleigh",
+    max_iter: int = 1000,
+    tol: float = 1e-10,
+    aed_factor: float | None = None,
+    verbose: bool = False,
+    return_diagnostics: bool = False,
+):
+    """Unified Schur API exposing common variants.
+
+    Variants:
+      - 'none'       : pure QR iteration, no shift (Lead 2 baseline)
+      - 'rayleigh'   : pure QR iteration with Rayleigh shift (Lead 2 simple shift)
+      - 'implicit'   : pure quaternion implicit QR (bulge-chase) with Rayleigh shift
+      - 'aed'        : implicit + aggressive early deflation (AED) (quaternion-only)
+      - 'ds'         : implicit + double-shift surrogate from trailing 2x2 (quaternion-only)
+
+    Notes:
+      - For 'aed' and 'ds', operations stay in the quaternion domain using 2x2 Householder similarities.
+    """
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError("quaternion_schur_unified requires a square matrix")
+
+    # Map simple variants to existing functions
+    if variant == "none":
+        return quaternion_schur_pure(A, max_iter=max_iter, tol=tol, verbose=verbose, return_diagnostics=return_diagnostics, shift_mode="none")
+    if variant == "rayleigh":
+        return quaternion_schur_pure(A, max_iter=max_iter, tol=tol, verbose=verbose, return_diagnostics=return_diagnostics, shift_mode="rayleigh")
+    if variant == "implicit":
+        return quaternion_schur_pure_implicit(A, max_iter=max_iter, tol=tol, verbose=verbose, return_diagnostics=return_diagnostics, shift_mode="rayleigh")
+
+    # Advanced quaternion-only implicit variants ('aed' and 'ds')
+    n = A.shape[0]
+    P0, H = hessenbergize(A)
+    H = check_hessenberg(H)
+    Q_accum = np.eye(n, dtype=np.quaternion)
+    diag = {"iterations": [], "converged": False, "iterations_run": 0}
+
+    def apply_left_rows(M: np.ndarray, s_idx: int, B: np.ndarray) -> None:
+        a, b = B[0, 0], B[0, 1]
+        c, d = B[1, 0], B[1, 1]
+        r0 = M[s_idx, :].copy()
+        r1 = M[s_idx + 1, :].copy()
+        M[s_idx, :] = a * r0 + b * r1
+        M[s_idx + 1, :] = c * r0 + d * r1
+
+    def apply_right_cols(M: np.ndarray, s_idx: int, B: np.ndarray) -> None:
+        BH = quat_hermitian(B)
+        a, b = BH[0, 0], BH[0, 1]
+        c, d = BH[1, 0], BH[1, 1]
+        c0 = M[:, s_idx].copy()
+        c1 = M[:, s_idx + 1].copy()
+        M[:, s_idx] = c0 * a + c1 * c
+        M[:, s_idx + 1] = c0 * b + c1 * d
+
+    # Choose AED factor
+    if aed_factor is None:
+        # Simple heuristic
+        if n <= 20:
+            aed_factor = 3.0
+        elif n <= 50:
+            aed_factor = 5.0
+        elif n <= 75:
+            aed_factor = 6.0
+        else:
+            aed_factor = 8.0
+
+    for k in range(max_iter):
+        # Select shifts
+        if variant == "ds" and n >= 2:
+            # Double-shift surrogate: two scalar shifts from trailing 2x2 (real parts)
+            w11 = float(H[n - 2, n - 2].w)
+            w12 = float(H[n - 2, n - 1].w)
+            w21 = float(H[n - 1, n - 2].w)
+            w22 = float(H[n - 1, n - 1].w)
+            B2 = np.array([[w11, w12], [w21, w22]], dtype=float)
+            evals = np.linalg.eigvals(B2)
+            sigmas = [float(np.real(evals[0])), float(np.real(evals[1]))]
+        else:
+            sigmas = [float(H[n - 1, n - 1].w)]
+
+        for sigma in sigmas:
+            qs = quaternion.quaternion(float(sigma), 0.0, 0.0, 0.0)
+            # Bulge init + chase via 2x2 Householders
+            for s in range(0, n - 1):
+                v0 = H[s, s] - qs
+                v1 = H[s + 1, s]
+                sv = (v1.w * v1.w + v1.x * v1.x + v1.y * v1.y + v1.z * v1.z) ** 0.5
+                if sv <= tol:
+                    continue
+                e1 = np.zeros(2)
+                e1[0] = 1.0
+                Hj_sub = householder_matrix(np.array([v0, v1], dtype=np.quaternion), e1)
+                apply_left_rows(H, s, Hj_sub)
+                apply_right_cols(H, s, Hj_sub)
+                apply_right_cols(Q_accum, s, Hj_sub)
+
+        # AED sweep
+        max_sub = 0.0
+        for i in range(1, n):
+            h = H[i, i - 1]
+            sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
+            dscale = (
+                (H[i - 1, i - 1].w ** 2 + H[i - 1, i - 1].x ** 2 + H[i - 1, i - 1].y ** 2 + H[i - 1, i - 1].z ** 2) ** 0.5
+                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2) ** 0.5
+                + 1e-30
+            )
+            if variant in ("aed", "ds") and sv <= aed_factor * tol * max(1.0, dscale):
+                H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
+            max_sub = max(max_sub, sv)
+
+        if return_diagnostics:
+            diag["iterations"].append({"iter": k, "max_subdiag": float(max_sub)})
+        if verbose and (k % 50 == 0 or max_sub <= tol):
+            print(f"unified[{variant}] iter {k}: max subdiag {max_sub:.2e}")
         if max_sub <= tol:
             if return_diagnostics:
                 diag["converged"] = True

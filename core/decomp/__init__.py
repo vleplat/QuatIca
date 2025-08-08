@@ -12,11 +12,11 @@ from .qsvd import classical_qsvd, classical_qsvd_full, rand_qsvd, pass_eff_qsvd
 from .eigen import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
 from .tridiagonalize import tridiagonalize
 from .LU import quaternion_lu, verify_lu_decomposition, quaternion_triu, quaternion_tril, quaternion_modulus
-from .schur import quaternion_schur, quaternion_schur_pure
+from .schur import quaternion_schur, quaternion_schur_pure, quaternion_schur_pure_implicit, quaternion_schur_unified
 
 __all__ = [
     'classical_qsvd', 'classical_qsvd_full', 'rand_qsvd', 'pass_eff_qsvd',
     'quaternion_eigendecomposition', 'quaternion_eigenvalues', 'quaternion_eigenvectors',
     'tridiagonalize', 'quaternion_lu', 'verify_lu_decomposition', 'quaternion_triu', 'quaternion_tril', 'quaternion_modulus',
-    'quaternion_schur', 'quaternion_schur_pure'
+    'quaternion_schur', 'quaternion_schur_pure', 'quaternion_schur_pure_implicit', 'quaternion_schur_unified'
 ]
