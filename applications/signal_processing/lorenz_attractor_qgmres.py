@@ -69,8 +69,8 @@ def createfigure3(YMatrix1):
     plt.tight_layout()
     return fig
 
-def createfigure4(X1, Y1, Z1):
-    """Create 3D trajectory plot matching MATLAB's style"""
+def createfigure4(X1, Y1, Z1, title: str = '3D Trajectory'):
+    """Create 3D trajectory plot matching MATLAB's style with configurable title"""
     fig = plt.figure(figsize=(10, 8), facecolor='white')
     ax = fig.add_subplot(111, projection='3d')
     
@@ -79,7 +79,7 @@ def createfigure4(X1, Y1, Z1):
     ax.set_xlabel('x(t)', fontsize=14)
     ax.set_ylabel('y(t)', fontsize=14)
     ax.set_zlabel('z(t)', fontsize=14)
-    ax.set_title('3D Trajectory', fontsize=16, fontweight='bold')
+    ax.set_title(title, fontsize=16, fontweight='bold')
     ax.grid(True)
     ax.view_init(elev=30, azim=-37.5)  # Match MATLAB's default view
     return fig
@@ -244,7 +244,7 @@ def main():
     fig1 = createfigure3(obs_xyz)
     save_high_res_plot(fig1, 'lorenz_observed_components.png', output_dir, show_plot=SHOW_PLOTS)
     
-    fig2 = createfigure4(obs[:,1], obs[:,2], obs[:,3])
+    fig2 = createfigure4(obs[:,1], obs[:,2], obs[:,3], title='Observed Trajectory (corrupted)')
     save_high_res_plot(fig2, 'lorenz_observed_trajectory.png', output_dir, show_plot=SHOW_PLOTS)
 
     # 8) Reconstruct signal - CORRECT COMPONENT ORDER
@@ -257,7 +257,7 @@ def main():
     fig3 = createfigure3(reconstructed)
     save_high_res_plot(fig3, 'lorenz_reconstructed_components.png', output_dir, show_plot=SHOW_PLOTS)
     
-    fig4 = createfigure4(dy1, dy2, dy3)
+    fig4 = createfigure4(dy1, dy2, dy3, title='Recovered Trajectory')
     save_high_res_plot(fig4, 'lorenz_reconstructed_trajectory.png', output_dir, show_plot=SHOW_PLOTS)
 
     # 9) Plot RHS components - CORRECT ORDER
@@ -265,7 +265,7 @@ def main():
     fig5 = createfigure3(b_xyz)
     save_high_res_plot(fig5, 'lorenz_rhs_components.png', output_dir, show_plot=SHOW_PLOTS)
     
-    fig6 = createfigure4(b[:,1], b[:,2], b[:,3])
+    fig6 = createfigure4(b[:,1], b[:,2], b[:,3], title='RHS Trajectory')
     save_high_res_plot(fig6, 'lorenz_rhs_trajectory.png', output_dir, show_plot=SHOW_PLOTS)
 
     # 10) Residual history

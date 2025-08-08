@@ -19,7 +19,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(Q, R)` where Q has orthonormal columns, R is upper triangular
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **2. LU Decomposition**
+### **2. LU Decomposition (LU Factorization with Partial Pivoting)**
 - **Function**: `quaternion_lu(A_quat, return_p=False)`
 - **Input Matrix**: **General quaternion matrix** (any m×n)
 - **Algorithm**: Gaussian elimination with partial pivoting (MATLAB QTFM implementation)
@@ -68,6 +68,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(P, H)` where `H = P * A * P^H` is upper Hessenberg and `P` is unitary
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
+
 ---
 
 ## 📊 Matrix Type Requirements
@@ -82,6 +83,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 | **Randomized Q-SVD** | General | m×n | None |
 | **Pass-Efficient Q-SVD** | General | m×n | None |
 | **Hessenberg Reduction** | General | n×n | None |
+
 
 ---
 
@@ -121,12 +123,16 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 ### **Householder Similarity (Hessenberg Reduction)**
 - **Principle**: Use Householder reflectors to introduce zeros below first subdiagonal
 - **Process**:
-  1. For each column k, build a reflector acting on rows/cols k+1..n
-  2. Apply similarity transform `H ← Hk * H * Hk^H`
-  3. Accumulate unitary `P ← Hk * P`
+  1. For each column k = 0..n−3, target the subvector of column k below the first subdiagonal (rows k+2..n−1)
+  2. Construct a quaternion Householder reflector `Hk_sub` that maps this subvector to a multiple of `e1`, leaving the (k+1)-th element as the only nonzero entry
+  3. Embed `Hk_sub` into an identity matrix to act on the trailing submatrix (rows/cols k+1..n−1)
+  4. Apply the similarity transform `H ← Hk * H * Hk^H` to zero entries strictly below the first subdiagonal in column k
+  5. Accumulate the overall unitary: `P ← Hk * P`
 - **Complexity**: O(n³)
 - **Advantages**: Numerically stable, prepares matrix for QR algorithm / Schur form
 - **Disadvantages**: General (non-Hermitian) reduction; not tridiagonal
+
+
 
 ### **Tridiagonalization + Eigendecomposition**
 - **Principle**: Two-step process for Hermitian matrices
@@ -198,6 +204,8 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Example**: `P, H = hessenbergize(A_quat)`
 - **Best for**: Eigenvalue computations and Schur decomposition pipelines
 
+
+
 ### **For Hermitian Matrices:**
 
 #### **Eigenvalue Decomposition**
@@ -222,6 +230,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - Randomized Q-SVD (`rand_qsvd`)
 - Pass-Efficient Q-SVD (`pass_eff_qsvd`) - **NEW: MATLAB validated, unit tested, performance benchmarked**
 - Hessenberg Reduction (`hessenbergize`) - **NEW**
+
 
 **Note**: All methods have been thoroughly tested and validated for production use.
 
