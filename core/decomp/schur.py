@@ -316,7 +316,7 @@ def quaternion_schur(
     return Q_total, H_final
 
 
-__all__ = ["quaternion_schur", "quaternion_schur_pure"]
+__all__ = ["quaternion_schur", "quaternion_schur_pure", "quaternion_schur_pure_implicit"]
 
 
 
@@ -416,6 +416,97 @@ def quaternion_schur_pure(
             break
 
     # Compose final Q: A = Q_total T Q_total^H with Q_total = P0^H Q_accum
+    Q_total = quat_matmat(quat_hermitian(P0), Q_accum)
+    T = H
+    if return_diagnostics:
+        return Q_total, T, diag
+    return Q_total, T
+
+
+def quaternion_schur_pure_implicit(
+    A: np.ndarray,
+    max_iter: int = 500,
+    tol: float = 1e-10,
+    verbose: bool = False,
+    return_diagnostics: bool = False,
+    shift_mode: str = "rayleigh",
+):
+    """Pure quaternion implicit QR via 2x2 Householder (bulge-chasing style).
+
+    - Keeps computation in quaternion domain
+    - Uses optional simple shift (Rayleigh) to accelerate convergence
+    - Left-apply 2x2 Householder to zero subdiagonal, right-apply its Hermitian to preserve similarity
+    """
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError("quaternion_schur_pure_implicit requires a square matrix")
+
+    n = A.shape[0]
+    if n == 0:
+        I0 = np.eye(0, dtype=np.quaternion)
+        return I0, I0
+
+    # Step 1: Hessenberg reduction
+    P0, H = hessenbergize(A)
+    H = check_hessenberg(H)
+
+    Q_accum = np.eye(n, dtype=np.quaternion)
+    diag = {"iterations": [], "converged": False, "iterations_run": 0}
+
+    for k in range(max_iter):
+        # Choose shift (real scalar) from trailing element by default
+        sigma = 0.0
+        if shift_mode == "rayleigh" and n >= 1:
+            sigma = float(H[n - 1, n - 1].w)
+        qsigma = quaternion.quaternion(float(sigma), 0.0, 0.0, 0.0)
+
+        # Bulge init + chase across the full window
+        for s in range(0, n - 1):
+            # Form local vector [H[s,s]-sigma; H[s+1,s]] and reflect to e1
+            v0 = H[s, s] - qsigma
+            v1 = H[s + 1, s]
+            local = np.array([v0, v1], dtype=np.quaternion)
+            # If already small, skip
+            sv = (v1.w * v1.w + v1.x * v1.x + v1.y * v1.y + v1.z * v1.z) ** 0.5
+            if sv <= tol:
+                continue
+            e1 = np.zeros(2)
+            e1[0] = 1.0
+            Hj_sub = householder_matrix(local, e1)  # 2x2 quaternion
+            Hj = np.eye(n, dtype=np.quaternion)
+            Hj[s : s + 2, s : s + 2] = Hj_sub
+            HjH = quat_hermitian(Hj)
+
+            # Similarity update: H <- Hj H Hj^H
+            H = quat_matmat(Hj, H)
+            H = quat_matmat(H, HjH)
+            # Accumulate Q: Q_accum <- Q_accum Hj^H
+            Q_accum = quat_matmat(Q_accum, HjH)
+
+        # Clean tiny subdiagonals and check convergence
+        max_sub = 0.0
+        for i in range(1, n):
+            h = H[i, i - 1]
+            sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
+            # Local scale
+            dscale = (
+                (H[i - 1, i - 1].w ** 2 + H[i - 1, i - 1].x ** 2 + H[i - 1, i - 1].y ** 2 + H[i - 1, i - 1].z ** 2) ** 0.5
+                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2) ** 0.5
+                + 1e-30
+            )
+            if sv <= tol * max(1.0, dscale):
+                H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
+            max_sub = max(max_sub, sv)
+
+        if return_diagnostics:
+            diag["iterations"].append({"iter": k, "max_subdiag": float(max_sub)})
+        if verbose and (k % 25 == 0 or max_sub <= tol):
+            print(f"implicit-QR iter {k}: max subdiag {max_sub:.2e}")
+        if max_sub <= tol:
+            if return_diagnostics:
+                diag["converged"] = True
+                diag["iterations_run"] = k + 1
+            break
+
     Q_total = quat_matmat(quat_hermitian(P0), Q_accum)
     T = H
     if return_diagnostics:
