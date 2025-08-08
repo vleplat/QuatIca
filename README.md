@@ -19,7 +19,8 @@
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
  - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, and **Eigenvalue Decomposition** for quaternion matrices
-- **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method)
+ - **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method)
+ - **Pseudoinverse Computation**: Newton–Schulz methods including a higher-order (third-order) variant with cubic local convergence
 - **Image Processing**: Complete missing pixels in images using quaternion math
 - **Signal Analysis**: Process 3D/4D signals with quaternion algebra
 - **Data Science**: Extract complex patterns from multi-dimensional data
@@ -453,7 +454,7 @@ python run_analysis.py lorenz_benchmark
 ```python
 import quaternion
 from core.utils import quat_matmat, quat_frobenius_norm, quat_eye
-from core.solver import NewtonSchulzPseudoinverse
+from core.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
 
 # Create quaternion matrices
 A = quaternion.as_quat_array(...)
@@ -466,9 +467,13 @@ print(f"Frobenius norm of matrix A: {norm_A:.6f}")
 # Matrix multiplication
 C = quat_matmat(A, B)
 
-# Compute pseudoinverse
-solver = NewtonSchulzPseudoinverse()
-A_pinv, residuals, covariances = solver.compute(A)
+# Compute pseudoinverse (baseline damped Newton–Schulz)
+ns_solver = NewtonSchulzPseudoinverse(gamma=0.5)
+A_pinv_ns, ns_residuals, ns_cov = ns_solver.compute(A)
+
+# Compute pseudoinverse (higher-order third-order Newton–Schulz, cubic local rate)
+hon_solver = HigherOrderNewtonSchulzPseudoinverse()
+A_pinv_hon, hon_residuals, hon_times = hon_solver.compute(A)
 
 # Solve linear system A*x = b using Q-GMRES
 from core.solver import QGMRESSolver

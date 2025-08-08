@@ -68,6 +68,9 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(P, H)` where `H = P * A * P^H` is upper Hessenberg and `P` is unitary
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
+### Schur Decomposition (Under Development)
+- Note: A prototype quaternion Schur routine exists (`core/decomp/schur.py`), but it is under active development. It is not yet production-ready and should not be relied upon. We do not guarantee correctness or convergence for general inputs at this time.
+
 
 ---
 
