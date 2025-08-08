@@ -45,10 +45,7 @@ core_path = os.path.join(root, "core")
 if core_path not in sys.path:
     sys.path.insert(0, core_path)
 
-from core.decomp.schur import (
-    quaternion_schur_pure,
-    quaternion_schur_pure_implicit,
-)
+from core.decomp.schur import quaternion_schur_unified
 from core.decomp.hessenberg import hessenbergize, check_hessenberg
 from core.decomp.tridiagonalize import householder_matrix
 from core.data_gen import create_test_matrix
@@ -188,20 +185,14 @@ def run_variants(A: np.ndarray, n: int, iters: int, tol: float, out_dir: Path, t
     variants = [
         (
             "rayleigh",
-            lambda: quaternion_schur_pure(
-                A, max_iter=iters, tol=tol, return_diagnostics=True, shift_mode="rayleigh"
+            lambda: quaternion_schur_unified(
+                A, variant="rayleigh", max_iter=iters, tol=tol, return_diagnostics=True
             ),
         ),
         (
             "implicit+AED",
-            lambda: pure_implicit_custom(
-                A,
-                max_iter=iters,
-                tol=tol,
-                shift_mode="rayleigh",
-                aed_factor=aed,
-                double_shift=False,
-                return_curve=True,
+            lambda: quaternion_schur_unified(
+                A, variant="aed", max_iter=iters, tol=tol, return_diagnostics=True
             ),
         ),
     ]
@@ -213,11 +204,9 @@ def run_variants(A: np.ndarray, n: int, iters: int, tol: float, out_dir: Path, t
         res = fn()
         t1 = os.times()[4]
         cpu = t1 - t0
-        if name.startswith("implicit+"):
-            Q, T, curve = res
-        else:
-            Q, T, diag = res
-            curve = [d["max_subdiag"] for d in diag["iterations"]]
+        # unified always returns (Q,T,diag) when return_diagnostics=True
+        Q, T, diag = res
+        curve = [d["max_subdiag"] for d in diag.get("iterations", [])]
         sim = quat_frobenius_norm(quat_matmat(quat_hermitian(Q), quat_matmat(A, Q)) - T)
         unit = quat_frobenius_norm(quat_matmat(quat_hermitian(Q), Q) - np.eye(n, dtype=np.quaternion))
         final = curve[-1] if curve else float("nan")
