@@ -260,15 +260,7 @@ def main():
     fig4 = createfigure4(dy1, dy2, dy3, title='Recovered Trajectory')
     save_high_res_plot(fig4, 'lorenz_reconstructed_trajectory.png', output_dir, show_plot=SHOW_PLOTS)
 
-    # 9) Plot RHS components - CORRECT ORDER
-    b_xyz = b[:, 1:4]  # x,y,z components
-    fig5 = createfigure3(b_xyz)
-    save_high_res_plot(fig5, 'lorenz_rhs_components.png', output_dir, show_plot=SHOW_PLOTS)
-    
-    fig6 = createfigure4(b[:,1], b[:,2], b[:,3], title='RHS Trajectory')
-    save_high_res_plot(fig6, 'lorenz_rhs_trajectory.png', output_dir, show_plot=SHOW_PLOTS)
-
-    # 10) Residual history
+    # 9) Residual history
     if resv is not None:
         fig7 = plt.figure(figsize=(10, 6))
         plt.semilogy(resv[:, 2], 'b-o', linewidth=2)
