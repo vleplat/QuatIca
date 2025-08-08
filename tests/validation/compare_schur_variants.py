@@ -53,12 +53,33 @@ def _extract_curve(diag: dict) -> List[float]:
     return [d.get("max_subdiag", float("nan")) for d in diag.get("iterations", [])]
 
 
+def _quat_abs(q: quaternion.quaternion) -> float:
+    return float((q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z) ** 0.5)
+
+
+def _max_first_subdiag(T: np.ndarray) -> float:
+    n = T.shape[0]
+    m = 0.0
+    for i in range(1, n):
+        m = max(m, _quat_abs(T[i, i-1]))
+    return m
+
+
+def _max_below_diagonal(T: np.ndarray) -> float:
+    n = T.shape[0]
+    m = 0.0
+    for i in range(n):
+        for j in range(0, i):
+            m = max(m, _quat_abs(T[i, j]))
+    return m
+
+
 ## Note: all algorithmic variants are provided by core.decomp.schur (unified API).
 
 
 def run_variants(A: np.ndarray, n: int, iters: int, tol: float, out_dir: Path, tag: str = "") -> None:
     # Variants to compare (unified API)
-    variants = [("rayleigh", "rayleigh"), ("implicit+AED", "aed")]
+    variants = [("rayleigh", "rayleigh"), ("implicit+AED", "aed"), ("implicit+DS", "ds")]
 
     curves = {}
     Ts = {}
@@ -70,12 +91,14 @@ def run_variants(A: np.ndarray, n: int, iters: int, tol: float, out_dir: Path, t
         curve = _extract_curve(diag)
         sim = quat_frobenius_norm(quat_matmat(quat_hermitian(Q), quat_matmat(A, Q)) - T)
         unit = quat_frobenius_norm(quat_matmat(quat_hermitian(Q), Q) - np.eye(n, dtype=np.quaternion))
-        final = curve[-1] if curve else float("nan")
+        # Recompute conservative residuals directly from final T
+        sub1 = _max_first_subdiag(T)
+        below = _max_below_diagonal(T)
+        final = sub1 if curve else sub1
         curves[name] = (curve, cpu, sim, unit, final)
         Ts[name] = T
-        print(
-            f"n={n:3d} | {name:13s} | ran={len(curve):4d}/{iters} | cpu={cpu:6.2f}s | final_sub={final:.3e} | sim={sim:.3e} | unit={unit:.3e}"
-        )
+        print(f"n={n:3d} | {name:13s} | ran={len(curve):4d}/{iters} | cpu={cpu:6.2f}s | "
+              f"sub1={sub1:.3e} | below_diag_max={below:.3e} | sim={sim:.3e} | unit={unit:.3e}")
 
     # Plot
     out_dir.mkdir(exist_ok=True)
@@ -94,16 +117,17 @@ def run_variants(A: np.ndarray, n: int, iters: int, tol: float, out_dir: Path, t
     plt.savefig(fname, dpi=300)
     print(f"saved plot: {fname}")
 
-    # Visualize Schur matrices (real component) for each variant
+    # Visualize Schur matrices (magnitude) for each variant
     import quaternion as _q
     for name, T in Ts.items():
-        Tarr = _q.as_float_array(T)[:, :, 0]
+        Tf = _q.as_float_array(T)  # (n,n,4)
+        Tarr = np.sqrt(np.sum(Tf * Tf, axis=2))  # entry-wise quaternion modulus
         plt.figure(figsize=(5, 4))
         im = plt.imshow(Tarr, cmap='viridis', aspect='auto')
         plt.colorbar(im, fraction=0.046, pad=0.04)
-        plt.title(f"Schur T (real) — {name}, n={n}")
+        plt.title(f"Schur |T| — {name}, n={n}")
         plt.xlabel("column"); plt.ylabel("row")
-        tname = out_dir / f"schur_T{suffix}_n{n}_{name}_real.png"
+        tname = out_dir / f"schur_T{suffix}_n{n}_{name}_abs.png"
         plt.tight_layout(); plt.savefig(tname, dpi=300); plt.close()
         print(f"saved T visualization: {tname}")
 
