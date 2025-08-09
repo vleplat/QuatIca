@@ -33,7 +33,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 |------|---------|---------------|
 | `test_rand_qsvd.py` | **Randomized Q-SVD** | Randomized singular value decomposition |
 | `test_pass_eff_qsvd.py` | **Pass-Efficient Q-SVD** | Memory-efficient Q-SVD implementation |
-| (moved to applications/ as higher-level scripts) |  |  |
+| `test_qsvd_reconstruction_analysis.py` | **Q-SVD Reconstruction Analysis** | Validates monotonic error decrease and perfect full-rank reconstruction; generates plots in `validation_output/` |
 
 ### **🔬 Advanced Algorithms**
 | File | Purpose | What It Tests |
@@ -41,6 +41,9 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | `test_power_iteration_simple.py` | **Power Iteration** | Dominant eigenvector computation using power iteration |
 | `test_rank.py` | **Matrix Rank** | Rank computation for quaternion matrices |
 | `test_rand_unitary.py` | **Random Unitary Matrices** | Generation and validation of unitary matrices |
+| `test_compare_schur_variants.py` | **Schur Variants (Rayleigh, AED, DS)** | Compares convergence and |T| visualizations; saves plots to `validation_output/` |
+| `test_compare_schur_experimental.py` | **Experimental Schur (windowed AED/Francis-DS)** | Runs experimental routines; saves plots to `validation_output/` |
+| `test_experimental_power_iteration.py` | **Complex Power Iteration (Experimental)** | Estimates complex eigenvalues via complex adjoint mapping; residual plots to `validation_output/` |
 
 ### **📈 Determinant and Special Functions**
 | File | Purpose | What It Tests |

@@ -220,3 +220,19 @@ if __name__ == "__main__":
     
     # Generate the validation report
     generate_validation_report() 
+
+
+def test_qsvd_reconstruction_analysis_saves_figures():
+    """Ensure plots are saved into validation_output when invoked from tests."""
+    # Prepare output dir
+    out_dir = os.path.join(os.getcwd(), 'validation_output')
+    os.makedirs(out_dir, exist_ok=True)
+    # Temporarily chdir so relative saves land in validation_output
+    cwd = os.getcwd()
+    try:
+        os.chdir(out_dir)
+        generate_validation_report()
+        assert os.path.exists('qsvd_reconstruction_error_vs_rank.png')
+        assert os.path.exists('qsvd_relative_error_summary.png')
+    finally:
+        os.chdir(cwd)
