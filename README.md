@@ -458,6 +458,7 @@ python run_analysis.py lorenz_benchmark
 ```python
 import quaternion
 from core.utils import quat_matmat, quat_frobenius_norm, quat_eye
+from core.utils import power_iteration, power_iteration_nonhermitian  # see notes below
 from core.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
 
 # Create quaternion matrices
@@ -709,6 +710,30 @@ eigenvecs = quaternion_eigenvectors(A_quat)
 - ✅ **High accuracy** - residuals < 10^-15
 - ✅ **Production-ready** with 15/15 tests passing
 - ✅ **Based on MATLAB QTFM** - follows established mathematical approach
+
+### Power Iteration (Hermitian vs Non-Hermitian)
+```python
+from core.utils import power_iteration, power_iteration_nonhermitian
+
+# Hermitian case (recommended): returns dominant eigenvector and a real eigenvalue estimate
+v_dom, lambda_real = power_iteration(A_hermitian, return_eigenvalue=True, verbose=False)
+
+# General (non-Hermitian) case (experimental): complex eigenvalue in a fixed complex subfield
+q_vec, lambda_complex, residuals = power_iteration_nonhermitian(
+    A_general,
+    max_iterations=3000,
+    eig_tol=1e-12,
+    res_tol=1e-10,
+    seed=0,
+    return_vector=True,
+)
+```
+Notes:
+- Use `power_iteration` for Hermitian quaternion matrices; eigenvalues are real and convergence behavior matches theory.
+- If `power_iteration` is applied to non-Hermitian matrices, the returned scalar (when requested) is a real magnitude-based Rayleigh-quotient heuristic (not a true complex eigenvalue).
+- For general (non-Hermitian) quaternion matrices, use `power_iteration_nonhermitian` (experimental). It maps to a 2n×2n complex adjoint in a fixed complex subfield and returns a complex eigenvalue along with a quaternion eigenvector approximation. Residual `||Mv - λ v||_2` is available for convergence diagnostics.
+
+See the demo section “Non-Hermitian Complex Power Iteration (Experimental)” in `QuatIca_Core_Functionality_Demo.py` / `.ipynb` for a complete example and residual plots.
 
 ### **LU Decomposition (Gaussian Elimination with Partial Pivoting)**
 ```python
