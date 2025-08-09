@@ -35,6 +35,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | `test_pass_eff_qsvd.py` | **Pass-Efficient Q-SVD** | Memory-efficient Q-SVD implementation |
 | `test_qsvd_reconstruction_analysis.py` | **Q-SVD Reconstruction Analysis** | Validates monotonic error decrease and perfect full-rank reconstruction; generates plots in `validation_output/` |
 | `test_schur_synthetic.py` | **Synthetic Schur (unitary similarity)** | Builds `A = P S P^H` with complex subfield; validates similarity/unitarity; saves |T| heatmaps in `validation_output/` |
+| `test_schur_power_synthetic.py` | **Schur vs Power-Iteration (transversal)** | Synthetic `A = P S P^H` (diagonal S); compares Schur max-eigenvalue (diag T) with non-Hermitian power-iteration eigenvalue (up to conjugation); asserts close match |
 
 ### **🔬 Advanced Algorithms**
 | File | Purpose | What It Tests |
@@ -158,6 +159,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 - `test_power_iteration_simple.py` - Power iteration method
 - `test_power_iteration_nonhermitian_validation.py` - Non-Hermitian power iteration validation
 - `test_schur_synthetic.py` - Synthetic Schur unitary-similarity validation with |T| plots
+- `test_schur_power_synthetic.py` - Schur vs Power-Iteration eigenvalue agreement (transversal)
 - `test_rank.py` - Rank computation
 - `test_rand_unitary.py` - Unitary matrix generation
 
