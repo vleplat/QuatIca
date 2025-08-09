@@ -53,6 +53,84 @@ def quat_eye(n: int) -> np.ndarray:
     np.fill_diagonal(I, quaternion.quaternion(1, 0, 0, 0))
     return I
 
+
+def quat_abs_scalar(q: quaternion.quaternion) -> float:
+    """Return the modulus |q| of a quaternion scalar q."""
+    return float(np.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z))
+
+
+def induced_matrix_norm_1(A: np.ndarray) -> float:
+    """Matrix 1-norm induced by vector 1-norm: max column sum of |A_ij|.
+
+    Notes:
+      - Supports dense quaternion ndarrays. For sparse, convert to dense first or
+        use component-space helpers.
+    """
+    if not isinstance(A, np.ndarray) or A.dtype != np.quaternion:
+        raise ValueError("A must be a dense quaternion ndarray")
+    m, n = A.shape
+    max_col_sum = 0.0
+    for j in range(n):
+        col_sum = 0.0
+        for i in range(m):
+            col_sum += quat_abs_scalar(A[i, j])
+        if col_sum > max_col_sum:
+            max_col_sum = col_sum
+    return max_col_sum
+
+
+def induced_matrix_norm_inf(A: np.ndarray) -> float:
+    """Matrix infinity-norm induced by vector infinity-norm: max row sum of |A_ij|.
+
+    Notes:
+      - Supports dense quaternion ndarrays. For sparse, convert to dense first or
+        use component-space helpers.
+    """
+    if not isinstance(A, np.ndarray) or A.dtype != np.quaternion:
+        raise ValueError("A must be a dense quaternion ndarray")
+    m, n = A.shape
+    max_row_sum = 0.0
+    for i in range(m):
+        row_sum = 0.0
+        for j in range(n):
+            row_sum += quat_abs_scalar(A[i, j])
+        if row_sum > max_row_sum:
+            max_row_sum = row_sum
+    return max_row_sum
+
+
+def spectral_norm_2(A: np.ndarray) -> float:
+    """Matrix 2-norm (spectral norm): largest singular value of A.
+
+    Delegates to quaternion SVD implementation.
+    """
+    if not isinstance(A, np.ndarray) or A.dtype != np.quaternion:
+        raise ValueError("A must be a dense quaternion ndarray")
+    # Import here to avoid circular imports at module load
+    from decomp.qsvd import classical_qsvd_full
+    _U, s, _V = classical_qsvd_full(A)
+    return float(np.max(s)) if len(s) else 0.0
+
+
+def matrix_norm(A: np.ndarray, ord: str | int | float | None = None) -> float:
+    """Compute common matrix norms for quaternion matrices.
+
+    ord supported:
+      - None or 'fro' or 'F': Frobenius norm
+      - 1: Induced 1-norm (max column sum)
+      - np.inf or 'inf': Induced infinity-norm (max row sum)
+      - 2: Spectral norm (largest singular value)
+    """
+    if ord in (None, 'fro', 'F'):
+        return quat_frobenius_norm(A)
+    if ord == 1:
+        return induced_matrix_norm_1(A)
+    if ord == 2:
+        return spectral_norm_2(A)
+    if ord == np.inf or ord == 'inf':
+        return induced_matrix_norm_inf(A)
+    raise ValueError(f"Unsupported ord for matrix_norm: {ord}")
+
 def real_expand(Q):
     """
     Convert quaternion matrix Q to real block matrix representation.

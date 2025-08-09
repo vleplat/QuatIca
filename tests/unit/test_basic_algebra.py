@@ -16,7 +16,7 @@ import unittest
 
 # Add core module to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
-from utils import ishermitian, det, quat_hermitian
+from utils import ishermitian, det, quat_hermitian, induced_matrix_norm_1, induced_matrix_norm_inf, matrix_norm
 from data_gen import create_test_matrix
 
 
@@ -125,6 +125,19 @@ class TestBasicAlgebra(unittest.TestCase):
         
         with self.assertRaises(ValueError):
             det(A, 'Dieudonne')
+
+    def test_induced_matrix_norms(self):
+        """Test induced 1- and infinity-norms and wrapper matrix_norm."""
+        A = np.zeros((2, 3), dtype=np.quaternion)
+        # |(1 + 2i)| = sqrt(5), |(3j + 4k)| = 5
+        A[0, 0] = quaternion.quaternion(1, 2, 0, 0)
+        A[1, 2] = quaternion.quaternion(0, 0, 3, 4)
+        n1 = induced_matrix_norm_1(A)
+        ninf = induced_matrix_norm_inf(A)
+        self.assertAlmostEqual(n1, 5.0, places=12)
+        self.assertAlmostEqual(ninf, 5.0, places=12)
+        self.assertAlmostEqual(matrix_norm(A, 1), 5.0, places=12)
+        self.assertAlmostEqual(matrix_norm(A, np.inf), 5.0, places=12)
     
     def test_det_invalid_type(self):
         """Test det with invalid determinant type."""
