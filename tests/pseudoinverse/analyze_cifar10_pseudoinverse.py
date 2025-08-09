@@ -58,7 +58,10 @@ def visualize_sample_images(X, labels, class_names, n_samples_per_class=5):
             ax.axis('off')
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/sample_images_verification.png', dpi=300, bbox_inches='tight')
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'sample_images_verification.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # Print some statistics
@@ -90,7 +93,8 @@ def load_cifar10_subset(n_samples_per_class=30, classes_to_use=None):
     print(f"Using classes: {class_names}")
     
     # Load CIFAR-10
-    dataset = datasets.CIFAR10(root='../../data', train=True, download=True, transform=transforms.ToTensor())
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    dataset = datasets.CIFAR10(root=os.path.join(repo_root, 'data'), train=True, download=True, transform=transforms.ToTensor())
     
     # Collect images by class
     images_by_class = {i: [] for i in classes_to_use}
@@ -197,7 +201,10 @@ def visualize_class_average_filters(X_pinv, labels, class_names, image_shape=(32
     cbar.set_label('Filter Weight Value')
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/class_average_filters.png', dpi=300, bbox_inches='tight')
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'class_average_filters.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # Print statistics for each class
@@ -265,7 +272,10 @@ def visualize_pca_analysis(X_pinv, labels=None, class_names=None):
     plt.grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/pca_analysis.png', dpi=300, bbox_inches='tight')
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'pca_analysis.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # Print PCA insights
@@ -414,7 +424,10 @@ def visualize_pseudoinverse_insights(X, X_pinv, labels, image_shape=(32, 32)):
     plt.imshow(rgb)
     plt.title('Pseudoinverse Manifold (Phase and Magnitude)\nHue=Phase, Value=Magnitude')
     plt.axis('off')
-    plt.savefig('../../output_figures/pseudoinverse_manifold.png', dpi=300, bbox_inches='tight')
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'pseudoinverse_manifold.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 4. Color Channel Correlations
@@ -441,7 +454,10 @@ def visualize_pseudoinverse_insights(X, X_pinv, labels, image_shape=(32, 32)):
                     ha='center', va='center', fontsize=10,
                     color='white' if abs(corr_matrix[i, j]) > 0.5 else 'black')
     
-    plt.savefig('../../output_figures/channel_correlations.png', dpi=300, bbox_inches='tight')
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'channel_correlations.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 5. Class-specific spectral analysis
@@ -478,7 +494,10 @@ def visualize_pseudoinverse_insights(X, X_pinv, labels, image_shape=(32, 32)):
         axes[1, 2].remove()
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/class_spectral_analysis.png', dpi=300, bbox_inches='tight')
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'class_spectral_analysis.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 6. Summary insights
@@ -542,8 +561,8 @@ def analyze_cifar10_pseudoinverse(X, X_pinv, labels, class_names):
 # Remove all X^T analysis logic and restore main()
 def main():
     # Ensure output directory exists
-    import os
-    os.makedirs('../../output_figures', exist_ok=True)
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    os.makedirs(os.path.join(repo_root, 'output_figures'), exist_ok=True)
     
     print("="*80)
     print("CIFAR-10 QUATERNION PSEUDOINVERSE ANALYSIS")

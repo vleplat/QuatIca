@@ -1301,3 +1301,4 @@ def power_iteration_nonhermitian(
     if return_vector:
         return q_vec, lam_out, residuals
     return lam_out, residuals
+

@@ -27,30 +27,37 @@ Or simply open and play with the Jupyter notebook `QuatIca_Core_Functionality_De
 
 ## What the Demo Tests
 
-The demo script tests all 12 core functionality areas:
+The demo script tests all 16 core functionality areas with emoji headers:
 
-1. **Basic Matrix Operations** - Matrix creation, multiplication, and norms
-2. **QR Decomposition** - QR factorization of quaternion matrices
-3. **Quaternion SVD (Q-SVD)** - Singular value decomposition for quaternion matrices
-4. **Randomized Q-SVD** - Fast randomized SVD for large matrices
-5. **Eigenvalue Decomposition** - Eigendecomposition of Hermitian quaternion matrices
-6. **Tridiagonalization** - Householder transformations for Hermitian matrices
-7. **Pseudoinverse Computation** - Moore-Penrose pseudoinverse using Newton-Schulz
-8. **Linear System Solving** - Q-GMRES solver for quaternion linear systems
-9. **Visualization** - Matrix component visualization
-10. **Determinant Computation** - Dieudonné determinant with unitary matrix validation
-11. **Rank Computation** - Matrix rank computation with matrix product validation
-12. **Power Iteration** - Dominant eigenvector computation with eigendecomposition comparison
+1. **🧮 Basic Matrix Operations** - Matrix creation, multiplication, and norms
+2. **📐 QR Decomposition** - QR factorization of quaternion matrices
+3. **🔍 Quaternion SVD (Q-SVD)** - Singular value decomposition for quaternion matrices
+4. **🎲 Randomized Q-SVD** - Fast randomized SVD for large matrices
+5. **🔢 Eigenvalue Decomposition** - Eigendecomposition of Hermitian quaternion matrices
+6. **🔧 LU Decomposition** - LU factorization with partial pivoting
+7. **📏 Tridiagonalization** - Householder transformations for Hermitian matrices
+8. **⤴️ Pseudoinverse Computation** - Moore-Penrose pseudoinverse using Newton-Schulz
+9. **⚙️ Linear System Solving** - Q-GMRES solver for quaternion linear systems
+10. **📊 Visualization** - Matrix component visualization
+11. **🎯 Determinant Computation** - Dieudonné determinant with unitary matrix validation
+12. **📏 Rank Computation** - Matrix rank computation with matrix product validation
+13. **🚀 Power Iteration** - Dominant eigenvector computation with eigendecomposition comparison
+14. **🔧 Hessenberg Form** - Upper Hessenberg reduction using Householder similarity
+15. **🔬 Advanced Eigenvalue Methods** - Hermitian and synthetic unitary similarity cases with validation
+16. **🧮 Schur Decomposition** and **📊 Tensor Operations** - Synthetic validation and quaternion tensor algebra
 
 ## Expected Output
 
 When run successfully, you should see:
-- ✅ All 12 tests passing
+- ✅ All 16 tests passing
 - Detailed information about matrix shapes, norms, and errors
 - Convergence analysis for power iteration and Q-GMRES
 - Performance comparisons between different algorithms
+- Advanced eigenvalue validation (Hermitian and synthetic cases)
+- Schur decomposition validation with synthetic matrices
+- Tensor operations demonstrating quaternion tensor algebra
 - Visualization plots (if running in Jupyter)
-- Summary confirming all functionality works correctly
+- Comprehensive summary confirming all functionality works correctly
 
 ## Troubleshooting
 

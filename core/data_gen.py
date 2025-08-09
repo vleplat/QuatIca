@@ -1,15 +1,20 @@
 import sys
 import os
-
-# Add parent directory to path to import core modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
 import numpy as np
 import quaternion
 from scipy import sparse
-from utils import quat_matmat, SparseQuaternionMatrix
 
-# Import QR decomposition from decomp module
-from decomp.qsvd import qr_qua
+# Support both package and script import contexts for core.utils
+try:
+    from .utils import quat_matmat, SparseQuaternionMatrix
+except Exception:
+    from utils import quat_matmat, SparseQuaternionMatrix
+
+# Import QR decomposition from decomp module with package-safe fallback
+try:
+    from .decomp.qsvd import qr_qua
+except Exception:
+    from decomp.qsvd import qr_qua
 
 
 def create_sparse_quat_matrix(m: int, n: int, density: float = 0.1) -> SparseQuaternionMatrix:

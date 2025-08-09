@@ -31,7 +31,7 @@ sys.path.append('core')
 
 print("✅ All imports successful!")
 
-# ## 1. Basic Matrix Operations
+# ## 1. 🧮 Basic Matrix Operations
 
 from core.utils import quat_matmat, quat_frobenius_norm
 from core.data_gen import create_test_matrix
@@ -52,7 +52,7 @@ print("Matrix C norm:", quat_frobenius_norm(C))
 
 print("✅ Basic matrix operations work!")
 
-# ## 2. QR Decomposition
+# ## 2. 📐 QR Decomposition
 
 from core.decomp.qsvd import qr_qua
 
@@ -72,7 +72,7 @@ print("Reconstruction error:", reconstruction_error)
 
 print("✅ QR decomposition works!")
 
-# ## 3. Quaternion SVD (Q-SVD)
+# ## 3. 🔍 Quaternion SVD (Q-SVD)
 
 from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
 
@@ -97,7 +97,7 @@ print("  V_full shape:", V_full.shape)
 
 print("✅ Q-SVD works!")
 
-# ## 4. Randomized Q-SVD
+# ## 4. 🎲 Randomized Q-SVD
 
 from core.decomp.qsvd import rand_qsvd
 from core.utils import quat_hermitian
@@ -138,7 +138,7 @@ print(f"  Full rank reconstruction error: {reconstruction_error_full:.2e}")
 
 print("✅ Randomized Q-SVD works!")
 
-# ## 5. Eigenvalue Decomposition
+# ## 5. 🔢 Eigenvalue Decomposition
 
 from core.decomp import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
 from core.utils import quat_hermitian
@@ -170,7 +170,7 @@ print("Maximum imaginary part:", max_imag)
 
 print("✅ Eigenvalue decomposition works!")
 
-# ## 6. LU Decomposition
+# ## 6. 🔧 LU Decomposition
 
 from core.decomp import quaternion_lu, verify_lu_decomposition
 
@@ -474,52 +474,250 @@ for size in sizes:
 
 print("✅ Power iteration performance analysis complete!")
 
-# ## 12b. Non-Hermitian Complex Power Iteration (Experimental)
+# ## 14. 🔬 Advanced Eigenvalue Methods
 
 from core.utils import power_iteration_nonhermitian
 
 print("\n" + "="*60)
-print("NON-HERMITIAN COMPLEX POWER ITERATION (EXPERIMENTAL)")
+print("COMPLEX POWER ITERATION (ENHANCED WITH VALIDATION)")
 print("="*60)
 
-# Create a general random (non-Hermitian) quaternion matrix
+# ## 12b.1 Hermitian Case - More reliable convergence
+print("\n--- HERMITIAN CASE ---")
 n = 25
-A_rand = create_test_matrix(n, n)
-print(f"Random non-Hermitian matrix A of size {n}x{n}")
+B_rand = create_test_matrix(n, n)
+A_hermitian = quat_matmat(quat_hermitian(B_rand), B_rand)  # Make Hermitian: A = B^H * B
+print(f"Hermitian matrix A = B^H * B of size {n}x{n}")
 
-# Run complex power iteration (adjoint mapping), returning complex eigenvalue and quaternion eigenvector
+# Run complex power iteration on Hermitian matrix (should converge to real eigenvalue)
 q_vec, lambda_complex, residuals = power_iteration_nonhermitian(
-    A_rand,
-    max_iterations=3000,
+    A_hermitian,
+    max_iterations=5000,
     eig_tol=1e-12,
-    res_tol=1e-10,
+    res_tol=1e-12,
     seed=0,
     return_vector=True,
 )
 
-# Print eigenvalue in complex form and as quaternion (a + b i)
+# Print eigenvalue - should be real for Hermitian matrix
 lam_q = quaternion.quaternion(float(np.real(lambda_complex)), float(np.imag(lambda_complex)), 0.0, 0.0)
-print(f"Estimated dominant complex eigenvalue: {lambda_complex}")
+print(f"Estimated dominant eigenvalue: {lambda_complex}")
 print(f"As quaternion (x-axis subfield): {lam_q}")
+print(f"Imaginary part (should be ~0 for Hermitian): {abs(np.imag(lambda_complex)):.2e}")
 print(f"Residual final: {residuals[-1] if residuals else float('nan'):.3e} | steps: {len(residuals)}")
 
-# Plot residual convergence
-plt.figure(figsize=(6, 3.5))
+# Plot residual convergence for Hermitian case
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 2, 1)
 if residuals:
     plt.semilogy(residuals)
-plt.title(f"Complex power iteration residuals (n={n})")
+plt.title(f"Hermitian case: Residual convergence (n={n})")
 plt.xlabel("iteration")
-plt.ylabel("||Mv - lambda v||_2")
+plt.ylabel("||Mv - lambda v||_2 (adjoint residual)")
 plt.grid(True, which="both", ls=":")
+
+# ## 12b.2 Synthetic Unitary Similarity Case - A = P S P^H
+print("\n--- SYNTHETIC UNITARY SIMILARITY CASE ---")
+
+def complex_to_quaternion_matrix(C):
+    """Convert complex matrix to quaternion matrix (x-axis subfield)."""
+    m, n = C.shape
+    Q = np.empty((m, n), dtype=np.quaternion)
+    for i in range(m):
+        for j in range(n):
+            a = float(np.real(C[i, j]))
+            b = float(np.imag(C[i, j]))
+            Q[i, j] = quaternion.quaternion(a, b, 0.0, 0.0)
+    return Q
+
+def random_complex_unitary(n, rng):
+    """Generate random complex unitary matrix."""
+    X = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
+    Q_complex, _ = np.linalg.qr(X)
+    return Q_complex
+
+def build_diagonal_complex_quat(values):
+    """Build diagonal quaternion matrix from complex values."""
+    n = values.shape[0]
+    S = np.zeros((n, n), dtype=np.quaternion)
+    for i, lam in enumerate(values):
+        S[i, i] = quaternion.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
+    return S
+
+# Build synthetic A = P S P^H with known spectrum
+rng = np.random.default_rng(1)
+n_synth = 12
+Uc = random_complex_unitary(n_synth, rng)
+P = complex_to_quaternion_matrix(Uc)
+spectrum_vals = rng.standard_normal(n_synth) + 1j * rng.standard_normal(n_synth)
+S = build_diagonal_complex_quat(spectrum_vals)
+A_synthetic = quat_matmat(quat_matmat(P, S), quat_hermitian(P))
+
+print(f"Synthetic A = P S P^H matrix of size {n_synth}x{n_synth}")
+print(f"Known spectrum: {[f'{v:.3f}' for v in spectrum_vals[:3]]}... (showing first 3)")
+
+# Run power iteration on synthetic matrix
+q_vec_synth, lam_synth, residuals_synth = power_iteration_nonhermitian(
+    A_synthetic,
+    max_iterations=8000,
+    eig_tol=1e-14,
+    res_tol=1e-12,
+    seed=1,
+    return_vector=True,
+)
+
+# Validate against known spectrum (up to conjugate)
+dists = [abs(lam_synth - ev) for ev in spectrum_vals] + [abs(lam_synth - np.conjugate(ev)) for ev in spectrum_vals]
+min_dist = min(dists)
+scale = max(1e-12, max(abs(ev) for ev in spectrum_vals))
+rel_error = min_dist / scale
+
+print(f"Estimated eigenvalue: {lam_synth}")
+print(f"Relative error to known spectrum: {rel_error:.2e}")
+print(f"Residual final: {residuals_synth[-1] if residuals_synth else float('nan'):.3e} | steps: {len(residuals_synth)}")
+
+# Plot residual convergence for synthetic case
+plt.subplot(1, 2, 2)
+if residuals_synth:
+    plt.semilogy(residuals_synth)
+plt.title(f"Synthetic case: Residual convergence (n={n_synth})")
+plt.xlabel("iteration")
+plt.ylabel("||Mv - lambda v||_2 (adjoint residual)")
+plt.grid(True, which="both", ls=":")
+
 plt.tight_layout()
 plt.show()
 
-print("✅ Non-Hermitian complex power iteration demo complete!")
+print("✅ Enhanced complex power iteration with validation complete!")
 
-# ## 13. Hessenberg Form (Upper Hessenberg Reduction)
+# ## 15. 🧮 Schur Decomposition
+
+from core.decomp.schur import quaternion_schur_unified
+from core.utils import quat_eye
+
+print("\n" + "="*60)
+print("SCHUR DECOMPOSITION (SYNTHETIC UNITARY SIMILARITY)")
+print("="*60)
+
+# Build synthetic A = P S P^H with known spectrum for validation
+def complex_to_quaternion_matrix_schur(C):
+    """Convert complex matrix to quaternion matrix (x-axis subfield)."""
+    m, n = C.shape
+    Q = np.empty((m, n), dtype=np.quaternion)
+    for i in range(m):
+        for j in range(n):
+            a = float(np.real(C[i, j]))
+            b = float(np.imag(C[i, j]))
+            Q[i, j] = quaternion.quaternion(a, b, 0.0, 0.0)
+    return Q
+
+def random_complex_unitary_schur(n, rng):
+    """Generate random complex unitary matrix."""
+    X = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
+    Q_complex, _ = np.linalg.qr(X)
+    return Q_complex
+
+def build_diagonal_complex_quat_schur(values):
+    """Build diagonal quaternion matrix from complex values."""
+    n = values.shape[0]
+    S = np.zeros((n, n), dtype=np.quaternion)
+    for i, lam in enumerate(values):
+        S[i, i] = quaternion.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
+    return S
+
+def quat_abs_matrix(T):
+    """Compute |T| matrix with entrywise quaternion magnitudes."""
+    Tf = quaternion.as_float_array(T)
+    return np.sqrt(np.sum(Tf**2, axis=2))
+
+# Synthetic construction A = P S P^H
+rng = np.random.default_rng(0)
+n_schur = 16
+Uc = random_complex_unitary_schur(n_schur, rng)
+P = complex_to_quaternion_matrix_schur(Uc)
+vals = rng.standard_normal(n_schur) + 1j * rng.standard_normal(n_schur)
+S = build_diagonal_complex_quat_schur(vals)
+A_schur = quat_matmat(quat_matmat(P, S), quat_hermitian(P))
+
+print(f"Synthetic A = P S P^H matrix of size {n_schur}x{n_schur}")
+print(f"Known spectrum: {[f'{v:.3f}' for v in vals[:3]]}... (showing first 3)")
+
+# Schur decomposition
+Q_schur, T_schur, diag_schur = quaternion_schur_unified(
+    A_schur, 
+    variant="rayleigh", 
+    max_iter=2000, 
+    tol=1e-10, 
+    return_diagnostics=True
+)
+
+# Validation metrics
+sim_error = quat_frobenius_norm(quat_matmat(quat_hermitian(Q_schur), quat_matmat(A_schur, Q_schur)) - T_schur)
+unit_error = quat_frobenius_norm(quat_matmat(quat_hermitian(Q_schur), Q_schur) - quat_eye(n_schur))
+
+# Check upper triangular structure
+below_diag_max = 0.0
+for i in range(n_schur):
+    for j in range(0, i):
+        q = T_schur[i, j]
+        below_diag_max = max(below_diag_max, (q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z)**0.5)
+
+print(f"Similarity error ||Q^H A Q - T||_F: {sim_error:.3e}")
+print(f"Unitarity error ||Q^H Q - I||_F: {unit_error:.3e}")
+print(f"Below diagonal maximum: {below_diag_max:.3e}")
+
+# Visualize |T| matrix
+from core.visualization import Visualizer
+Visualizer.visualize_matrix(T_schur, component=0, title="Schur T - Real Component")
+
+print("✅ Schur decomposition with synthetic validation complete!")
+
+# ## 16. 📊 Tensor Operations
+
+from core.tensor import (
+    tensor_frobenius_norm,
+    tensor_entrywise_abs,
+    tensor_unfold,
+    tensor_fold,
+)
+
+print("\n" + "="*60)
+print("QUATERNION TENSOR ALGEBRA AND DECOMPOSITIONS")
+print("="*60)
+
+# Build random order-3 quaternion tensor
+I, J, K = 5, 4, 6
+comp = np.random.randn(I, J, K, 4)
+T_tensor = quaternion.as_quat_array(comp)
+
+print(f"Quaternion tensor T shape: {T_tensor.shape}, dtype={T_tensor.dtype}")
+print(f"Frobenius-like norm ||T||_F: {tensor_frobenius_norm(T_tensor):.6f}")
+
+# Visualize |T| at a fixed k slice
+k = 2
+Abs = tensor_entrywise_abs(T_tensor)
+plt.figure(figsize=(6, 4))
+plt.imshow(Abs[:, :, k], cmap='viridis', aspect='auto')
+plt.title(f"|T| slice at k={k}")
+plt.colorbar(fraction=0.046, pad=0.04)
+plt.tight_layout()
+plt.show()
+
+# Mode-1 unfolding and folding (round-trip test)
+M1 = tensor_unfold(T_tensor, mode=1)
+print(f"Mode-1 unfold shape: {M1.shape}")
+T_back = tensor_fold(M1, mode=1, shape=(I, J, K))
+
+# Check roundtrip accuracy
+ok = np.all(quaternion.as_float_array(T_back) == quaternion.as_float_array(T_tensor))
+print(f"Unfold/fold round-trip exact equality: {ok}")
+
+print("✅ Tensor operations complete!")
+print("Preview complete — tensor tools lay the groundwork for future tensor decompositions (e.g., HOSVD, TT, Tucker) in quaternion space.")
+
+# ## 13. 🔧 Hessenberg Form (Upper Hessenberg Reduction)
 
 from core.decomp.hessenberg import hessenbergize, is_hessenberg
-from core.utils import quat_eye
 
 print("\n" + "="*60)
 print("HESSENBERG FORM (UPPER HESSENBERG REDUCTION)")
@@ -571,4 +769,7 @@ print("✅ Determinant computation")
 print("✅ Rank computation")
 print("✅ Power iteration")
 print("✅ Hessenberg form")
+print("✅ Advanced eigenvalue methods")
+print("✅ Schur decomposition")
+print("✅ Tensor operations")
 print("\nThe code examples in the README are working correctly! 🚀") 

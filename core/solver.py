@@ -1,10 +1,20 @@
-from tabnanny import verbose
 import numpy as np
 import time
 import quaternion
-from utils import (quat_matmat, quat_frobenius_norm, quat_hermitian, quat_eye,
-                   normQsparse, timesQsparse, A2A0123, Realp, ggivens, GRSGivens, 
-                   Hess_QR_ggivens, absQsparse, dotinvQsparse, UtriangleQsparse)
+
+# Support both package and script import contexts for core.utils
+try:
+    from .utils import (
+        quat_matmat, quat_frobenius_norm, quat_hermitian, quat_eye,
+        normQsparse, timesQsparse, A2A0123, Realp, ggivens, GRSGivens,
+        Hess_QR_ggivens, absQsparse, dotinvQsparse, UtriangleQsparse,
+    )
+except Exception:  # fallback for direct script runs
+    from utils import (
+        quat_matmat, quat_frobenius_norm, quat_hermitian, quat_eye,
+        normQsparse, timesQsparse, A2A0123, Realp, ggivens, GRSGivens,
+        Hess_QR_ggivens, absQsparse, dotinvQsparse, UtriangleQsparse,
+    )
 
 class NewtonSchulzPseudoinverse:
     """Compute the Moore–Penrose pseudoinverse of quaternion matrices via damped Newton–Schulz."""
@@ -18,7 +28,11 @@ class NewtonSchulzPseudoinverse:
     def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict[str, list[float]], list[float]]:
         m, n = A.shape
         # If A is sparse, convert to dense quaternion array for computation
-        from utils import SparseQuaternionMatrix
+        # Import SparseQuaternionMatrix with package-safe fallback
+        try:
+            from .utils import SparseQuaternionMatrix
+        except Exception:
+            from utils import SparseQuaternionMatrix
         if isinstance(A, SparseQuaternionMatrix):
             A = quaternion.as_quat_array(
                 np.stack([
@@ -312,6 +326,54 @@ class DeepLinearNewtonSchulz:
         return weights, residuals, deviations
 
 
+def _solve_lower_triangular_quat(L: np.ndarray, B: np.ndarray) -> np.ndarray:
+    """Solve L X = B for X where L is lower-triangular (dense quaternion), B (n×k).
+
+    Forward substitution in quaternion arithmetic: X[i] = L[ii]^{-1} (B[i] - sum_{j<i} L[i,j] X[j]).
+    """
+    n = L.shape[0]
+    k = B.shape[1]
+    X = np.zeros_like(B)
+    for i in range(n):
+        rhs = B[i:i+1, :].copy()
+        if i > 0:
+            acc = np.zeros_like(B[i:i+1, :])
+            for j in range(i):
+                acc = acc + L[i:i+1, j:j+1] * X[j:j+1, :]
+            rhs = rhs - acc
+        # Invert diagonal quaternion scalar L[i,i]
+        diag = L[i, i]
+        denom = diag.w*diag.w + diag.x*diag.x + diag.y*diag.y + diag.z*diag.z + 1e-30
+        diag_inv = quaternion.quaternion(diag.w, -diag.x, -diag.y, -diag.z) * (1.0/denom)
+        # Multiply diag_inv on the left: X[i] = diag_inv * rhs
+        for col in range(k):
+            X[i, col] = diag_inv * rhs[0, col]
+    return X
+
+
+def _solve_upper_triangular_quat(U: np.ndarray, B: np.ndarray) -> np.ndarray:
+    """Solve U X = B for X where U is upper-triangular (dense quaternion), B (n×k).
+
+    Backward substitution: X[i] = U[ii]^{-1} (B[i] - sum_{j>i} U[i,j] X[j]).
+    """
+    n = U.shape[0]
+    k = B.shape[1]
+    X = np.zeros_like(B)
+    for i in range(n-1, -1, -1):
+        rhs = B[i:i+1, :].copy()
+        if i < n - 1:
+            acc = np.zeros_like(B[i:i+1, :])
+            for j in range(i+1, n):
+                acc = acc + U[i:i+1, j:j+1] * X[j:j+1, :]
+            rhs = rhs - acc
+        diag = U[i, i]
+        denom = diag.w*diag.w + diag.x*diag.x + diag.y*diag.y + diag.z*diag.z + 1e-30
+        diag_inv = quaternion.quaternion(diag.w, -diag.x, -diag.y, -diag.z) * (1.0/denom)
+        for col in range(k):
+            X[i, col] = diag_inv * rhs[0, col]
+    return X
+
+
 class QGMRESSolver:
     """
     Quaternion Generalized Minimal Residual (Q-GMRES) solver.
@@ -323,7 +385,8 @@ class QGMRESSolver:
     "Structure Preserving Quaternion Generalized Minimal Residual Method", SIMAX, 2021
     """
     
-    def __init__(self, tol: float = 1e-6, max_iter: int = None, verbose: bool = False) -> None:
+    def __init__(self, tol: float = 1e-6, max_iter: int = None, verbose: bool = False,
+                 preconditioner: str | None = None) -> None:
         """
         Initialize Q-GMRES solver.
         
@@ -339,6 +402,7 @@ class QGMRESSolver:
         self.tol = tol
         self.max_iter = max_iter
         self.verbose = verbose
+        self.preconditioner = preconditioner or 'none'
     
     def solve(self, A: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, dict]:
         """
@@ -362,6 +426,44 @@ class QGMRESSolver:
             - 'residual_history': List of residual norms
             - 'converged': Whether the method converged
         """
+        # Keep original for true residual reporting
+        A_orig, b_orig = A, b
+
+        # Optional left preconditioning using full LU: M = P^T L U ≈ A
+        prec = self.preconditioner.lower()
+        if prec == 'left_lu':
+            try:
+                from decomp import quaternion_lu
+                # Compute LU with permutation: P * A = L * U ⇒ A = P^T L U
+                Lq, Uq, Pq = quaternion_lu(A, return_p=True)
+                # Full left preconditioner: M = P^T L U ≈ A (exact if LU exact)
+                # Apply M^{-1} = U^{-1} L^{-1} P via: P, then solve L, then solve U
+                n = A.shape[0]
+                # Apply to A by columns
+                A_cols = [A[:, j:j+1] for j in range(n)]
+                A_tilde_cols = []
+                for Aj in A_cols:
+                    # Step 1: Apply permutation P * Aj
+                    PAj = quat_matmat(Pq, Aj)
+                    # Step 2: Solve L * Y = PAj (forward substitution)
+                    Y = _solve_lower_triangular_quat(Lq, PAj)
+                    # Step 3: Solve U * Z = Y (backward substitution)
+                    Z = _solve_upper_triangular_quat(Uq, Y)
+                    A_tilde_cols.append(Z)
+                A = np.concatenate(A_tilde_cols, axis=1)
+                # Apply to b
+                # Step 1: Apply permutation P * b
+                Pb = quat_matmat(Pq, b)
+                # Step 2: Solve L * Y = Pb
+                Yb = _solve_lower_triangular_quat(Lq, Pb)
+                # Step 3: Solve U * x = Y
+                b = _solve_upper_triangular_quat(Uq, Yb)
+                if self.verbose:
+                    print("[QGMRES] Applied left LU preconditioner (full M = P^T L U)")
+            except Exception as e:
+                if self.verbose:
+                    print(f"[QGMRES] LU preconditioning failed ({e}); continuing without preconditioner")
+
         # Convert quaternion matrices to component format
         A0, A1, A2, A3 = self._quat_to_components(A)
         b0, b1, b2, b3 = self._quat_to_components(b)
@@ -391,6 +493,17 @@ class QGMRESSolver:
             'converged': res < self.tol,
             'V0': V0, 'V1': V1, 'V2': V2, 'V3': V3  # Krylov basis vectors
         }
+
+        # Compute true residual with respect to original (un-preconditioned) system
+        try:
+            r_true = quat_frobenius_norm(quat_matmat(A_orig, x) - b_orig)
+            r_true /= (quat_frobenius_norm(b_orig) + 1e-30)
+            info['residual_true'] = r_true
+            # Replace primary residual with true residual for fair comparison across preconditioners
+            info['residual'] = r_true
+        except Exception:
+            # Fallback: keep preconditioned residual only
+            info['residual_true'] = info['residual']
         
         if self.verbose:
             print(f"Q-GMRES converged in {iter_count} iterations with residual {res:.2e}")
@@ -619,3 +732,5 @@ class QGMRESSolver:
         # Stack components and convert to quaternion array
         A_real = np.stack([A0, A1, A2, A3], axis=-1)
         return quaternion.as_quat_array(A_real)
+
+

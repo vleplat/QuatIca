@@ -174,7 +174,10 @@ def visualize_sample_images(X, image_names, image_shape=(32, 32), n_samples=8):
     
     plt.tight_layout()
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"../../output_figures/multiple_images_sample_verification_{timestamp}.png"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    filename = os.path.join(out_dir, f"multiple_images_sample_verification_{timestamp}.png")
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"Sample verification figure saved to: {filename}")
     plt.show()
@@ -243,7 +246,10 @@ def visualize_image_average_filters(X_pinv, image_names, image_shape=(32, 32)):
     
     plt.tight_layout()
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"../../output_figures/multiple_images_average_filters_{timestamp}.png"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    filename = os.path.join(out_dir, f"multiple_images_average_filters_{timestamp}.png")
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"Average filters figure saved to: {filename}")
     plt.show()
@@ -312,7 +318,10 @@ def visualize_pca_analysis(X_pinv, image_names):
     
     plt.tight_layout()
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"../../output_figures/multiple_images_pca_analysis_{timestamp}.png"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    filename = os.path.join(out_dir, f"multiple_images_pca_analysis_{timestamp}.png")
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"PCA analysis figure saved to: {filename}")
     plt.show()
@@ -409,7 +418,10 @@ def visualize_advanced_insights(X, X_pinv, image_names, image_shape=(32, 32)):
     plt.title('Pseudoinverse Manifold (Phase and Magnitude)\nHue=Phase, Value=Magnitude')
     plt.axis('off')
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"../../output_figures/multiple_images_manifold_{timestamp}.png"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    filename = os.path.join(out_dir, f"multiple_images_manifold_{timestamp}.png")
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"Manifold figure saved to: {filename}")
     plt.show()
@@ -439,7 +451,10 @@ def visualize_advanced_insights(X, X_pinv, image_names, image_shape=(32, 32)):
                     color='white' if abs(corr_matrix[i, j]) > 0.5 else 'black')
     
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"../../output_figures/multiple_images_channel_correlations_{timestamp}.png"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    filename = os.path.join(out_dir, f"multiple_images_channel_correlations_{timestamp}.png")
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"Channel correlations figure saved to: {filename}")
     plt.show()
@@ -464,7 +479,10 @@ def visualize_advanced_insights(X, X_pinv, image_names, image_shape=(32, 32)):
     
     plt.tight_layout()
     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    filename = f"../../output_figures/multiple_images_relationships_{timestamp}.png"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    filename = os.path.join(out_dir, f"multiple_images_relationships_{timestamp}.png")
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"Image relationships figure saved to: {filename}")
     plt.show()
@@ -551,15 +569,15 @@ def analyze_multiple_images_pseudoinverse(X, X_pinv, image_names, original_shape
 
 def main():
     # Ensure output directory exists
-    import os
-    os.makedirs('../../output_figures', exist_ok=True)
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    os.makedirs(os.path.join(repo_root, 'output_figures'), exist_ok=True)
     
     print("="*80)
     print("MULTIPLE IMAGES QUATERNION PSEUDOINVERSE ANALYSIS")
     print("="*80)
     
     # Load multiple small images
-    image_directory = "../../data/images"
+    image_directory = os.path.join(repo_root, 'data', 'images')
     target_size = (32, 32)  # Small size for better analysis
     max_images = 15  # Reasonable number for visualization
     

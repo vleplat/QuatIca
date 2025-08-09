@@ -20,11 +20,12 @@ def main():
         print("\nAvailable scripts:")
         print("  tutorial - Quaternion basics tutorial with visualizations (recommended to start here)")
         print("  demo - Core functionality demo (alternative comprehensive overview)")
-        print("  qgmres - Q-GMRES solver test (new!)")
-        print("  lorenz_signal - Lorenz attractor signal processing with Q-GMRES (new!)")
+        print("  qgmres - Q-GMRES solver test (basic functionality)")
+        print("  qgmres_bench - Q-GMRES comprehensive performance benchmark with LU preconditioning (new!)")
+        print("  lorenz_signal - Lorenz attractor signal processing with Q-GMRES")
         print("                Note: Use --num_points <N> to control resolution/execution time")
         print("                Examples: --num_points 100 (fast), --num_points 500 (high quality)")
-        print("  lorenz_benchmark - Lorenz attractor method comparison benchmark (new!)")
+        print("  lorenz_benchmark - Lorenz attractor method comparison benchmark")
         print("                    Compares Q-GMRES vs Newton-Schulz performance and accuracy")
         print("  cifar10         - CIFAR-10 pseudoinverse analysis")
         print("  pseudoinverse   - Single image pseudoinverse analysis")
@@ -44,6 +45,7 @@ def main():
         'tutorial': 'tests/tutorial_quaternion_basics.py',
         'demo': 'QuatIca_Core_Functionality_Demo.py',
         'qgmres': 'tests/QGMRES/test_qgmres_solver.py',
+        'qgmres_bench': 'tests/QGMRES/benchmark_qgmres_preconditioner.py',
         'lorenz_signal': 'applications/signal_processing/lorenz_attractor_qgmres.py',
         'lorenz_benchmark': 'applications/signal_processing/benchmark_lorenz_methods.py',
         'cifar10': 'tests/pseudoinverse/analyze_cifar10_pseudoinverse.py',

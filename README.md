@@ -1,7 +1,7 @@
 # QuatIca: Quaternion Linear Algebra Library
 
 <div align="center">
-  <img src="Logo.png" alt="QuatIca Logo" width="200">
+  <img src="Logo.png" alt="QuatIca Logo" width="250">
 </div>
 
 **A comprehensive Python library for Numerical Linear Algebra with Quaternions**
@@ -18,8 +18,8 @@
 
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
- - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, and **Eigenvalue Decomposition** for quaternion matrices
- - **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method)
+ - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, **Schur decomposition**, and **Eigenvalue Decomposition** for quaternion matrices
+ - **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method) with **LU preconditioning** for enhanced convergence
  - **Pseudoinverse Computation**: Newton–Schulz methods including a higher-order (third-order) variant with cubic local convergence
 - **Image Processing**: Complete missing pixels in images using quaternion math
 - **Signal Analysis**: Process 3D/4D signals with quaternion algebra
@@ -147,6 +147,7 @@ python run_analysis.py <script_name>
 |-------------|--------------|----------|
 | `tutorial` | **🎓 Quaternion Basics Tutorial** - Complete introduction with visualizations | **🚀 START HERE!** Learn the framework |
 | `qgmres` | **Q-GMRES Solver Test** - Tests the iterative Krylov subspace solver | **Linear system solving** with quaternions |
+| `qgmres_bench` | **🚀 Q-GMRES Performance Benchmark** - Comprehensive preconditioner benchmarking | **Algorithm performance** and LU preconditioning analysis |
 | `lorenz_signal` | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES | **Signal processing** applications |
 | `lorenz_benchmark` | **🏆 Method Comparison Benchmark** - Q-GMRES vs Newton-Schulz performance comparison | **Algorithm selection** and performance analysis |
 | `ns_compare` | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots | **Pseudoinverse** benchmarking |
@@ -165,6 +166,9 @@ python run_analysis.py tutorial
 
 # Test Q-GMRES linear system solver
 python run_analysis.py qgmres
+
+# Test Q-GMRES with LU preconditioning benchmark
+python run_analysis.py qgmres_bench
 
 # Process 3D signals with Lorenz attractor (default quality)
 python run_analysis.py lorenz_signal
@@ -231,7 +235,7 @@ python run_analysis.py image_completion
 ```
 QuatIca/
 ├── core/                    # Core library files
-│   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES)
+│   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES with LU preconditioning)
 │   ├── utils.py            # Quaternion operations, utilities, and power iteration
 │   ├── data_gen.py         # Matrix generation functions
 │   ├── visualization.py    # Plotting and visualization tools
@@ -242,7 +246,8 @@ QuatIca/
 │       ├── eigen.py         # Eigenvalue decomposition for Hermitian matrices
 │       ├── LU.py           # LU decomposition with partial pivoting
 │       ├── tridiagonalize.py # Tridiagonalization using Householder transformations
-│       └── hessenberg.py    # Upper Hessenberg reduction using Householder similarity
+│       ├── hessenberg.py    # Upper Hessenberg reduction using Householder similarity
+│       └── schur.py        # Schur decomposition (experimental)
 ├── tests/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
 │   ├── unit/               # Unit tests for core functionality
@@ -252,7 +257,9 @@ QuatIca/
 │   │   └── [See tests/unit/README.md for complete list]
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
-│   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
+│   │   ├── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
+│   │   ├── benchmark_qgmres_preconditioner.py # Comprehensive Q-GMRES LU preconditioning benchmark
+│   │   └── benchmark_qgmres_accuracy.py   # Q-GMRES accuracy investigation and analysis
 │   ├── pseudoinverse/      # Pseudoinverse analysis scripts
 │   │   ├── analyze_pseudoinverse.py      # Single image pseudoinverse analysis
 │   │   ├── analyze_multiple_images_pseudoinverse.py # Multiple images analysis
@@ -277,6 +284,7 @@ QuatIca/
 │   └── cifar-10-batches-py/ # CIFAR-10 dataset
 ├── References_and_SuppMat/ # Research papers and supplementary materials
 ├── output_figures/        # Generated plots and visualizations (auto-created)
+├── validation_output/     # Validation plots and analysis figures (auto-created)
 ├── requirements.txt       # Python dependencies
 ├── run_analysis.py       # Easy-to-use script runner
 ├── QuatIca_Core_Functionality_Demo.py     # Interactive demo script testing all core functionality
@@ -495,10 +503,15 @@ from core.solver import QGMRESSolver
 # Create Q-GMRES solver
 qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False)
 
-# Solve the system
+# Solve the system without preconditioning
 x, info = qgmres_solver.solve(A, b)
 print(f"Solution found in {info['iterations']} iterations")
 print(f"Final residual: {info['residual']:.2e}")
+
+# Solve with LU preconditioning for enhanced convergence
+x_prec, info_prec = qgmres_solver.solve(A, b, prec='left_lu')
+print(f"With LU preconditioning: {info_prec['iterations']} iterations")
+print(f"Preconditioned residual: {info_prec['residual']:.2e}")
 ```
 
 #### Matrix Norms (Quaternion Matrices)
@@ -882,7 +895,7 @@ The library includes comprehensive analysis tools:
 ## 🎯 Core Functionality Demo Files
 
 ### **📋 `QuatIca_Core_Functionality_Demo.py` - Interactive Core Functionality Tests**
-- **What it is**: Comprehensive Python script testing all 8 core functionality areas
+- **What it is**: Comprehensive Python script testing all 16 core functionality areas
 - **Perfect for**: Verifying that all README code examples work correctly
 - **Duration**: ~30 seconds
 - **Output**: Detailed verification of all core functions with numerical accuracy metrics
@@ -890,11 +903,19 @@ The library includes comprehensive analysis tools:
   - Basic matrix operations (creation, multiplication, norms)
   - QR decomposition with reconstruction verification
   - Quaternion SVD (Q-SVD) - both truncated and full
+  - Randomized Q-SVD for large matrix approximation
   - Eigenvalue decomposition for Hermitian matrices
+  - LU decomposition with partial pivoting
   - Tridiagonalization using Householder transformations
   - Pseudoinverse computation using Newton-Schulz
   - Linear system solving with Q-GMRES
   - Matrix component visualization
+  - Determinant and rank computation
+  - Power iteration for dominant eigenvectors
+  - Hessenberg form reduction
+  - Advanced eigenvalue methods (Hermitian and synthetic cases)
+  - Schur decomposition with synthetic validation
+  - Tensor operations (Frobenius norm, unfolding/folding)
 
 **Usage:**
 ```bash

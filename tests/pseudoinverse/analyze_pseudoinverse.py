@@ -179,7 +179,11 @@ def visualize_pseudoinverse(X, X_pinv, original_shape):
     axes[1, 3].axis('off')
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/pseudoinverse_component_analysis.png', dpi=300, bbox_inches='tight')
+    # Save to repository output_figures directory
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
+    plt.savefig(os.path.join(out_dir, 'pseudoinverse_component_analysis.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 2. Reconstruction error map
@@ -192,7 +196,7 @@ def visualize_pseudoinverse(X, X_pinv, original_shape):
     plt.colorbar(label='Reconstruction Error')
     plt.title('Reconstruction Error Map |X - XX^†X|\nBright = Poor representation, Dark = Stable relationships')
     plt.axis('off')
-    plt.savefig('../../output_figures/reconstruction_error_map.png', dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(out_dir, 'reconstruction_error_map.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 3. Pseudoinverse as filter bank
@@ -211,7 +215,7 @@ def visualize_pseudoinverse(X, X_pinv, original_shape):
         plt.colorbar()
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/pseudoinverse_filter_bank.png', dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(out_dir, 'pseudoinverse_filter_bank.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 4. Component distributions with interpretation
@@ -238,7 +242,7 @@ def visualize_pseudoinverse(X, X_pinv, original_shape):
         axes[row, col].set_ylabel('Density')
     
     plt.tight_layout()
-    plt.savefig('../../output_figures/pseudoinverse_distributions_interpreted.png', dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(out_dir, 'pseudoinverse_distributions_interpreted.png'), dpi=300, bbox_inches='tight')
     plt.show()
     
     # 5. Summary statistics
@@ -269,16 +273,17 @@ def visualize_pseudoinverse(X, X_pinv, original_shape):
     print("   - Edges/corners exhibit unique pseudoinverse signatures")
 
 def main():
-    # Ensure output directory exists
-    import os
-    os.makedirs('../../output_figures', exist_ok=True)
+    # Resolve repository root and output directory robustly
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    out_dir = os.path.join(repo_root, 'output_figures')
+    os.makedirs(out_dir, exist_ok=True)
     
     print("="*80)
     print("QUATERNION PSEUDOINVERSE ANALYSIS")
     print("="*80)
     
-    # Load image
-    image_path = "../../data/images/kodim16.png"
+    # Load image (use absolute path relative to repo root)
+    image_path = os.path.join(repo_root, 'data', 'images', 'kodim16.png')
     print(f"Loading image: {image_path}")
     
     X, original_shape = load_and_preprocess_image(image_path)

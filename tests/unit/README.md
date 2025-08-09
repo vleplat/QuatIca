@@ -26,6 +26,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | `test_qgmres_accuracy.py` | **Q-GMRES Accuracy** | Precision and accuracy of Q-GMRES solver |
 | `test_qgmres_basics.py` | **Q-GMRES Basics** | Fundamental Q-GMRES functionality |
 | `test_qgmres_debug.py` | **Q-GMRES Debug** | Debugging and troubleshooting Q-GMRES |
+| `test_qgmres_preconditioner.py` | **Q-GMRES Preconditioning** | LU-based left preconditioning for enhanced convergence |
 | `test_qgmres_simple.py` | **Q-GMRES Simple** | Simple Q-GMRES test cases |
 | `test_qgmres_large.py` | **Q-GMRES Large Scale** | Performance on large matrices |
 
@@ -126,7 +127,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 ## 📊 Test Coverage
 
 ### **✅ Fully Covered Components**
-- **Q-GMRES Solver**: All variants tested (basic, accuracy, debug, large-scale)
+- **Q-GMRES Solver**: All variants tested (basic, accuracy, debug, preconditioner, large-scale)
 - **Q-SVD Methods**: Classical, randomized, and pass-efficient implementations
 - **Matrix Operations**: Basic algebra, norms, rank, determinant
 - **Tensor Basics**: Entrywise |T|, Frobenius norm, mode-n unfolding/folding
@@ -150,6 +151,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 ### **🔧 For Developers**
 - `test_basic_algebra.py` - Core matrix operations
 - `test_qgmres_basics.py` - Linear system solving
+- `test_qgmres_preconditioner.py` - Enhanced Q-GMRES with preconditioning
 - `test_rand_qsvd.py` - Matrix decomposition
 
 ### **📊 For Performance Analysis**
