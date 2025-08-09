@@ -16,13 +16,6 @@
 - **Perfect for**: 3D rotations, color images (RGB), 4D signals, and more
 - **Why useful**: Can represent complex relationships in data that regular matrices can't
 
-### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
-- We added a preview of quaternion tensor tools (order-3) laying groundwork for tensor decompositions (e.g., HOSVD, TT, Tucker):
-  - Tensor Frobenius-like norm, entrywise |T| (quaternion magnitude)
-  - Mode-n unfolding and folding for order-3 tensors
-- See the notebook section “13. Preview: Quaternion Tensor Algebra and Decompositions” in `QuatIca_Core_Functionality_Demo.ipynb`.
-- Utilities live in `core/tensor.py`; unit tests in `tests/unit/test_tensor_quaternion_basics.py`.
-
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
  - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, and **Eigenvalue Decomposition** for quaternion matrices
@@ -31,6 +24,13 @@
 - **Image Processing**: Complete missing pixels in images using quaternion math
 - **Signal Analysis**: Process 3D/4D signals with quaternion algebra
 - **Data Science**: Extract complex patterns from multi-dimensional data
+
+### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
+- We added a preview of quaternion tensor tools (order-3) laying groundwork for tensor decompositions (e.g., HOSVD, TT, Tucker):
+  - Tensor Frobenius-like norm, entrywise |T| (quaternion magnitude)
+  - Mode-n unfolding and folding for order-3 tensors
+- See the notebook section “13. Preview: Quaternion Tensor Algebra and Decompositions” in `QuatIca_Core_Functionality_Demo.ipynb`.
+- Utilities live in `core/tensor.py`; unit tests in `tests/unit/test_tensor_quaternion_basics.py`.
 
 ## ⚠️ CRITICAL PERFORMANCE INFORMATION
 
@@ -235,6 +235,7 @@ QuatIca/
 │   ├── utils.py            # Quaternion operations, utilities, and power iteration
 │   ├── data_gen.py         # Matrix generation functions
 │   ├── visualization.py    # Plotting and visualization tools
+│   ├── tensor.py           # Quaternion tensor utilities (norms, |T|, unfold/fold)
 │   └── decomp/             # Matrix decomposition algorithms
 │       ├── __init__.py
 │       ├── qsvd.py         # QR and Q-SVD implementations
@@ -245,9 +246,10 @@ QuatIca/
 ├── tests/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
 │   ├── unit/               # Unit tests for core functionality
+│   │   ├── test_tensor_quaternion_basics.py       # Quaternion tensor basics (norms, |T|, unfold/fold)
+│   │   ├── test_schur_synthetic.py                 # Synthetic Schur (|T| visuals saved)
+│   │   ├── test_schur_power_synthetic.py           # Schur vs power-iteration transversal check
 │   │   └── [See tests/unit/README.md for complete list]
-│   │   # Covers: Q-GMRES, Q-SVD (incl. reconstruction analysis), Randomized/Pass-Efficient Q-SVD,
-│   │   # Power Iteration (Hermitian), Experimental Complex Power Iteration, Schur comparisons
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
@@ -996,6 +998,11 @@ QuatIca is actively being extended with cutting-edge algorithms from recent rese
 - **Eigenvalue computation** via iterative QR method
 - **Matrix diagonalization** for non-Hermitian quaternion matrices
 - **Structured eigenvalue problems** with quaternion arithmetic
+
+#### **🔗 Quaternion Tensor Decompositions (Preview to Full Release)**
+- **Tensor models**: HOSVD, Tucker, Tensor-Train (TT) adapted to quaternion tensors
+- **Core utilities**: tensor norms, entrywise magnitudes, mode-n unfolding/folding (already available in `core/tensor.py`)
+- **Demos & tests**: Notebook preview section and `tests/unit/test_tensor_quaternion_basics.py`
 
 **Stay tuned for these exciting new features!** 🚀
 
