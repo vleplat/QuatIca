@@ -450,7 +450,14 @@ python run_analysis.py lorenz_benchmark
 
 ```python
 import quaternion
-from core.utils import quat_matmat, quat_frobenius_norm, quat_eye
+from core.utils import (
+    quat_matmat,
+    quat_frobenius_norm,
+    quat_eye,
+    matrix_norm,              # unified interface: 'fro', 1, 2, inf
+    induced_matrix_norm_1,    # max column sum of |A_ij|
+    induced_matrix_norm_inf   # max row sum of |A_ij|
+)
 from core.utils import power_iteration, power_iteration_nonhermitian  # see notes below
 from core.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
 
@@ -483,6 +490,33 @@ qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False)
 x, info = qgmres_solver.solve(A, b)
 print(f"Solution found in {info['iterations']} iterations")
 print(f"Final residual: {info['residual']:.2e}")
+```
+
+#### Matrix Norms (Quaternion Matrices)
+
+```python
+import numpy as np
+import quaternion
+from core.utils import matrix_norm, quat_frobenius_norm, induced_matrix_norm_1, induced_matrix_norm_inf
+
+# Random quaternion matrix (m x n)
+m, n = 4, 5
+A = quaternion.as_quat_array(np.random.randn(m, n, 4))
+
+# Frobenius norm
+nf = matrix_norm(A, 'fro')          # same as quat_frobenius_norm(A)
+
+# Induced 1-norm (max column sum of |A_ij|)
+n1 = matrix_norm(A, 1)              # or induced_matrix_norm_1(A)
+
+# Induced infinity-norm (max row sum of |A_ij|)
+ninf = matrix_norm(A, np.inf)       # or induced_matrix_norm_inf(A)
+
+# Spectral 2-norm (largest singular value) — square matrices
+B = quaternion.as_quat_array(np.random.randn(5, 5, 4))
+n2 = matrix_norm(B, 2)              # via quaternion SVD (costlier)
+
+print(nf, n1, ninf, n2)
 ```
 
 
