@@ -530,7 +530,7 @@ def quaternion_schur_unified(
     max_iter: int = 1000,
     tol: float = 1e-10,
     aed_factor: float | None = None,
-    precompute_shifts: bool = False,
+    precompute_shifts: bool = True,
     power_shift_steps: int = 5,
     verbose: bool = False,
     return_diagnostics: bool = False,
