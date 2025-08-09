@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Lorenz Attractor Signal Processing with Q-GMRES
-==============================================
+Lorenz Attractor Signal Processing with Q-GMRES and Adaptive LU Preconditioning
+==============================================================================
 
 USAGE EXAMPLES:
 ==============
@@ -26,10 +26,16 @@ USAGE EXAMPLES:
 
 PERFORMANCE GUIDE:
 =================
-- 100 points: Fast testing, lower resolution
-- 200 points: Balanced performance, good resolution (DEFAULT)
-- 500 points: High resolution, publication quality
-- 1000 points: Very high resolution, research quality
+- 100 points: Fast testing, lower resolution (standard Q-GMRES)
+- 200 points: Balanced performance, good resolution (LU preconditioned Q-GMRES) (DEFAULT)
+- 500 points: High resolution, publication quality (LU preconditioned Q-GMRES)
+- 1000 points: Very high resolution, research quality (LU preconditioned Q-GMRES)
+
+ADAPTIVE PRECONDITIONING:
+========================
+- For N < 200: Uses standard Q-GMRES (optimal for small systems)
+- For N ≥ 200: Uses LU preconditioned Q-GMRES (enhanced convergence for large systems)
+- Automatic selection based on problem size for optimal performance
 
 Fixed issues with:
 1. Linear system construction (matrix S)
@@ -212,12 +218,22 @@ def main():
     if len(b_quat_array.shape) == 1:
         b_quat_array = b_quat_array.reshape(-1, 1)
     
-    # Use our Q-GMRES solver
+    # Use our Q-GMRES solver with adaptive preconditioning
     print("Starting Q-GMRES solve...")
     print(f"System dimensions: A: {A_quat_array.shape}, b: {b_quat_array.shape}")
 
     from solver import QGMRESSolver
-    qgmres_solver = QGMRESSolver(tol=tol, max_iter=max_iter, verbose=True)
+    
+    # Use LU preconditioning for large dimensions (≥200) for better convergence
+    use_preconditioner = N >= 200
+    preconditioner = 'left_lu' if use_preconditioner else None
+    
+    if use_preconditioner:
+        print(f"🚀 Using LU preconditioning for large system (N={N})")
+    else:
+        print(f"⚡ Using standard Q-GMRES for small system (N={N})")
+    
+    qgmres_solver = QGMRESSolver(tol=tol, max_iter=max_iter, verbose=True, preconditioner=preconditioner)
     x_solution, info = qgmres_solver.solve(A_quat_array, b_quat_array)
     
     # Extract solution components
