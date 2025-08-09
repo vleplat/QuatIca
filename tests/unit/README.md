@@ -39,6 +39,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | File | Purpose | What It Tests |
 |------|---------|---------------|
 | `test_power_iteration_simple.py` | **Power Iteration** | Dominant eigenvector computation using power iteration |
+| `test_power_iteration_nonhermitian_validation.py` | **Non-Hermitian Power Iteration (validation)** | Hermitian: real eigenvalue matches classical power iteration and `quaternion_eigendecomposition`; Complex embedding: eigenvalue matches NumPy spectrum (up to conjugation); asserts on adjoint residuals; no figures |
 | `test_rank.py` | **Matrix Rank** | Rank computation for quaternion matrices |
 | `test_rand_unitary.py` | **Random Unitary Matrices** | Generation and validation of unitary matrices |
 | `test_compare_schur_variants.py` | **Schur Variants (Rayleigh, AED, DS)** | Compares convergence and |T| visualizations; saves plots to `validation_output/` |
@@ -169,6 +170,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 
 ### **🔬 For Algorithm Validation**
 - `test_power_iteration_simple.py` - Power iteration method
+- `test_power_iteration_nonhermitian_validation.py` - Non-Hermitian power iteration validation
 - `test_rank.py` - Rank computation
 - `test_rand_unitary.py` - Unitary matrix generation
 
