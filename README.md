@@ -16,6 +16,13 @@
 - **Perfect for**: 3D rotations, color images (RGB), 4D signals, and more
 - **Why useful**: Can represent complex relationships in data that regular matrices can't
 
+### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
+- We added a preview of quaternion tensor tools (order-3) laying groundwork for tensor decompositions (e.g., HOSVD, TT, Tucker):
+  - Tensor Frobenius-like norm, entrywise |T| (quaternion magnitude)
+  - Mode-n unfolding and folding for order-3 tensors
+- See the notebook section “13. Preview: Quaternion Tensor Algebra and Decompositions” in `QuatIca_Core_Functionality_Demo.ipynb`.
+- Utilities live in `core/tensor.py`; unit tests in `tests/unit/test_tensor_quaternion_basics.py`.
+
 ### **🚀 What Can You Do With QuatIca?**
 - **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
  - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, and **Eigenvalue Decomposition** for quaternion matrices
