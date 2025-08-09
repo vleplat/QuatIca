@@ -18,6 +18,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | (removed legacy deep/cur tests) |  |  |
 | `test_normQsparse.py` | **Matrix Norms** | Quaternion matrix norm computations and comparisons |
 | (removed: `test_simple_newton.py`) |  |  |
+| `test_tensor_quaternion_basics.py` | **Tensor Basics** | Order-3 quaternion tensors: Frobenius norm, entrywise |T|, mode-n unfold/fold |
 
 ### **⚡ Q-GMRES Solver Tests**
 | File | Purpose | What It Tests |
@@ -128,6 +129,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 - **Q-GMRES Solver**: All variants tested (basic, accuracy, debug, large-scale)
 - **Q-SVD Methods**: Classical, randomized, and pass-efficient implementations
 - **Matrix Operations**: Basic algebra, norms, rank, determinant
+- **Tensor Basics**: Entrywise |T|, Frobenius norm, mode-n unfolding/folding
 - **Power Iteration**: Dominant eigenvector computation
 - **Unitary Matrices**: Generation and validation
 
@@ -158,6 +160,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 ### **🔬 For Algorithm Validation**
 - `test_power_iteration_simple.py` - Power iteration method
 - `test_power_iteration_nonhermitian_validation.py` - Non-Hermitian power iteration validation
+- `test_tensor_quaternion_basics.py` - Quaternion tensor basics (norms, |T|, unfold/fold)
 - `test_schur_synthetic.py` - Synthetic Schur unitary-similarity validation with |T| plots
 - `test_schur_power_synthetic.py` - Schur vs Power-Iteration eigenvalue agreement (transversal)
 - `test_rank.py` - Rank computation
