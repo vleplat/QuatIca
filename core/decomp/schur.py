@@ -532,6 +532,7 @@ def quaternion_schur_unified(
     aed_factor: float | None = None,
     precompute_shifts: bool = True,
     power_shift_steps: int = 5,
+    aed_window: int | None = None,
     verbose: bool = False,
     return_diagnostics: bool = False,
 ):
@@ -546,6 +547,8 @@ def quaternion_schur_unified(
 
     Notes:
       - For 'aed' and 'ds', operations stay in the quaternion domain using 2x2 Householder similarities.
+      - aed_window (optional): when set, restrict AED checks to the trailing window of size aed_window
+        to improve efficiency on larger matrices. Defaults to full sweep when None.
     """
     if A.ndim != 2 or A.shape[0] != A.shape[1]:
         raise ValueError("quaternion_schur_unified requires a square matrix")
@@ -638,18 +641,26 @@ def quaternion_schur_unified(
                 apply_right_cols(H, s, Hj_sub)
                 apply_right_cols(Q_accum, s, Hj_sub)
 
-        # AED sweep
+        # AED sweep (optionally restricted to a trailing window)
         max_sub = 0.0
-        for i in range(1, n):
+        i_start = 1
+        if aed_window is not None and aed_window > 1:
+            i_start = max(1, n - aed_window + 1)
+        for i in range(i_start, n):
             h = H[i, i - 1]
-            sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
-            dscale = (
-                (H[i - 1, i - 1].w ** 2 + H[i - 1, i - 1].x ** 2 + H[i - 1, i - 1].y ** 2 + H[i - 1, i - 1].z ** 2) ** 0.5
-                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2) ** 0.5
-                + 1e-30
+            # Use squared norms to avoid sqrt in inner loop
+            sv_sq = h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z
+            d0 = H[i - 1, i - 1]
+            d1 = H[i, i]
+            dscale_sq = (
+                d0.w * d0.w + d0.x * d0.x + d0.y * d0.y + d0.z * d0.z +
+                d1.w * d1.w + d1.x * d1.x + d1.y * d1.y + d1.z * d1.z
             )
-            if variant in ("aed", "ds") and sv <= aed_factor * tol * max(1.0, dscale):
+            bound_sq = (aed_factor * tol) * (aed_factor * tol) * max(1.0, dscale_sq)
+            if variant in ("aed", "ds") and sv_sq <= bound_sq:
                 H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
+            # Track residual using actual norm (outside of comparisons)
+            sv = (sv_sq) ** 0.5
             max_sub = max(max_sub, sv)
 
         # Note: no projection; rely on similarity updates to maintain structure
