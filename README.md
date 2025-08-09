@@ -491,25 +491,26 @@ C = quat_matmat(A, B)
 
 # Compute pseudoinverse (baseline damped Newton–Schulz)
 ns_solver = NewtonSchulzPseudoinverse(gamma=0.5)
-A_pinv_ns, ns_residuals, ns_cov = ns_solver.compute(A)
+A_pinv_ns, ns_residuals, ns_metrics = ns_solver.compute(A)
 
 # Compute pseudoinverse (higher-order third-order Newton–Schulz, cubic local rate)
 hon_solver = HigherOrderNewtonSchulzPseudoinverse()
-A_pinv_hon, hon_residuals, hon_times = hon_solver.compute(A)
+A_pinv_hon, hon_residuals, hon_metrics = hon_solver.compute(A)
 
 # Solve linear system A*x = b using Q-GMRES
 from core.solver import QGMRESSolver
 
-# Create Q-GMRES solver
-qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False)
+# Create Q-GMRES solver without preconditioning
+qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False, preconditioner='none')
 
-# Solve the system without preconditioning
+# Solve the system
 x, info = qgmres_solver.solve(A, b)
 print(f"Solution found in {info['iterations']} iterations")
 print(f"Final residual: {info['residual']:.2e}")
 
-# Solve with LU preconditioning for enhanced convergence
-x_prec, info_prec = qgmres_solver.solve(A, b, prec='left_lu')
+# Create Q-GMRES solver with LU preconditioning for enhanced convergence
+qgmres_solver_lu = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False, preconditioner='left_lu')
+x_prec, info_prec = qgmres_solver_lu.solve(A, b)
 print(f"With LU preconditioning: {info_prec['iterations']} iterations")
 print(f"Preconditioned residual: {info_prec['residual']:.2e}")
 ```
