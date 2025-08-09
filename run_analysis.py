@@ -54,7 +54,7 @@ def main():
         'synthetic': 'applications/image_completion/script_synthetic_image_completion.py',  # Matrix completion on synthetic images
         'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
         'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py',  # Eigenvalue decomposition test
-        'ns_compare': 'tests/unit/compare_ns_vs_higher_order.py'  # NS vs Higher-Order NS comparison
+        'ns_compare': 'tests/unit/test_ns_vs_higher_order_compare.py'  # NS vs Higher-Order NS comparison
     }
     
     if script_name not in script_map:

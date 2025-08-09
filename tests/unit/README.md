@@ -15,12 +15,9 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | File | Purpose | What It Tests |
 |------|---------|---------------|
 | `test_basic_algebra.py` | **Basic Algebra Operations** | Matrix operations, ishermitian function, determinant computation |
-| `test_cur_decomposition.py` | **CUR Decomposition** | Matrix decomposition using CUR method |
-| `test_deep_linear_comprehensive.py` | **Deep Linear Systems** | Comprehensive testing of linear system solving |
-| `test_deep_linear_solver.py` | **Deep Linear Solver** | Advanced linear system solving algorithms |
-| `test_initialization_sensitivity.py` | **Initialization Sensitivity** | How different initializations affect algorithm convergence |
+| (removed legacy deep/cur tests) |  |  |
 | `test_normQsparse.py` | **Matrix Norms** | Quaternion matrix norm computations and comparisons |
-| `test_simple_newton.py` | **Newton Method** | Newton-Schulz iteration for matrix operations |
+| (removed: `test_simple_newton.py`) |  |  |
 
 ### **⚡ Q-GMRES Solver Tests**
 | File | Purpose | What It Tests |
@@ -36,7 +33,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 |------|---------|---------------|
 | `test_rand_qsvd.py` | **Randomized Q-SVD** | Randomized singular value decomposition |
 | `test_pass_eff_qsvd.py` | **Pass-Efficient Q-SVD** | Memory-efficient Q-SVD implementation |
-| `test_real_image.py` | **Real Image Processing** | Matrix operations on real image data |
+| (moved to applications/ as higher-level scripts) |  |  |
 
 ### **🔬 Advanced Algorithms**
 | File | Purpose | What It Tests |
@@ -49,7 +46,7 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | File | Purpose | What It Tests |
 |------|---------|---------------|
 | `test_det_demonstration.py` | **Determinant Demo** | Demonstration of Dieudonné determinant computation |
-| `test_det_dieudonne_svd_decomposition.py` | **Dieudonné Determinant** | Determinant computation using SVD decomposition |
+| `test_ns_vs_higher_order_compare.py` | **NS vs Higher-Order NS** | Comparison of pseudoinverse solvers with residual/time plots |
 
 ---
 
