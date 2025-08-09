@@ -474,6 +474,48 @@ for size in sizes:
 
 print("✅ Power iteration performance analysis complete!")
 
+# ## 12b. Non-Hermitian Complex Power Iteration (Experimental)
+
+from core.utils import power_iteration_nonhermitian
+
+print("\n" + "="*60)
+print("NON-HERMITIAN COMPLEX POWER ITERATION (EXPERIMENTAL)")
+print("="*60)
+
+# Create a general random (non-Hermitian) quaternion matrix
+n = 25
+A_rand = create_test_matrix(n, n)
+print(f"Random non-Hermitian matrix A of size {n}x{n}")
+
+# Run complex power iteration (adjoint mapping), returning complex eigenvalue and quaternion eigenvector
+q_vec, lambda_complex, residuals = power_iteration_nonhermitian(
+    A_rand,
+    max_iterations=3000,
+    eig_tol=1e-12,
+    res_tol=1e-10,
+    seed=0,
+    return_vector=True,
+)
+
+# Print eigenvalue in complex form and as quaternion (a + b i)
+lam_q = quaternion.quaternion(float(np.real(lambda_complex)), float(np.imag(lambda_complex)), 0.0, 0.0)
+print(f"Estimated dominant complex eigenvalue: {lambda_complex}")
+print(f"As quaternion (x-axis subfield): {lam_q}")
+print(f"Residual final: {residuals[-1] if residuals else float('nan'):.3e} | steps: {len(residuals)}")
+
+# Plot residual convergence
+plt.figure(figsize=(6, 3.5))
+if residuals:
+    plt.semilogy(residuals)
+plt.title(f"Complex power iteration residuals (n={n})")
+plt.xlabel("iteration")
+plt.ylabel("||Mv - lambda v||_2")
+plt.grid(True, which="both", ls=":")
+plt.tight_layout()
+plt.show()
+
+print("✅ Non-Hermitian complex power iteration demo complete!")
+
 # ## 13. Hessenberg Form (Upper Hessenberg Reduction)
 
 from core.decomp.hessenberg import hessenbergize, is_hessenberg

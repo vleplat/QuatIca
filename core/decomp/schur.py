@@ -326,6 +326,7 @@ __all__ = [
     "quaternion_schur_pure",
     "quaternion_schur_pure_implicit",
     "quaternion_schur_unified",
+    "quaternion_schur_experimental",
 ]
 
 
@@ -670,6 +671,147 @@ def quaternion_schur_unified(
         if verbose and (k % 50 == 0 or max_sub <= tol):
             print(f"unified[{variant}] iter {k}: max subdiag {max_sub:.2e}")
         if max_sub <= tol:
+            if return_diagnostics:
+                diag["converged"] = True
+                diag["iterations_run"] = k + 1
+            break
+
+    Q_total = quat_matmat(quat_hermitian(P0), Q_accum)
+    T = H
+    if return_diagnostics:
+        return Q_total, T, diag
+    return Q_total, T
+
+
+def quaternion_schur_experimental(
+    A: np.ndarray,
+    variant: str = "aed_windowed",
+    max_iter: int = 1000,
+    tol: float = 1e-10,
+    window: int = 12,
+    verbose: bool = False,
+    return_diagnostics: bool = False,
+):
+    """Experimental Schur variants with windowed AED and a Francis-like two-shift chase.
+
+    WARNING: Experimental. API and behavior may change. Does not affect stable variants.
+
+    Variants:
+      - 'aed_windowed' : restrict bulge-chase and deflation to a trailing window (approx. AED)
+      - 'francis_ds'   : perform a two-shift bulge chase per outer iteration (surrogate DS)
+
+    Notes:
+      - Operates purely in quaternion domain using 2x2 Householder similarities.
+      - Uses real scalar shifts derived from trailing block; keeps quaternion structure.
+      - Maintains similarity via left-row and right-column updates.
+    """
+    if A.ndim != 2 or A.shape[0] != A.shape[1]:
+        raise ValueError("quaternion_schur_experimental requires a square matrix")
+
+    n = A.shape[0]
+    if n == 0:
+        I0 = np.eye(0, dtype=np.quaternion)
+        return I0, I0
+
+    # Initial Hessenberg reduction
+    P0, H = hessenbergize(A)
+    H = check_hessenberg(H)
+    Q_accum = np.eye(n, dtype=np.quaternion)
+
+    # Helpers for similarity updates with 2x2 quaternion block B at index s
+    def apply_left_rows(M: np.ndarray, s_idx: int, B: np.ndarray) -> None:
+        a, b = B[0, 0], B[0, 1]
+        c, d = B[1, 0], B[1, 1]
+        r0 = M[s_idx, :].copy()
+        r1 = M[s_idx + 1, :].copy()
+        M[s_idx, :] = a * r0 + b * r1
+        M[s_idx + 1, :] = c * r0 + d * r1
+
+    def apply_right_cols(M: np.ndarray, s_idx: int, B: np.ndarray) -> None:
+        BH = quat_hermitian(B)
+        a, b = BH[0, 0], BH[0, 1]
+        c, d = BH[1, 0], BH[1, 1]
+        c0 = M[:, s_idx].copy()
+        c1 = M[:, s_idx + 1].copy()
+        M[:, s_idx] = c0 * a + c1 * c
+        M[:, s_idx + 1] = c0 * b + c1 * d
+
+    # Active window [lo, hi]
+    lo, hi = 0, n - 1
+    diag = {"iterations": [], "converged": False, "iterations_run": 0}
+
+    for k in range(max_iter):
+        if hi <= lo:
+            break
+
+        # Deflation scan (bottom-up) in trailing region
+        i = hi
+        while i > lo:
+            h = H[i, i - 1]
+            sv_sq = h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z
+            d0, d1 = H[i - 1, i - 1], H[i, i]
+            dscale_sq = (
+                d0.w * d0.w + d0.x * d0.x + d0.y * d0.y + d0.z * d0.z +
+                d1.w * d1.w + d1.x * d1.x + d1.y * d1.y + d1.z * d1.z
+            )
+            if sv_sq <= (tol * tol) * max(1.0, dscale_sq):
+                H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
+                hi = i - 1
+                break
+            i -= 1
+        else:
+            # No deflation: perform a windowed bulge chase
+            win = max(2, min(window, hi - lo + 1))
+            start = max(lo, hi - win + 1)
+
+            # Choose shifts
+            sigmas: list[float]
+            if variant == "francis_ds" and hi - start + 1 >= 2:
+                w11 = float(H[hi - 1, hi - 1].w)
+                w12 = float(H[hi - 1, hi].w)
+                w21 = float(H[hi, hi - 1].w)
+                w22 = float(H[hi, hi].w)
+                B2 = np.array([[w11, w12], [w21, w22]], dtype=float)
+                ev = np.linalg.eigvals(B2)
+                sigmas = [float(np.real(ev[0])), float(np.real(ev[1]))]
+            else:
+                sigmas = [float(H[hi, hi].w)]
+
+            # Apply one or two shift sweeps within the trailing window
+            for sigma in sigmas:
+                qs = quaternion.quaternion(float(sigma), 0.0, 0.0, 0.0)
+                for s in range(start, hi):
+                    v0 = H[s, s] - qs
+                    v1 = H[s + 1, s]
+                    # Skip if already tiny
+                    sv_sq = v1.w * v1.w + v1.x * v1.x + v1.y * v1.y + v1.z * v1.z
+                    if sv_sq <= (tol * tol):
+                        continue
+                    e1 = np.zeros(2)
+                    e1[0] = 1.0
+                    Hj_sub = householder_matrix(np.array([v0, v1], dtype=np.quaternion), e1)
+                    apply_left_rows(H, s, Hj_sub)
+                    apply_right_cols(H, s, Hj_sub)
+                    apply_right_cols(Q_accum, s, Hj_sub)
+
+        # Track residual in active window
+        max_sub = 0.0
+        for j in range(lo + 1, hi + 1):
+            h = H[j, j - 1]
+            sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
+            max_sub = max(max_sub, sv)
+
+        if return_diagnostics:
+            diag["iterations"].append({
+                "iter": k,
+                "lo": int(lo),
+                "hi": int(hi),
+                "variant": variant,
+                "max_subdiag": float(max_sub),
+            })
+        if verbose and (k % 50 == 0 or max_sub <= tol):
+            print(f"experimental[{variant}] iter {k}: window=[{start}:{hi}], max subdiag {max_sub:.2e}")
+        if hi <= lo or max_sub <= tol:
             if return_diagnostics:
                 diag["converged"] = True
                 diag["iterations_run"] = k + 1
