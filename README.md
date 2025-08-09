@@ -143,7 +143,6 @@ python run_analysis.py <script_name>
 | `lorenz_signal` | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES | **Signal processing** applications |
 | `lorenz_benchmark` | **🏆 Method Comparison Benchmark** - Q-GMRES vs Newton-Schulz performance comparison | **Algorithm selection** and performance analysis |
 | `ns_compare` | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots | **Pseudoinverse** benchmarking |
-| `cifar10` | **CIFAR-10 Image Analysis** - Analyzes 250 images with class insights | **Advanced analysis** with real data |
 | `pseudoinverse` | **Single Image Analysis** - Analyzes one image (kodim16.png) | Understanding pseudoinverse structure |
 | `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
 | `image_completion` | **Image Completion Demo** - Fills missing pixels in real images | **Practical application** |
@@ -169,8 +168,6 @@ python run_analysis.py lorenz_signal --num_points 100
 # Compare Q-GMRES vs Newton-Schulz methods
 python run_analysis.py lorenz_benchmark
 
-# Advanced analysis with real data
-python run_analysis.py cifar10
 
 # See image completion in action
 python run_analysis.py image_completion
@@ -242,14 +239,14 @@ QuatIca/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
 │   ├── unit/               # Unit tests for core functionality
 │   │   └── [See tests/unit/README.md for complete list]
-│   │   # Covers: Q-GMRES, Q-SVD, Randomized Q-SVD, Pass-Efficient Q-SVD, Power Iteration, etc.
+│   │   # Covers: Q-GMRES, Q-SVD (incl. reconstruction analysis), Randomized/Pass-Efficient Q-SVD,
+│   │   # Power Iteration (Hermitian), Experimental Complex Power Iteration, Schur comparisons
 │   ├── QGMRES/             # Q-GMRES solver tests
 │   │   ├── test_qgmres_solver.py         # Main Q-GMRES solver tests
 │   │   └── test_qgmres_large.py          # Large-scale Q-GMRES performance tests
 │   ├── pseudoinverse/      # Pseudoinverse analysis scripts
 │   │   ├── analyze_pseudoinverse.py      # Single image pseudoinverse analysis
 │   │   ├── analyze_multiple_images_pseudoinverse.py # Multiple images analysis
-│   │   ├── analyze_cifar10_pseudoinverse.py # CIFAR-10 dataset analysis
 │   │   └── script_synthetic_matrices.py  # Synthetic matrices testing
 │   ├── decomp/             # Matrix decomposition tests
 │   │   ├── test_qsvd.py    # QR and Q-SVD unit tests
@@ -258,10 +255,8 @@ QuatIca/
 │   │   ├── test_tridiagonalize.py # Tridiagonalization unit tests
 │   │   ├── eigenvalue_demo.py # Demonstration of eigenvalue decomposition
 │   │   └── test_hessenberg.py  # Hessenberg reduction unit tests
-│   └── validation/         # Validation and visualization scripts
-│       ├── __init__.py
-│       ├── README.md       # Validation package documentation
-│       └── qsvd_reconstruction_analysis.py # Q-SVD reconstruction error analysis
+│   └── validation/         # Validation and visualization scripts (legacy)
+│       → moved into tests/unit/ as test_* scripts
 ├── applications/
 │   ├── image_completion/   # Image processing applications
 │   │   ├── script_real_image_completion.py    # Real image completion
