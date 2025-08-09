@@ -34,13 +34,14 @@ This directory contains comprehensive unit tests for all core QuatIca functional
 | `test_rand_qsvd.py` | **Randomized Q-SVD** | Randomized singular value decomposition |
 | `test_pass_eff_qsvd.py` | **Pass-Efficient Q-SVD** | Memory-efficient Q-SVD implementation |
 | `test_qsvd_reconstruction_analysis.py` | **Q-SVD Reconstruction Analysis** | Validates monotonic error decrease and perfect full-rank reconstruction; generates plots in `validation_output/` |
+| `test_schur_synthetic.py` | **Synthetic Schur (unitary similarity)** | Builds `A = P S P^H` with complex subfield; validates similarity/unitarity; saves |T| heatmaps in `validation_output/` |
 
 ### **🔬 Advanced Algorithms**
 | File | Purpose | What It Tests |
 |------|---------|---------------|
 | `test_power_iteration_simple.py` | **Power Iteration** | Dominant eigenvector computation using power iteration |
 | `test_power_iteration_nonhermitian_validation.py` | **Non-Hermitian Power Iteration (validation)** | Hermitian: real eigenvalue matches classical power iteration and `quaternion_eigendecomposition`; Complex embedding: eigenvalue matches NumPy spectrum (up to conjugation); asserts on adjoint residuals; no figures |
-| `test_rank.py` | **Matrix Rank** | Rank computation for quaternion matrices |
+| `test_rand.py` | **Matrix Rank** | Rank computation for quaternion matrices |
 | `test_rand_unitary.py` | **Random Unitary Matrices** | Generation and validation of unitary matrices |
 | `test_compare_schur_variants.py` | **Schur Variants (Rayleigh, AED, DS)** | Compares convergence and |T| visualizations; saves plots to `validation_output/` |
 | `test_compare_schur_experimental.py` | **Experimental Schur (windowed AED/Francis-DS)** | Runs experimental routines; saves plots to `validation_output/` |
@@ -138,21 +139,6 @@ python -m pytest tests/unit/test_basic_algebra.py
 
 ---
 
-## 📈 Test Results
-
-### **Expected Outcomes**
-- **All tests should pass** with proper environment setup
-- **Performance benchmarks** provide timing comparisons
-- **Accuracy tests** verify numerical precision
-- **Visualization tests** generate plots for analysis
-
-### **Troubleshooting**
-- **Import errors**: Ensure virtual environment is activated
-- **Performance issues**: Check system resources and dependencies
-- **Accuracy failures**: Verify numerical precision settings
-
----
-
 ## 🎯 Key Test Files for Different Use Cases
 
 ### **🚀 For Beginners**
@@ -171,6 +157,7 @@ python -m pytest tests/unit/test_basic_algebra.py
 ### **🔬 For Algorithm Validation**
 - `test_power_iteration_simple.py` - Power iteration method
 - `test_power_iteration_nonhermitian_validation.py` - Non-Hermitian power iteration validation
+- `test_schur_synthetic.py` - Synthetic Schur unitary-similarity validation with |T| plots
 - `test_rank.py` - Rank computation
 - `test_rand_unitary.py` - Unitary matrix generation
 

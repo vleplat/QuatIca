@@ -69,7 +69,11 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
 ### Schur Decomposition (Under Development)
-- Note: A prototype quaternion Schur routine exists (`core/decomp/schur.py`), but it is under active development. It is not yet production-ready and should not be relied upon for general inputs. However, for Hermitian quaternion matrices (A = A^H), the Schur pipeline empirically converges to a diagonal T (as predicted by theory for unitary similarity), providing a strong validation signal.
+- Note: A prototype quaternion Schur routine exists (`core/decomp/schur.py`), but it is under active development. It is not yet production-ready and should not be relied upon for general inputs.
+- Hermitian validation: For Hermitian quaternion matrices (A = A^H), the Schur pipeline empirically converges to a diagonal T (as predicted by theory), providing a strong validation signal.
+- Synthetic-unitary similarity validation: For matrices with a known Schur form constructed as `A = P S P^H` where `P` is unitary (complex subfield embedding) and `S` is diagonal or upper-triangular in the x-axis complex subfield, our Schur QR variants (rayleigh, implicit) successfully recover an (almost) upper-triangular `T` with low similarity and unitarity residuals.
+  - See unit test `tests/unit/test_schur_synthetic.py` (saves |T| heatmaps to `validation_output/`).
+  - Demo notebook cells “12d” (Schur synthetic) show |T| and metrics for a reproducible case.
 
 - Reproducible validation (visual and numeric):
   - Run the comparison/visualization script to compare stable variants and view Schur form plots (after activating the venv):
@@ -88,7 +92,6 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
     - Hermitian: both Rayleigh-shift and implicit+AED variants converge to diagonal T quickly; implicit+AED is markedly faster, Rayleigh is slightly more accurate (lower similarity residual).
     - Random: Rayleigh achieves stronger deflation with sufficient iterations but is slower; implicit+AED offers speed with higher residual.
 
-
 ---
 
 ## 📊 Matrix Type Requirements
@@ -103,7 +106,6 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 | **Randomized Q-SVD** | General | m×n | None |
 | **Pass-Efficient Q-SVD** | General | m×n | None |
 | **Hessenberg Reduction** | General | n×n | None |
-
 
 ---
 
