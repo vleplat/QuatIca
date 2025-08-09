@@ -255,8 +255,6 @@ QuatIca/
 │   │   ├── test_tridiagonalize.py # Tridiagonalization unit tests
 │   │   ├── eigenvalue_demo.py # Demonstration of eigenvalue decomposition
 │   │   └── test_hessenberg.py  # Hessenberg reduction unit tests
-│   └── validation/         # Validation and visualization scripts (legacy)
-│       → moved into tests/unit/ as test_* scripts
 ├── applications/
 │   ├── image_completion/   # Image processing applications
 │   │   ├── script_real_image_completion.py    # Real image completion
