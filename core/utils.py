@@ -1302,3 +1302,151 @@ def power_iteration_nonhermitian(
         return q_vec, lam_out, residuals
     return lam_out, residuals
 
+
+# =====================================================================================
+# KERNEL/NULL SPACE FUNCTIONS
+# =====================================================================================
+
+def quat_null_space(A: np.ndarray, side: str = 'right', rtol: float = 1e-10) -> np.ndarray:
+    """
+    Compute the null space (kernel) of a quaternion matrix using Q-SVD.
+    
+    Parameters:
+    -----------
+    A : numpy.ndarray with dtype=quaternion
+        Input quaternion matrix of shape (m, n)
+    side : str, optional
+        'right' for right null space (null(A)), 'left' for left null space (null(A^H))
+        Default: 'right'
+    rtol : float, optional
+        Relative tolerance for determining rank (singular values <= rtol * max(s) are zero)
+        Default: 1e-10
+    
+    Returns:
+    --------
+    N : numpy.ndarray with dtype=quaternion
+        For side='right': null space matrix of shape (n, n-rank) such that A @ N ≈ 0
+        For side='left': null space matrix of shape (m, m-rank) such that N^H @ A ≈ 0
+    
+    Notes:
+    ------
+    Uses Q-SVD: A = U @ Σ @ V^H
+    - Right null space: columns of V corresponding to zero singular values
+    - Left null space: columns of U corresponding to zero singular values
+    
+    Examples:
+    ---------
+    >>> A = create_test_matrix(5, 3)  # 5x3 matrix, rank ≤ 3
+    >>> N_right = quat_null_space(A, side='right')  # null(A)
+    >>> N_left = quat_null_space(A, side='left')    # null(A^H)
+    >>> print(f"Right null space: {N_right.shape}")  # (3, 3-rank)
+    >>> print(f"Left null space: {N_left.shape}")   # (5, 5-rank)
+    """
+    if side not in ['right', 'left']:
+        raise ValueError(f"side must be 'right' or 'left', got '{side}'")
+    
+    # Import Q-SVD function
+    from decomp.qsvd import classical_qsvd_full
+    
+    # Compute full Q-SVD
+    U, s, V = classical_qsvd_full(A)
+    
+    # Determine numerical rank
+    if len(s) == 0:
+        rank = 0
+    else:
+        rank = np.sum(s > rtol * s[0])  # s[0] is largest singular value
+    
+    if side == 'right':
+        # Right null space: columns of V corresponding to zero singular values
+        n = A.shape[1]
+        if rank == n:
+            # Full rank: no null space
+            return np.empty((n, 0), dtype=np.quaternion)
+        else:
+            # Return last (n-rank) columns of V
+            return V[:, rank:]
+    
+    else:  # side == 'left'
+        # Left null space: columns of U corresponding to zero singular values
+        m = A.shape[0]
+        if rank == m:
+            # Full rank: no null space
+            return np.empty((m, 0), dtype=np.quaternion)
+        else:
+            # Return last (m-rank) columns of U
+            return U[:, rank:]
+
+
+def quat_null_right(A: np.ndarray, rtol: float = 1e-10) -> np.ndarray:
+    """
+    Compute the right null space of a quaternion matrix: null(A).
+    
+    Parameters:
+    -----------
+    A : numpy.ndarray with dtype=quaternion
+        Input quaternion matrix of shape (m, n)
+    rtol : float, optional
+        Relative tolerance for determining rank
+        Default: 1e-10
+    
+    Returns:
+    --------
+    N : numpy.ndarray with dtype=quaternion
+        Right null space matrix of shape (n, n-rank) such that A @ N ≈ 0
+    
+    Notes:
+    ------
+    Convenience function equivalent to quat_null_space(A, side='right', rtol=rtol)
+    """
+    return quat_null_space(A, side='right', rtol=rtol)
+
+
+def quat_null_left(A: np.ndarray, rtol: float = 1e-10) -> np.ndarray:
+    """
+    Compute the left null space of a quaternion matrix: null(A^H).
+    
+    Parameters:
+    -----------
+    A : numpy.ndarray with dtype=quaternion
+        Input quaternion matrix of shape (m, n)
+    rtol : float, optional
+        Relative tolerance for determining rank
+        Default: 1e-10
+    
+    Returns:
+    --------
+    N : numpy.ndarray with dtype=quaternion
+        Left null space matrix of shape (m, m-rank) such that N^H @ A ≈ 0
+    
+    Notes:
+    ------
+    Convenience function equivalent to quat_null_space(A, side='left', rtol=rtol)
+    """
+    return quat_null_space(A, side='left', rtol=rtol)
+
+
+def quat_kernel(A: np.ndarray, side: str = 'right', rtol: float = 1e-10) -> np.ndarray:
+    """
+    Compute the kernel (null space) of a quaternion matrix.
+    
+    Alias for quat_null_space() with identical functionality.
+    
+    Parameters:
+    -----------
+    A : numpy.ndarray with dtype=quaternion
+        Input quaternion matrix of shape (m, n)
+    side : str, optional
+        'right' for ker(A), 'left' for ker(A^H)
+        Default: 'right'  
+    rtol : float, optional
+        Relative tolerance for determining rank
+        Default: 1e-10
+    
+    Returns:
+    --------
+    N : numpy.ndarray with dtype=quaternion
+        Kernel matrix such that A @ N ≈ 0 (right) or N^H @ A ≈ 0 (left)
+    """
+    return quat_null_space(A, side=side, rtol=rtol)
+
