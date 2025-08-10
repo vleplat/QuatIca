@@ -34,9 +34,9 @@
 
 ## 🌟 Motivation and Acknowledgments
 
-QuatIca was inspired by the pioneering work in quaternion linear algebra, particularly the **QTFM (Quaternion Toolbox for MATLAB)** developed by Stephen J. Sangwine and Nicolas Le Bihan. Their foundational research and comprehensive MATLAB implementation demonstrated the power and potential of quaternion-based numerical methods.
+QuatIca was inspired by the pioneering work in quaternion linear algebra, particularly the **QTFM (Quaternion Toolbox for MATLAB)** developed by Stephen J. Sangwine and Nicolas Le Bihan. Their comprehensive MATLAB implementation demonstrated the power and potential of quaternion-based numerical methods.
 
-Recognizing the growing importance of Python in scientific computing and the need for robust quaternion tools in the Python ecosystem, we developed QuatIca to bring these capabilities to Python users. We extend our sincere gratitude to Sangwine and Le Bihan for their seminal contributions to quaternion mathematics and for providing the inspiration that drove us to create this library.
+Recognizing the growing importance of Python in scientific computing and the need for robust quaternion tools in the Python ecosystem, we developed QuatIca to bring these capabilities to Python users. We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspiration that drove us to create this library.
 
 Our goal is to continue advancing the field of quaternion linear algebra while making these powerful tools accessible to the broader Python community, from researchers and engineers to students and practitioners across diverse domains.
 
@@ -442,7 +442,7 @@ The benchmark tests both methods across different problem sizes (50-200 points) 
 python run_analysis.py lorenz_benchmark
 ```
 
-### **🎯 `cifar10` - Most Comprehensive Analysis**
+<!-- ### **🎯 `cifar10` - Most Comprehensive Analysis**
 - **Input**: 250 CIFAR-10 images (50 per class from 5 classes)
 - **Output**: 8 detailed plots in `output_figures/`:
   - `pixel_reconstruction_filters.png` - How each pixel is reconstructed
@@ -452,7 +452,7 @@ python run_analysis.py lorenz_benchmark
   - `class_average_filters.png` - Class-specific reconstruction filters
   - `pca_analysis.png` - PCA and t-SNE analysis
   - `class_spectral_analysis.png` - Class-specific spectral patterns
-  - `sample_images_verification.png` - Sample images for verification
+  - `sample_images_verification.png` - Sample images for verification -->
 
 ### **🖼️ `pseudoinverse` - Single Image Analysis**
 - **Input**: kodim16.png image
