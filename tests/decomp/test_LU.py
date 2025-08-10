@@ -478,6 +478,25 @@ class TestLUVerification:
             quaternion_lu(A_zero)
 
 
+def test_lu_zero_first_pivot_uses_permutation():
+    """When the first pivot is zero, LU with permutation should row-swap and reconstruct P @ A = L @ U."""
+    A = quaternion.as_quat_array([
+        [[0, 0, 0, 0], [1, 0, 0, 0]],
+        [[2, 0, 0, 0], [3, 0, 0, 0]]
+    ])
+
+    L, U, P = quaternion_lu(A, return_p=True)
+
+    # Check reconstruction: P * A = L * U
+    PA = quat_matmat(P, A)
+    LU = quat_matmat(L, U)
+    error = quat_frobenius_norm(PA - LU) / (quat_frobenius_norm(PA) + 1e-30)
+    assert error < 1e-12
+
+    # Check P is the swap matrix [[0,1],[1,0]] in real part
+    P_real = quaternion.as_float_array(P)[:, :, 0]
+    assert np.allclose(P_real, np.array([[0.0, 1.0], [1.0, 0.0]]), atol=1e-12)
+
 class TestLargeRandomMatrices:
     """Test cases for large random matrices."""
     
