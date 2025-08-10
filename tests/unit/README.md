@@ -90,6 +90,18 @@ These tests validate real-world applications:
 - **Signal Processing**: Signal analysis with quaternions
 - **Data Analysis**: CIFAR-10 dataset processing
 
+### **🎨 Visualization Tests**
+These tests validate enhanced visualization capabilities:
+
+| File | Purpose | What It Tests |
+|------|---------|---------------|
+| `test_visualization_enhanced.py` | **Enhanced Visualization** | Matrix absolute value visualization, tensor slice visualization, Schur structure analysis, convergence comparison plots |
+
+- **Matrix Visualization**: Absolute value heatmaps, component visualization
+- **Tensor Visualization**: 3D tensor slice analysis, mode-specific views  
+- **Structure Analysis**: Schur form structure, triangular matrix analysis
+- **Convergence Plots**: Algorithm comparison, performance visualization
+
 ---
 
 ## 🚀 Running Tests

@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import quaternion
 import numpy as np
+from typing import Optional, Tuple
+import seaborn as sns
 
 class Visualizer:
     @staticmethod
@@ -57,4 +59,180 @@ class Visualizer:
             plt.suptitle(f"Component {component} heatmap", fontsize=10, y=0.98)
         plt.grid(False)
         plt.tight_layout(rect=[0, 0, 1, 0.95])
+        plt.show()
+
+    @staticmethod
+    def visualize_matrix_abs(A: np.ndarray, cmap: str = 'viridis', title: str = "Matrix Absolute Value", subtitle: str = "") -> None:
+        """Heatmap of quaternion matrix absolute values |q| = sqrt(w² + x² + y² + z²)."""
+        from utils import SparseQuaternionMatrix
+        if isinstance(A, SparseQuaternionMatrix):
+            A = quaternion.as_quat_array(
+                np.stack([
+                    A.real.toarray(),
+                    A.i.toarray(),
+                    A.j.toarray(),
+                    A.k.toarray()
+                ], axis=-1)
+            )
+        
+        # Compute absolute values
+        comp = quaternion.as_float_array(A)
+        abs_vals = np.sqrt(np.sum(comp**2, axis=-1))
+        
+        plt.figure(figsize=(6, 5))
+        im = plt.imshow(abs_vals, cmap=cmap, aspect='auto')
+        plt.colorbar(im, label='|q|')
+        plt.title(title)
+        if subtitle:
+            plt.suptitle(subtitle, fontsize=10, y=0.98)
+        plt.xlabel('Column index')
+        plt.ylabel('Row index')
+        plt.grid(False)
+        plt.tight_layout(rect=[0, 0, 1, 0.95] if subtitle else None)
+        plt.show()
+    
+    @staticmethod
+    def visualize_tensor_slice(T: np.ndarray, mode: int = 0, slice_idx: int = 0, 
+                             cmap: str = 'viridis', title: str = "Tensor Slice", 
+                             show_abs: bool = True) -> None:
+        """Visualize a 2D slice of a quaternion tensor T(I×J×K)."""
+        if len(T.shape) != 3:
+            raise ValueError("Tensor must be 3D (I×J×K)")
+        
+        if mode == 0:  # Fix first index
+            slice_data = T[slice_idx, :, :]
+            xlabel, ylabel = 'K (3rd mode)', 'J (2nd mode)'
+        elif mode == 1:  # Fix second index  
+            slice_data = T[:, slice_idx, :]
+            xlabel, ylabel = 'K (3rd mode)', 'I (1st mode)'
+        elif mode == 2:  # Fix third index
+            slice_data = T[:, :, slice_idx]
+            xlabel, ylabel = 'J (2nd mode)', 'I (1st mode)'
+        else:
+            raise ValueError("Mode must be 0, 1, or 2")
+        
+        if show_abs:
+            # Show absolute values of quaternions
+            comp = quaternion.as_float_array(slice_data)
+            plot_data = np.sqrt(np.sum(comp**2, axis=-1))
+            label = '|T|'
+        else:
+            # Show real component only
+            comp = quaternion.as_float_array(slice_data)
+            plot_data = comp[..., 0]
+            label = 'Real(T)'
+        
+        plt.figure(figsize=(6, 5))
+        im = plt.imshow(plot_data, cmap=cmap, aspect='auto', origin='lower')
+        plt.colorbar(im, label=label)
+        plt.title(f"{title} - Mode {mode}, Slice {slice_idx}")
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.grid(False)
+        plt.tight_layout()
+        plt.show()
+    
+    @staticmethod
+    def visualize_schur_structure(T: np.ndarray, title: str = "Schur Form Structure", 
+                                 subtitle: str = "", threshold: float = 1e-12) -> Tuple[float, float]:
+        """
+        Visualize the structure of a Schur form matrix T and compute structure metrics.
+        
+        Returns:
+            Tuple of (below_diagonal_max, subdiagonal_max) for quantitative analysis
+        """
+        n = T.shape[0]
+        
+        # Compute absolute values
+        comp = quaternion.as_float_array(T)
+        abs_vals = np.sqrt(np.sum(comp**2, axis=-1))
+        
+        # Create structure visualization
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        
+        # Left plot: Absolute value heatmap
+        im1 = ax1.imshow(abs_vals, cmap='viridis', aspect='auto')
+        ax1.set_title('|T| - Absolute Values')
+        ax1.set_xlabel('Column index')
+        ax1.set_ylabel('Row index')
+        plt.colorbar(im1, ax=ax1, label='|T_ij|')
+        
+        # Right plot: Structure analysis with thresholding
+        structure = abs_vals.copy()
+        structure[abs_vals < threshold] = 0  # Zero out small elements
+        
+        # Color-code different regions
+        colored_structure = np.zeros_like(structure)
+        for i in range(n):
+            for j in range(n):
+                if i == j:  # Diagonal
+                    colored_structure[i, j] = 3 if structure[i, j] > threshold else 0
+                elif i == j + 1:  # Subdiagonal
+                    colored_structure[i, j] = 2 if structure[i, j] > threshold else 0
+                elif i < j:  # Upper triangular
+                    colored_structure[i, j] = 1 if structure[i, j] > threshold else 0
+                else:  # Strictly below diagonal
+                    colored_structure[i, j] = -1 if structure[i, j] > threshold else 0
+        
+        im2 = ax2.imshow(colored_structure, cmap='RdYlBu_r', aspect='auto', vmin=-1, vmax=3)
+        ax2.set_title(f'Structure Analysis (threshold={threshold:.1e})')
+        ax2.set_xlabel('Column index')
+        ax2.set_ylabel('Row index')
+        
+        # Add colorbar with labels
+        cbar = plt.colorbar(im2, ax=ax2, ticks=[-1, 0, 1, 2, 3])
+        cbar.ax.set_yticklabels(['Below diag', 'Zero', 'Upper tri', 'Subdiag', 'Diagonal'])
+        
+        if subtitle:
+            fig.suptitle(f"{title} - {subtitle}", fontsize=12)
+        else:
+            fig.suptitle(title, fontsize=12)
+        
+        plt.tight_layout()
+        plt.show()
+        
+        # Compute quantitative metrics
+        below_diag_max = 0.0
+        for i in range(1, n):
+            for j in range(i):
+                below_diag_max = max(below_diag_max, abs_vals[i, j])
+        
+        subdiag_max = 0.0
+        for i in range(1, n):
+            subdiag_max = max(subdiag_max, abs_vals[i, i-1])
+        
+        return below_diag_max, subdiag_max
+    
+    @staticmethod
+    def plot_convergence_comparison(data_dict: dict, title: str = "Convergence Comparison", 
+                                   xlabel: str = "Iteration", ylabel: str = "Residual", 
+                                   logscale: bool = True, save_path: Optional[str] = None) -> None:
+        """Plot convergence comparison for multiple algorithms/variants."""
+        plt.figure(figsize=(8, 6))
+        
+        colors = ['blue', 'red', 'green', 'orange', 'purple', 'brown', 'pink', 'gray']
+        markers = ['o', 's', '^', 'D', 'v', '<', '>', 'p']
+        
+        for i, (label, values) in enumerate(data_dict.items()):
+            color = colors[i % len(colors)]
+            marker = markers[i % len(markers)]
+            
+            if logscale:
+                plt.semilogy(values, label=label, color=color, marker=marker, 
+                           markersize=4, markevery=max(1, len(values)//20))
+            else:
+                plt.plot(values, label=label, color=color, marker=marker,
+                        markersize=4, markevery=max(1, len(values)//20))
+        
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.title(title)
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.grid(True, which='both', linestyle='--', alpha=0.7)
+        plt.tight_layout()
+        
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            print(f"Saved: {save_path}")
+        
         plt.show()

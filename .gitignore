@@ -103,5 +103,8 @@ dmypy.json
 core/decomp/*_insights.txt
 /site
 
+# Educational notebooks (local development)
+Schur_Decomposition_Educational_Demo.ipynb
+
 # Pyre type checker
 .pyre/ validation_output/*
