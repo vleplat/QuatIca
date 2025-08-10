@@ -265,6 +265,7 @@ QuatIca/
 │       └── schur.py        # Schur decomposition (experimental)
 ├── tests/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
+│   ├── schur_demo.py       # 🎯 Comprehensive Schur decomposition demo with algorithm comparison
 │   ├── unit/               # Unit tests for core functionality
 │   │   ├── test_tensor_quaternion_basics.py       # Quaternion tensor basics (norms, |T|, unfold/fold)
 │   │   ├── test_schur_synthetic.py                 # Synthetic Schur (|T| visuals saved)
@@ -476,6 +477,34 @@ python run_analysis.py lorenz_benchmark
 - **Output**: Pseudoinverse computation results, timing, accuracy validation, and interactive plots
 - **Shows**: Algorithm performance on different matrix types, including known theoretical result from Huang et al. (2015)
 - **Note**: Generates interactive plots (not saved to files) for convergence analysis
+
+### **🎯 `schur_demo` - Comprehensive Schur Decomposition Analysis**
+- **What it is**: Educational demo comparing rayleigh vs aed variants for quaternion Schur decomposition
+- **Perfect for**: Understanding algorithm behavior and performance differences
+- **Duration**: ~2-5 minutes (depends on matrix size)
+- **Input**: Configurable matrix size (default: 10, can specify up to 25+)
+- **Output**: Comprehensive analysis and comparison tables:
+  - Convergence results for both rayleigh and aed variants
+  - Performance comparison across different matrix types
+  - Educational insights about algorithm selection
+  - Detailed eigenvalue analysis and structure verification
+- **Covers**:
+  - **Hermitian matrices**: Guaranteed diagonal Schur form
+  - **Random matrices**: Gaussian, skew-symmetric, ill-conditioned, pure imaginary
+  - **Synthetic construction**: Upper triangular and diagonal test cases
+  - **Algorithm comparison**: rayleigh vs aed variant performance
+  - **Educational insights**: When to use which algorithm
+- **Usage**:
+  ```bash
+  # Default size (10x10) - fast testing
+  python run_analysis.py schur_demo
+  
+  # Custom size - comprehensive analysis
+  python run_analysis.py schur_demo 15
+  
+  # Large size - full performance analysis
+  python run_analysis.py schur_demo 25
+  ```
 
 
 
