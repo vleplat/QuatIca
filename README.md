@@ -29,8 +29,16 @@
 - We added a preview of quaternion tensor tools (order-3) laying groundwork for tensor decompositions (e.g., HOSVD, TT, Tucker):
   - Tensor Frobenius-like norm, entrywise |T| (quaternion magnitude)
   - Mode-n unfolding and folding for order-3 tensors
-- See the notebook section “13. Preview: Quaternion Tensor Algebra and Decompositions” in `QuatIca_Core_Functionality_Demo.ipynb`.
+- See the notebook section "13. Preview: Quaternion Tensor Algebra and Decompositions" in `QuatIca_Core_Functionality_Demo.ipynb`.
 - Utilities live in `core/tensor.py`; unit tests in `tests/unit/test_tensor_quaternion_basics.py`.
+
+## 🌟 Motivation and Acknowledgments
+
+QuatIca was inspired by the pioneering work in quaternion linear algebra, particularly the **QTFM (Quaternion Toolbox for MATLAB)** developed by Stephen J. Sangwine and Nicolas Le Bihan. Their foundational research and comprehensive MATLAB implementation demonstrated the power and potential of quaternion-based numerical methods.
+
+Recognizing the growing importance of Python in scientific computing and the need for robust quaternion tools in the Python ecosystem, we developed QuatIca to bring these capabilities to Python users. We extend our sincere gratitude to Sangwine and Le Bihan for their seminal contributions to quaternion mathematics and for providing the inspiration that drove us to create this library.
+
+Our goal is to continue advancing the field of quaternion linear algebra while making these powerful tools accessible to the broader Python community, from researchers and engineers to students and practitioners across diverse domains.
 
 ## ⚠️ CRITICAL PERFORMANCE INFORMATION
 
@@ -1126,6 +1134,13 @@ This project is licensed under the **CC0 1.0 Universal** license - a public doma
 **Full License Text:** See [`LICENSE.txt`](LICENSE.txt) for the complete license terms.
 
 **Why CC0?** This license promotes the ideal of a free culture and encourages the further production of creative, cultural, and scientific works by allowing maximum freedom of use and redistribution.
+
+## 📧 Support and Contact
+
+For questions, bug reports, or contributions, please contact:  
+**v dot leplat [at] innopolis dot ru**
+
+We welcome feedback, collaboration opportunities, and contributions to the QuatIca project.
 
 ---
 
