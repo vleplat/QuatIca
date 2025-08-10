@@ -165,6 +165,7 @@ python run_analysis.py <script_name>
 | `synthetic` | **Synthetic Image Completion** - Matrix completion on generated test images | Controlled experiments |
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types | Algorithm validation |
 | `eigenvalue_test` | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition | **Matrix analysis** and eigenvalue computation |
+| `schur_demo` | **🎯 Quaternion Schur Decomposition Demo** - Comprehensive comparison of rayleigh vs aed variants | **Matrix decomposition** and algorithm comparison |
 
 #### **🎯 Quick Examples:**
 
@@ -196,6 +197,12 @@ python run_analysis.py synthetic
 
 # Test pseudoinverse on synthetic matrices
 python run_analysis.py synthetic_matrices
+
+# Test Schur decomposition with comprehensive comparison
+python run_analysis.py schur_demo
+
+# Test Schur decomposition with custom matrix size
+python run_analysis.py schur_demo 15
 
 # Compare Newton–Schulz variants (saves plots to output_figures)
 python run_analysis.py ns_compare

@@ -36,6 +36,9 @@ def main():
         print("  synthetic_matrices - Test pseudoinverse on synthetic matrices")
         print("  eigenvalue_test - Eigenvalue decomposition test (tridiagonalization and eigendecomposition)")
         print("  ns_compare      - Compare NS vs Higher-Order NS (saves plots to output_figures)")
+        print("  schur_demo      - Quaternion Schur decomposition demo with comprehensive comparison")
+        print("                    Usage: schur_demo [matrix_size] (default: 10)")
+        print("                    Examples: schur_demo 10 (fast), schur_demo 25 (comprehensive)")
         return
     
     script_name = sys.argv[1]
@@ -56,7 +59,8 @@ def main():
         'synthetic': 'applications/image_completion/script_synthetic_image_completion.py',  # Matrix completion on synthetic images
         'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
         'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py',  # Eigenvalue decomposition test
-        'ns_compare': 'tests/unit/test_ns_vs_higher_order_compare.py'  # NS vs Higher-Order NS comparison
+        'ns_compare': 'tests/unit/test_ns_vs_higher_order_compare.py',  # NS vs Higher-Order NS comparison
+        'schur_demo': 'tests/schur_demo.py'  # Quaternion Schur decomposition demo
     }
     
     if script_name not in script_map:
@@ -100,6 +104,10 @@ def main():
             # Pass all remaining arguments to the Lorenz script
             cmd.extend(sys.argv[2:])
             print(f"Additional arguments passed to Lorenz script: {sys.argv[2:]}")
+        elif script_name == 'schur_demo' and len(sys.argv) > 2:
+            # Pass matrix size argument to the Schur demo script
+            cmd.extend(sys.argv[2:])
+            print(f"Matrix size argument passed to Schur demo: {sys.argv[2:]}")
         
         result = subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "="*50)
