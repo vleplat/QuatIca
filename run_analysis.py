@@ -32,6 +32,8 @@ def main():
         print("  multiple_images - Multiple images pseudoinverse analysis")
         # print("  test_newton     - Test deep linear solver")  # Disabled - not working properly
         print("  image_completion - Real image completion example")
+        print("  image_deblurring - Quaternion image deblurring (QSLST vs NS/HON)")
+        print("                    Usage: image_deblurring [--size N] [--lam LAMBDA] [--snr SNR_DB]")
         print("  synthetic       - Synthetic image completion (controlled experiments)")
         print("  synthetic_matrices - Test pseudoinverse on synthetic matrices")
         print("  eigenvalue_test - Eigenvalue decomposition test (tridiagonalization and eigendecomposition)")
@@ -56,6 +58,7 @@ def main():
         'multiple_images': 'tests/pseudoinverse/analyze_multiple_images_pseudoinverse.py',
         'test_newton': 'tests/unit/test_simple_newton.py',  # Disabled - not working properly
         'image_completion': 'applications/image_completion/script_real_image_completion.py',
+        'image_deblurring': 'applications/image_deblurring/script_image_deblurring.py',
         'synthetic': 'applications/image_completion/script_synthetic_image_completion.py',  # Matrix completion on synthetic images
         'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
         'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py',  # Eigenvalue decomposition test
@@ -108,6 +111,10 @@ def main():
             # Pass matrix size argument to the Schur demo script
             cmd.extend(sys.argv[2:])
             print(f"Matrix size argument passed to Schur demo: {sys.argv[2:]}")
+        elif script_name == 'image_deblurring' and len(sys.argv) > 2:
+            # Pass optional args to image deblurring script (e.g., --size, --lam, --snr)
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to image_deblurring: {sys.argv[2:]}")
         
         result = subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "="*50)

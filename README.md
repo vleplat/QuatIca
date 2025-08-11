@@ -162,6 +162,7 @@ python run_analysis.py <script_name>
 | `pseudoinverse` | **Single Image Analysis** - Analyzes one image (kodim16.png) | Understanding pseudoinverse structure |
 | `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
 | `image_completion` | **Image Completion Demo** - Fills missing pixels in real images | **Practical application** |
+| `image_deblurring` | **Quaternion Image Deblurring** - QSLST (Algorithm 2) vs NS/HON with FFT specialization | **Image restoration** |
 | `synthetic` | **Synthetic Image Completion** - Matrix completion on generated test images | Controlled experiments |
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types | Algorithm validation |
 | `eigenvalue_test` | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition | **Matrix analysis** and eigenvalue computation |
@@ -191,6 +192,11 @@ python run_analysis.py lorenz_benchmark
 
 # See image completion in action
 python run_analysis.py image_completion
+
+# Quaternion image deblurring (with optional parameters)
+python run_analysis.py image_deblurring --size 32 --lam 1e-3
+# Optional: add noise SNR in dB
+python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30
 
 # Test matrix completion on synthetic images
 python run_analysis.py synthetic
@@ -468,6 +474,19 @@ python run_analysis.py lorenz_benchmark
 - **Shows**: How quaternion matrix completion works in practice
 
 ### **🧪 `synthetic` - Controlled Experiments**
+### **🖼️ `image_deblurring` - Quaternion Image Deblurring (QSLST vs NS/HON)**
+- What it is: A demo comparing QSLST (Algorithm 2: literal matrix path and efficient FFT specialization) and our quaternion Newton–Schulz solvers on deblurring.
+- Why it matters: Shows an efficient implementation of the paper’s method via FFTs for convolution with periodic boundary, plus the generic pseudoinverse path for small grids.
+- Output: Side-by-side comparison grid with PSNR/SSIM and per-method timings saved to `output_figures/`.
+- Usage:
+  ```bash
+  python run_analysis.py image_deblurring
+  # Options (running the script directly):
+  #   --size 32      # grid size (default 32)
+  #   --lam 1e-3     # Tikhonov lambda (default 1e-3)
+  #   --snr 30       # optional AWGN SNR in dB
+  ```
+
 - **Input**: Generated 16×16 test images with known patterns
 - **Output**: Matrix completion results and PSNR evolution
 - **Shows**: Algorithm performance on controlled, reproducible test cases
@@ -1041,6 +1060,7 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 - **Quaternion Pseudoinverse**: Huang, L., Wang, Q.-W., & Zhang, Y. (2015). The Moore–Penrose inverses of matrices over quaternion polynomial rings. Linear Algebra and its Applications, 475, 45-61.
 - **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
 - **Advanced Q-SVD Method**: Ma, R.-R., & Bai, Z.-J. (2018). A Structure-Preserving One-Sided Jacobi Method for Computing the SVD of a Quaternion Matrix. arXiv preprint arXiv:1811.08671.
+- **QSLST Image Restoration**: Fei, W., Tang, J., & Shan, M. (2025). Quaternion special least squares with Tikhonov regularization method in image restoration. Numerical Algorithms. doi: 10.1007/s11075-025-02187-6.
 - **Pass-Efficient Randomized Algorithms**: Ahmadi-Asl, S., Nobakht Kooshkghazi, M., & Leplat, V. (2025). Pass-efficient Randomized Algorithms for Low-rank Approximation of Quaternion Matrices. arXiv preprint arXiv:2507.13731.
 - **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
 
