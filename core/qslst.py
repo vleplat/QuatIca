@@ -40,6 +40,7 @@ All functions are fully numpy-based.
 
 from __future__ import annotations
 import numpy as np
+import math
 from numpy.fft import rfft2, irfft2, fft2, ifft2, fftshift
 from typing import Tuple, Optional
 
