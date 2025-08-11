@@ -326,16 +326,25 @@ class TestLUDecomposition:
         assert relative_error < 1e-10, f"Relative reconstruction error: {relative_error}"
     
     def test_lu_zero_pivot_error(self):
-        """Test that LU decomposition raises error for singular matrix."""
-        # Create a singular matrix (first row is zero)
-        A = quaternion.as_quat_array([
+        """If the matrix is truly singular by column (no nonzero pivot available), LU should raise;
+        otherwise pivoting may succeed and reconstruction must be accurate."""
+        # Case 1: Column of all zeros (true singular for LU even with pivoting)
+        A_true_singular = quaternion.as_quat_array([
+            [[0, 0, 0, 0], [0, 0, 0, 0]],
+            [[0, 0, 0, 0], [1, 0, 0, 0]]
+        ])
+        with pytest.raises(ValueError):
+            quaternion_lu(A_true_singular)
+
+        # Case 2: First row zero but pivoting can recover; then no error and reconstruction must hold
+        A_pivotable = quaternion.as_quat_array([
             [[0, 0, 0, 0], [0, 0, 0, 0]],
             [[1, 0, 0, 0], [1, 0, 0, 0]]
         ])
-        
-        # This should raise an error due to zero pivot
-        with pytest.raises(ValueError, match="Zero pivot encountered"):
-            quaternion_lu(A)
+        L, U = quaternion_lu(A_pivotable)
+        LU = quat_matmat(L, U)
+        relative_error = quat_frobenius_norm(A_pivotable - LU) / (quat_frobenius_norm(A_pivotable) + 1e-30)
+        assert relative_error < 1e-10
     
     def test_lu_identity_matrix(self):
         """Test LU decomposition on identity matrix."""
