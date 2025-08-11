@@ -23,7 +23,8 @@ from qslst import (
 
 # Placeholders for our methods (to be wired after benchmark spec)
 from solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
-from utils import quat_matmat, quat_hermitian
+from utils import quat_matmat, quat_hermitian, SparseQuaternionMatrix
+from scipy import sparse as _sp
 
 
 def load_rgb_image(path: str) -> np.ndarray:
@@ -118,11 +119,39 @@ def _build_bccb_matrix(psf: np.ndarray, H: int, W: int) -> np.ndarray:
     return A
 
 
+def _build_bccb_csr(psf: np.ndarray, H: int, W: int) -> _sp.csr_matrix:
+    """Build BCCB convolution matrix A (N×N) as CSR from PSF for periodic BC.
+    Uses centered offsets so that A @ vec(X) corresponds to circular conv with PSF.
+    """
+    N = H * W
+    kH, kW = psf.shape
+    cH, cW = kH // 2, kW // 2
+    data = []
+    rows = []
+    cols = []
+    # Skip zeros in PSF to reduce work
+    nonzero = [(du, dv, float(psf[du, dv])) for du in range(kH) for dv in range(kW) if psf[du, dv] != 0.0]
+    for i in range(H):
+        base_i = i * W
+        for j in range(W):
+            r = base_i + j
+            for (du, dv, w) in nonzero:
+                ii = (i + (du - cH)) % H
+                jj = (j + (dv - cW)) % W
+                c = ii * W + jj
+                rows.append(r)
+                cols.append(c)
+                data.append(w)
+    A_csr = _sp.csr_matrix((data, (rows, cols)), shape=(N, N))
+    return A_csr
+
+
 def main():
     parser = argparse.ArgumentParser(description='Quaternion image deblurring benchmark: QSLST (FFT/matrix) vs NS/HON')
     parser.add_argument('--size', type=int, default=32, help='Resize to size×size for all paths (default: 32)')
     parser.add_argument('--lam', type=float, default=1e-3, help='Tikhonov lambda for QSLST (default: 1e-3)')
     parser.add_argument('--snr', type=float, default=None, help='Optional SNR dB (add AWGN)')
+    parser.add_argument('--ns_mode', type=str, default='dense', choices=['dense', 'sparse'], help='NS backend for A^†: dense (explicit) or sparse (CSR)')
     args = parser.parse_args()
     # Paths
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -184,11 +213,19 @@ def main():
         comp[..., 0] = v.reshape(-1, 1)
         return quaternion.as_quat_array(comp)
 
-    # NS on A
-    print("[NS] Computing A^† via Newton–Schulz (quaternion) ...", flush=True)
+    # NS on A (dense or sparse backend)
+    print(f"[NS] Computing A^† via Newton–Schulz ({args.ns_mode}, fast mode) ...", flush=True)
+    
+    ns_solver = NewtonSchulzPseudoinverse(gamma=1.0, max_iter=50, tol=1e-8, verbose=False, compute_residuals=False)
+    if args.ns_mode == 'sparse':
+        # Build CSR directly from PSF stencil (periodic BC)
+        print("[NS] Building CSR operator ...", flush=True)
+        A_csr = _build_bccb_csr(psf, Hh, Ww)
+        zeros = _sp.csr_matrix(A_csr.shape)
+        A_quat = SparseQuaternionMatrix(A_csr, zeros, zeros, zeros, A_csr.shape)
+    else:
+        A_quat = real_matrix_to_quat(A_mat)
     t1 = time.time()
-    ns_solver = NewtonSchulzPseudoinverse(gamma=1.0, max_iter=50, tol=1e-8, verbose=True)
-    A_quat = real_matrix_to_quat(A_mat)
     A_pinv_quat, _, _ = ns_solver.compute(A_quat)
     X_ns = np.empty_like(Bq)
     for c in range(4):
@@ -200,20 +237,26 @@ def main():
     t_ns = time.time() - t1
     print(f"[NS] Done in {t_ns:.3f}s", flush=True)
 
-    # Higher-Order NS on A
-    print("[HON-NS] Computing A^† via Higher-Order Newton–Schulz (quaternion) ...", flush=True)
-    t2 = time.time()
-    hon_solver = HigherOrderNewtonSchulzPseudoinverse(max_iter=40, tol=0.0, verbose=True)
-    A_pinv_hon_quat, _, _ = hon_solver.compute(A_quat)
-    X_hon = np.empty_like(Bq)
-    for c in range(4):
-        b = Bq[..., c].reshape(-1)
-        b_quat = real_vec_to_quat(b)
-        x_quat = quat_matmat(A_pinv_hon_quat, b_quat)
-        x_real = quaternion.as_float_array(x_quat)[..., 0].reshape(Hh, Ww)
-        X_hon[..., c] = x_real
-    t_hon = time.time() - t2
-    print(f"[HON-NS] Done in {t_hon:.3f}s", flush=True)
+    # Higher-Order NS on A (skip in sparse mode)
+    hon_skipped = (args.ns_mode == 'sparse')
+    if hon_skipped:
+        print("[HON-NS] Skipped in sparse mode (sparse algebra not supported for HON updates)", flush=True)
+        X_hon = X_ns.copy()
+        t_hon = 0.0
+    else:
+        print("[HON-NS] Computing A^† via Higher-Order Newton–Schulz (quaternion, fast mode) ...", flush=True)
+        t2 = time.time()
+        hon_solver = HigherOrderNewtonSchulzPseudoinverse(max_iter=40, tol=0.0, verbose=False)
+        A_pinv_hon_quat, _, _ = hon_solver.compute(A_quat)
+        X_hon = np.empty_like(Bq)
+        for c in range(4):
+            b = Bq[..., c].reshape(-1)
+            b_quat = real_vec_to_quat(b)
+            x_quat = quat_matmat(A_pinv_hon_quat, b_quat)
+            x_real = quaternion.as_float_array(x_quat)[..., 0].reshape(Hh, Ww)
+            X_hon[..., c] = x_real
+        t_hon = time.time() - t2
+        print(f"[HON-NS] Done in {t_hon:.3f}s", flush=True)
 
     # Metrics
     rgb_ref = np.clip(quat_to_rgb(Q_clean), 0.0, 1.0)
@@ -248,13 +291,14 @@ def main():
     # Comparison grid figure
     fig, axes = plt.subplots(2, 3, figsize=(12, 8))
     axes = axes.ravel()
+    hon_title = 'HON-NS (skipped sparse)' if hon_skipped else 'HON-NS (A^†)'
     panels = [
         (rgb, 'Clean'),
         (rgb_obs, 'Observed'),
         (rgb_qslst, f'QSLST-FFT\nPSNR {psnr_qslst:.2f} dB | SSIM {ssim_qslst:.3f}'),
         (rgb_qslst_mat, f'QSLST-Matrix\nPSNR {psnr_qslst_mat:.2f} dB | SSIM {ssim_qslst_mat:.3f}'),
         (rgb_ns, f'NS (A^†)\nPSNR {psnr_ns:.2f} dB | SSIM {ssim_ns:.3f}'),
-        (rgb_hon, f'HON-NS (A^†)\nPSNR {psnr_hon:.2f} dB | SSIM {ssim_hon:.3f}')
+        (rgb_hon, f'{hon_title}\nPSNR {psnr_hon:.2f} dB | SSIM {ssim_hon:.3f}')
     ]
     for ax, (img, title) in zip(axes, panels):
         ax.imshow(np.clip(img, 0, 1))
@@ -270,7 +314,10 @@ def main():
     print(f'  QSLST (FFT):    PSNR={psnr_qslst:.2f}dB  SSIM={ssim_qslst:.3f}  RelErr={rel_qslst:.3e}  time={t_qslst:.3f}s')
     print(f'  QSLST (matrix): PSNR={psnr_qslst_mat:.2f}dB SSIM={ssim_qslst_mat:.3f} time={t_qslst_mat:.3f}s')
     print(f'  NS (A^†):        PSNR={psnr_ns:.2f}dB    SSIM={ssim_ns:.3f}    RelErr={rel_ns:.3e}    time={t_ns:.3f}s')
-    print(f'  HON-NS (A^†):    PSNR={psnr_hon:.2f}dB   SSIM={ssim_hon:.3f}   RelErr={rel_hon:.3e}   time={t_hon:.3f}s')
+    if hon_skipped:
+        print(f'  HON-NS:           skipped in sparse mode')
+    else:
+        print(f'  HON-NS (A^†):    PSNR={psnr_hon:.2f}dB   SSIM={ssim_hon:.3f}   RelErr={rel_hon:.3e}   time={t_hon:.3f}s')
     print(f'Outputs saved to: {out_dir}\n  - deblur_input_clean.png\n  - deblur_observed_blurred.png\n  - deblur_qslst_fft.png\n  - deblur_qslst_matrix.png\n  - deblur_ns.png\n  - deblur_hon.png\n  - deblur_comparison_grid.png')
 
 
