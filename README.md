@@ -475,17 +475,59 @@ python run_analysis.py lorenz_benchmark
 
 ### **🧪 `synthetic` - Controlled Experiments**
 ### **🖼️ `image_deblurring` - Quaternion Image Deblurring (QSLST vs NS/HON)**
-- What it is: A demo comparing QSLST (Algorithm 2: literal matrix path and efficient FFT specialization) and our quaternion Newton–Schulz solvers on deblurring.
-- Why it matters: Shows an efficient implementation of the paper’s method via FFTs for convolution with periodic boundary, plus the generic pseudoinverse path for small grids.
-- Output: Side-by-side comparison grid with PSNR/SSIM and per-method timings saved to `output_figures/`.
-- Usage:
+- **What it is**: Compares QSLST (Algorithm 2) with our NS variants on restoring a blurred/noisy image. Two QSLST paths are provided: a literal matrix-based implementation and an efficient FFT specialization for convolution with periodic boundary (BCCB).
+- **Why it matters**: The target solution is Tikhonov-regularized: x_λ = (A^T A + λI)^{-1} A^T b. FFT diagonalization yields an O(N log N) filter; NS can match it via an augmented system or via inverse-NS on T in the frequency domain.
+- **Output**: Side-by-side grid with Clean, Observed, QSLST-FFT, QSLST-Matrix, NS, and HON panels, including PSNR/SSIM and timing. Images saved to `output_figures/`.
+- **Usage**:
   ```bash
   python run_analysis.py image_deblurring
-  # Options (running the script directly):
-  #   --size 32      # grid size (default 32)
-  #   --lam 1e-3     # Tikhonov lambda (default 1e-3)
-  #   --snr 30       # optional AWGN SNR in dB
+  # Options (when running the script directly):
+  #   --size 32                # grid size (default 32)
+  #   --lam 1e-3               # Tikhonov lambda (default 1e-3)
+  #   --snr 30                 # optional AWGN SNR in dB
+  #   --ns_mode {dense,sparse,fftT,tikhonov_aug}
+  #   --ns_iters K             # iterations for fftT solver
+  #   --fftT_order {2,3}       # 2=Newton–Schulz, 3=Halley (cubic)
   ```
+
+#### Problem formulation
+- Blur operator A is real (2D convolution, periodic boundary), b is the observed quaternion image (RGB mapped to q=(0,R,G,B)).
+- Tikhonov-regularized LS: minimize ||A x − b||^2 + λ||x||^2 ⇒ (A^T A + λI) x = A^T b.
+- With real A, quaternion components decouple; FFT diagonalizes A^T A.
+
+#### Methods compared
+- QSLST-FFT: X̂ = conj(Ĥ) B̂ / (|Ĥ|^2 + λ) per frequency.
+- QSLST-Matrix: T = A^T A + λI; x = T^+ A^T b per component.
+- NS (fftT, order-2): inverse-NS on T: y ← y (2 − T y); x ≈ y A^T b.
+- HON-NS (fftT, order-3): cubic inverse-NS per frequency: y ← y (1 + r + r^2), r = 1 − T y.
+- NS (tikhonov_aug): augmented C = [A; √λ I], y = [b; 0]; x = C^† y (exact but slower when dense).
+
+#### Examples
+```bash
+# FFT inverse-NS (order-2)
+python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30 \
+  --ns_mode fftT --fftT_order 2 --ns_iters 14
+
+# FFT inverse-NS (order-3)
+python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30 \
+  --ns_mode fftT --fftT_order 3 --ns_iters 10
+
+# Augmented NS (dense; small sizes only)
+python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30 --ns_mode tikhonov_aug
+```
+
+#### Recommended default test
+```bash
+python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+```
+
+#### Parameters
+- --size N: resize `data/images/kodim16.png` to N×N (default 32).
+- --lam λ: Tikhonov regularization (default 1e-3).
+- --snr dB: add AWGN at the given SNR.
+- --ns_mode: fftT (recommended), tikhonov_aug (exact), dense/sparse (unregularized reference).
+- --ns_iters: iterations for fftT (12–20 typical).
+- --fftT_order: 2 (quadratic) or 3 (cubic; fewer iterations).
 
 - **Input**: Generated 16×16 test images with known patterns
 - **Output**: Matrix completion results and PSNR evolution

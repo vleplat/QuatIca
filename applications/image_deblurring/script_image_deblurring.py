@@ -151,7 +151,9 @@ def main():
     parser.add_argument('--size', type=int, default=32, help='Resize to size×size for all paths (default: 32)')
     parser.add_argument('--lam', type=float, default=1e-3, help='Tikhonov lambda for QSLST (default: 1e-3)')
     parser.add_argument('--snr', type=float, default=None, help='Optional SNR dB (add AWGN)')
-    parser.add_argument('--ns_mode', type=str, default='dense', choices=['dense', 'sparse'], help='NS backend for A^†: dense (explicit) or sparse (CSR)')
+    parser.add_argument('--ns_mode', type=str, default='dense', choices=['dense', 'sparse', 'fftT', 'tikhonov_aug'], help='NS mode: dense/sparse A^†, fftT for NS on T, or tikhonov_aug for augmented [A;sqrt(lam)I]')
+    parser.add_argument('--ns_iters', type=int, default=14, help='Iterations for NS when ns_mode=fftT (default: 14)')
+    parser.add_argument('--fftT_order', type=int, default=2, choices=[2,3], help='Order of inverse-NS in fftT mode: 2 (Newton–Schulz) or 3 (Halley)')
     args = parser.parse_args()
     # Paths
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -179,6 +181,13 @@ def main():
         Bq = add_awgn_snr(Q_blur, snr_db=float(args.snr))
     else:
         Bq = Q_blur
+    # Report measured SNR to confirm noise is present
+    measured_snr_db = None
+    if args.snr is not None:
+        sig_pow = float(np.sum(Q_blur ** 2)) + 1e-30
+        noise_pow = float(np.sum((Bq - Q_blur) ** 2)) + 1e-30
+        measured_snr_db = 10.0 * np.log10(sig_pow / noise_pow)
+        print(f"Measured SNR (quaternion space): {measured_snr_db:.2f} dB", flush=True)
 
     # 1) QSLST (FFT path)
     lam = float(args.lam)
@@ -199,10 +208,10 @@ def main():
     t_qslst_mat = time.time() - t_m
     print(f"[QSLST-Matrix] Done in {t_qslst_mat:.3f}s", flush=True)
 
-    # 3) NS and Higher-Order NS solving directly X = A^† B in quaternion domain (no real embedding mapping)
+    # 3) NS variants
     N = Hh * Ww
 
-    # Prepare quaternion embedding helpers
+    # Prepare quaternion embedding helpers (for dense/sparse A^† path)
     def real_matrix_to_quat(M: np.ndarray) -> np.ndarray:
         comp = np.zeros((M.shape[0], M.shape[1], 4))
         comp[..., 0] = M
@@ -213,50 +222,142 @@ def main():
         comp[..., 0] = v.reshape(-1, 1)
         return quaternion.as_quat_array(comp)
 
-    # NS on A (dense or sparse backend)
-    print(f"[NS] Computing A^† via Newton–Schulz ({args.ns_mode}, fast mode) ...", flush=True)
-    
-    ns_solver = NewtonSchulzPseudoinverse(gamma=1.0, max_iter=50, tol=1e-8, verbose=False, compute_residuals=False)
-    if args.ns_mode == 'sparse':
-        # Build CSR directly from PSF stencil (periodic BC)
-        print("[NS] Building CSR operator ...", flush=True)
-        A_csr = _build_bccb_csr(psf, Hh, Ww)
-        zeros = _sp.csr_matrix(A_csr.shape)
-        A_quat = SparseQuaternionMatrix(A_csr, zeros, zeros, zeros, A_csr.shape)
-    else:
-        A_quat = real_matrix_to_quat(A_mat)
-    t1 = time.time()
-    A_pinv_quat, _, _ = ns_solver.compute(A_quat)
-    X_ns = np.empty_like(Bq)
-    for c in range(4):
-        b = Bq[..., c].reshape(-1)
-        b_quat = real_vec_to_quat(b)
-        x_quat = quat_matmat(A_pinv_quat, b_quat)
-        x_real = quaternion.as_float_array(x_quat)[..., 0].reshape(Hh, Ww)
-        X_ns[..., c] = x_real
-    t_ns = time.time() - t1
-    print(f"[NS] Done in {t_ns:.3f}s", flush=True)
+    # Helper: NS on T in Fourier domain (matrix-free)
+    def _ns_tikhonov_fft_restore(Bq_in: np.ndarray, psf_in: np.ndarray, lam_in: float, iters: int) -> np.ndarray:
+        from qslst import _pad_psf  # reuse centering
+        H, W, _ = Bq_in.shape
+        H_pad = _pad_psf(psf_in, (H, W))
+        H_hat = np.fft.fft2(H_pad)
+        Th = (np.abs(H_hat) ** 2) + lam_in
+        tmin = float(Th.min())
+        tmax = float(Th.max())
+        alpha = 2.0 / (tmax + tmin + 1e-12)
+        y = np.full_like(Th, alpha, dtype=np.complex128)
+        for _ in range(max(0, int(iters))):
+            y = y * (2.0 - Th * y)
+        H_conj = np.conj(H_hat)
+        X_out = np.empty_like(Bq_in)
+        for c in range(4):
+            B_hat = np.fft.fft2(Bq_in[..., c])
+            E_hat = H_conj * B_hat
+            X_out[..., c] = np.real(np.fft.ifft2(y * E_hat))
+        return X_out
 
-    # Higher-Order NS on A (skip in sparse mode)
-    hon_skipped = (args.ns_mode == 'sparse')
-    if hon_skipped:
-        print("[HON-NS] Skipped in sparse mode (sparse algebra not supported for HON updates)", flush=True)
+    def _hon_ns_tikhonov_fft_restore(Bq_in: np.ndarray, psf_in: np.ndarray, lam_in: float, iters: int) -> np.ndarray:
+        """Cubic inverse-NS (Halley) per-frequency on T = |H_hat|^2 + lam.
+
+        Update: y <- y * (1 + r + r^2), where r = 1 - Th * y.
+        """
+        from qslst import _pad_psf
+        H, W, _ = Bq_in.shape
+        H_pad = _pad_psf(psf_in, (H, W))
+        H_hat = np.fft.fft2(H_pad)
+        Th = (np.abs(H_hat) ** 2) + lam_in
+        tmin = float(Th.min())
+        tmax = float(Th.max())
+        alpha = 2.0 / (tmax + tmin + 1e-12)
+        y = np.full_like(Th, alpha, dtype=np.complex128)
+        for _ in range(max(0, int(iters))):
+            r = 1.0 - Th * y
+            y = y * (1.0 + r + r * r)
+        H_conj = np.conj(H_hat)
+        X_out = np.empty_like(Bq_in)
+        for c in range(4):
+            B_hat = np.fft.fft2(Bq_in[..., c])
+            E_hat = H_conj * B_hat
+            X_out[..., c] = np.real(np.fft.ifft2(y * E_hat))
+        return X_out
+
+    # Branch on mode
+    ns_title = 'NS (A^†)'
+    print(f"[NS] Mode = {args.ns_mode}", flush=True)
+    if args.ns_mode == 'fftT':
+        ns_title = f"NS (T^{-1}, FFT, order-{args.fftT_order})"
+        print(f"[NS] Computing T^{-1} via inverse-NS in Fourier domain (order={args.fftT_order}, iters={args.ns_iters}) ...", flush=True)
+        t1 = time.time()
+        if int(args.fftT_order) == 3:
+            X_ns = _hon_ns_tikhonov_fft_restore(Bq, psf, lam, args.ns_iters)
+        else:
+            X_ns = _ns_tikhonov_fft_restore(Bq, psf, lam, args.ns_iters)
+        t_ns = time.time() - t1
+        print(f"[NS] Done in {t_ns:.3f}s", flush=True)
+        hon_skipped = True
+        X_hon = X_ns.copy()
+        t_hon = 0.0
+    elif args.ns_mode == 'tikhonov_aug':
+        ns_title = 'NS (augmented, Tikhonov)'
+        print("[NS] Computing Tikhonov solution via augmented matrix C=[A; sqrt(lam) I] ...", flush=True)
+        sqrtlam = float(np.sqrt(lam))
+        # Build A in chosen backend
+        if 'A_mat' not in locals():
+            A_mat = _build_bccb_matrix(psf, Hh, Ww)
+        # Dense quaternion operators
+        Aq = real_matrix_to_quat(A_mat)
+        Iq = real_matrix_to_quat(np.eye(N))
+        # Augmented operator C (2N x N) and y = [b; 0]
+        def reg_ns_apply_dense(b_vec: np.ndarray) -> np.ndarray:
+            bq = real_vec_to_quat(b_vec)
+            zq = quaternion.as_quat_array(np.zeros((N, 1, 4)))
+            y = np.vstack([bq, zq])
+            C = np.vstack([Aq, sqrtlam * Iq])
+            C_pinv, _, _ = ns_solver.compute(C)
+            xq = quat_matmat(C_pinv, y)
+            return quaternion.as_float_array(xq)[..., 0].reshape(Hh, Ww)
+
+        # If desired in future: sparse branch can be added similarly building C_real via _sp.vstack
+        ns_solver = NewtonSchulzPseudoinverse(gamma=1.0, max_iter=60, tol=1e-8, verbose=False, compute_residuals=False)
+        t1 = time.time()
+        X_ns = np.empty_like(Bq)
+        for c in range(4):
+            X_ns[..., c] = reg_ns_apply_dense(Bq[..., c].reshape(-1))
+        t_ns = time.time() - t1
+        print(f"[NS] Done in {t_ns:.3f}s", flush=True)
+        hon_skipped = True
         X_hon = X_ns.copy()
         t_hon = 0.0
     else:
-        print("[HON-NS] Computing A^† via Higher-Order Newton–Schulz (quaternion, fast mode) ...", flush=True)
-        t2 = time.time()
-        hon_solver = HigherOrderNewtonSchulzPseudoinverse(max_iter=40, tol=0.0, verbose=False)
-        A_pinv_hon_quat, _, _ = hon_solver.compute(A_quat)
-        X_hon = np.empty_like(Bq)
+        print(f"[NS] Computing A^† via Newton–Schulz ({args.ns_mode}, fast mode) ...", flush=True)
+        ns_solver = NewtonSchulzPseudoinverse(gamma=1.0, max_iter=50, tol=1e-8, verbose=False, compute_residuals=False)
+        if args.ns_mode == 'sparse':
+            # Build CSR directly from PSF stencil (periodic BC)
+            print("[NS] Building CSR operator ...", flush=True)
+            A_csr = _build_bccb_csr(psf, Hh, Ww)
+            zeros = _sp.csr_matrix(A_csr.shape)
+            A_quat = SparseQuaternionMatrix(A_csr, zeros, zeros, zeros, A_csr.shape)
+        else:
+            A_quat = real_matrix_to_quat(A_mat)
+        t1 = time.time()
+        A_pinv_quat, _, _ = ns_solver.compute(A_quat)
+        X_ns = np.empty_like(Bq)
         for c in range(4):
             b = Bq[..., c].reshape(-1)
             b_quat = real_vec_to_quat(b)
-            x_quat = quat_matmat(A_pinv_hon_quat, b_quat)
+            x_quat = quat_matmat(A_pinv_quat, b_quat)
             x_real = quaternion.as_float_array(x_quat)[..., 0].reshape(Hh, Ww)
-            X_hon[..., c] = x_real
-        t_hon = time.time() - t2
-        print(f"[HON-NS] Done in {t_hon:.3f}s", flush=True)
+            X_ns[..., c] = x_real
+        t_ns = time.time() - t1
+        print(f"[NS] Done in {t_ns:.3f}s", flush=True)
+
+        # Higher-Order NS on A (skip in sparse mode)
+        hon_skipped = (args.ns_mode == 'sparse')
+        if hon_skipped:
+            print("[HON-NS] Skipped in sparse mode (sparse algebra not supported for HON updates)", flush=True)
+            X_hon = X_ns.copy()
+            t_hon = 0.0
+        else:
+            print("[HON-NS] Computing A^† via Higher-Order Newton–Schulz (quaternion, fast mode) ...", flush=True)
+            t2 = time.time()
+            hon_solver = HigherOrderNewtonSchulzPseudoinverse(max_iter=40, tol=0.0, verbose=False)
+            A_pinv_hon_quat, _, _ = hon_solver.compute(A_quat)
+            X_hon = np.empty_like(Bq)
+            for c in range(4):
+                b = Bq[..., c].reshape(-1)
+                b_quat = real_vec_to_quat(b)
+                x_quat = quat_matmat(A_pinv_hon_quat, b_quat)
+                x_real = quaternion.as_float_array(x_quat)[..., 0].reshape(Hh, Ww)
+                X_hon[..., c] = x_real
+            t_hon = time.time() - t2
+            print(f"[HON-NS] Done in {t_hon:.3f}s", flush=True)
 
     # Metrics
     rgb_ref = np.clip(quat_to_rgb(Q_clean), 0.0, 1.0)
@@ -282,7 +383,8 @@ def main():
 
     # Save outputs
     save_rgb_image(rgb, os.path.join(out_dir, 'deblur_input_clean.png'))
-    save_rgb_image(rgb_obs, os.path.join(out_dir, 'deblur_observed_blurred.png'))
+    obs_filename = 'deblur_observed_blurred.png' if args.snr is None else f'deblur_observed_blur_noise_{int(args.snr)}dB.png'
+    save_rgb_image(rgb_obs, os.path.join(out_dir, obs_filename))
     save_rgb_image(rgb_qslst, os.path.join(out_dir, 'deblur_qslst_fft.png'))
     save_rgb_image(rgb_qslst_mat, os.path.join(out_dir, 'deblur_qslst_matrix.png'))
     save_rgb_image(rgb_ns, os.path.join(out_dir, 'deblur_ns.png'))
@@ -291,17 +393,25 @@ def main():
     # Comparison grid figure
     fig, axes = plt.subplots(2, 3, figsize=(12, 8))
     axes = axes.ravel()
-    hon_title = 'HON-NS (skipped sparse)' if hon_skipped else 'HON-NS (A^†)'
+    hon_title = 'HON-NS (skipped)' if hon_skipped else 'HON-NS (A^†)'
+    ns_panel_title = f'{ns_title}\nPSNR {psnr_ns:.2f} dB | SSIM {ssim_ns:.3f}'
+    if args.snr is None:
+        observed_title = 'Observed (blur)'
+    else:
+        if measured_snr_db is None:
+            observed_title = f'Observed (blur+noise, {int(args.snr)} dB)'
+        else:
+            observed_title = f'Observed (blur+noise, req {int(args.snr)} dB | meas {measured_snr_db:.1f} dB)'
     panels = [
         (rgb, 'Clean'),
-        (rgb_obs, 'Observed'),
+        (rgb_obs, observed_title),
         (rgb_qslst, f'QSLST-FFT\nPSNR {psnr_qslst:.2f} dB | SSIM {ssim_qslst:.3f}'),
         (rgb_qslst_mat, f'QSLST-Matrix\nPSNR {psnr_qslst_mat:.2f} dB | SSIM {ssim_qslst_mat:.3f}'),
-        (rgb_ns, f'NS (A^†)\nPSNR {psnr_ns:.2f} dB | SSIM {ssim_ns:.3f}'),
+        (rgb_ns, ns_panel_title),
         (rgb_hon, f'{hon_title}\nPSNR {psnr_hon:.2f} dB | SSIM {ssim_hon:.3f}')
     ]
     for ax, (img, title) in zip(axes, panels):
-        ax.imshow(np.clip(img, 0, 1))
+        ax.imshow(np.clip(img, 0, 1), interpolation='nearest')
         ax.set_title(title)
         ax.axis('off')
     plt.tight_layout()
@@ -313,12 +423,13 @@ def main():
     print(f"Image Deblurring (kodim16 -> {args.size}x{args.size})", flush=True)
     print(f'  QSLST (FFT):    PSNR={psnr_qslst:.2f}dB  SSIM={ssim_qslst:.3f}  RelErr={rel_qslst:.3e}  time={t_qslst:.3f}s')
     print(f'  QSLST (matrix): PSNR={psnr_qslst_mat:.2f}dB SSIM={ssim_qslst_mat:.3f} time={t_qslst_mat:.3f}s')
-    print(f'  NS (A^†):        PSNR={psnr_ns:.2f}dB    SSIM={ssim_ns:.3f}    RelErr={rel_ns:.3e}    time={t_ns:.3f}s')
+    print(f'  {ns_title}:        PSNR={psnr_ns:.2f}dB    SSIM={ssim_ns:.3f}    RelErr={rel_ns:.3e}    time={t_ns:.3f}s')
     if hon_skipped:
-        print(f'  HON-NS:           skipped in sparse mode')
+        reason = 'fftT inline order' if args.ns_mode == 'fftT' else 'sparse mode'
+        print(f'  HON-NS:           skipped ({reason})')
     else:
         print(f'  HON-NS (A^†):    PSNR={psnr_hon:.2f}dB   SSIM={ssim_hon:.3f}   RelErr={rel_hon:.3e}   time={t_hon:.3f}s')
-    print(f'Outputs saved to: {out_dir}\n  - deblur_input_clean.png\n  - deblur_observed_blurred.png\n  - deblur_qslst_fft.png\n  - deblur_qslst_matrix.png\n  - deblur_ns.png\n  - deblur_hon.png\n  - deblur_comparison_grid.png')
+    print(f'Outputs saved to: {out_dir}\n  - deblur_input_clean.png\n  - {obs_filename}\n  - deblur_qslst_fft.png\n  - deblur_qslst_matrix.png\n  - deblur_ns.png\n  - deblur_hon.png\n  - deblur_comparison_grid.png')
 
 
 if __name__ == '__main__':

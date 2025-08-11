@@ -45,12 +45,17 @@ scikit-learn>=1.5.0
 seaborn>=0.13.0
 
 # =============================================================================
-# DEEP LEARNING (OPTIONAL - for future features)
+# DEEP LEARNING (OPTIONAL - install manually if needed)
 # =============================================================================
-
-# PyTorch for deep learning (optional)
-torch>=2.0.0
-torchvision>=0.15.0
+# NOTE: These packages can fail to install on some systems (e.g., Windows without
+# long path support, or Python versions without prebuilt wheels). To keep the
+# default installation robust, we do NOT install them by default.
+# If you need them, install from PyTorch's official index after creating the venv:
+#   CPU-only:
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   CUDA 12.1 (example):
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# Also ensure Windows Long Path support is enabled if you use Windows.
 
 # =============================================================================
 # PERFORMANCE WARNINGS
