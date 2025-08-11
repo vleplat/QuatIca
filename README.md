@@ -1124,11 +1124,11 @@ QuatIca is actively being extended with cutting-edge algorithms from recent rese
 - **Spectral analysis** for multi-dimensional signals
 - **Filter design** and signal reconstruction capabilities
 
-#### **🔢 Numerical Linear Algebra (NLA) Tools**
+<!-- #### **🔢 Numerical Linear Algebra (NLA) Tools**
 - **Schur Decomposition** using QR algorithm for quaternion matrices
 - **Eigenvalue computation** via iterative QR method
 - **Matrix diagonalization** for non-Hermitian quaternion matrices
-- **Structured eigenvalue problems** with quaternion arithmetic
+- **Structured eigenvalue problems** with quaternion arithmetic -->
 
 #### **🔗 Quaternion Tensor Decompositions (Preview to Full Release)**
 - **Tensor models**: HOSVD, Tucker, Tensor-Train (TT) adapted to quaternion tensors
