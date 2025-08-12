@@ -1308,6 +1308,29 @@ python run_analysis.py tutorial
 python run_analysis.py pseudoinverse
 ```
 
+## 📖 How to Cite
+
+**Academic Paper (In Preparation):**
+A comprehensive paper describing QuatIca's algorithms and applications is currently in preparation. For now, please cite this software using:
+
+```bibtex
+@software{quatica2024,
+  title = {QuatIca: Quaternion Linear Algebra Library},
+  author = {[Authors]},
+  year = {2024},
+  url = {https://github.com/vleplat/QuatIca},
+  note = {Numerical linear algebra for quaternions — fast, practical, and well‑tested}
+}
+```
+
+**Note for Researchers:**
+If you use QuatIca in your research, please:
+1. Use the above software citation
+2. Check back for our upcoming academic publication
+3. Consider reaching out to discuss collaboration and proper attribution
+
+We are committed to providing proper academic references for this work. A peer-reviewed publication with detailed algorithmic descriptions and performance analysis is forthcoming.
+
 ## 🤝 Contributing
 
 This library is designed to be a comprehensive framework for quaternion linear algebra. Contributions are welcome for:
