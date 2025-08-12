@@ -10,8 +10,8 @@
 
 ```bash
 # 1) Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+python3 -m venv quatica
+source quatica/bin/activate   # Windows: quatica\Scripts\activate
 
 # 2) Install dependencies (PyTorch is optional; see Windows notes below)
 pip install -U pip wheel
@@ -50,7 +50,7 @@ python run_analysis.py schur_demo 15
 
 ## 🤔 What is QuatIca?
 
-QuatIca brings mature numerical linear algebra to quaternion matrices and tensors:
+QuatIca brings modern numerical linear algebra to quaternion matrices and tensors:
 - Matrix ops, norms, factorizations (QR, LU, SVD, eigen, Hessenberg, tridiagonal)
 - Pseudoinverse via Newton–Schulz (incl. higher-order)
 - Q-GMRES solver (with LU preconditioning)
