@@ -11,7 +11,8 @@ Welcome to QuatIca - a comprehensive quaternion linear algebra library for Pytho
 
 ### Applications
 - **[Image Deblurring](applications/image_deblurring.md)** - QSLST vs Newton-Schulz methods
-- **[Signal Processing](examples.md#signal-processing)** - Lorenz attractor analysis with Q-GMRES
+- **[Image Completion](applications/image_completion.md)** - Advanced restoration using quaternion matrices
+- **[Lorenz Attractor Filtering](applications/lorenz_attractor.md)** - Quaternion signal processing with chaotic systems
 - **[Matrix Analysis](examples.md#matrix-decompositions)** - Pseudoinverse and decomposition benchmarks
 
 ### Reference
@@ -25,7 +26,7 @@ QuatIca brings modern numerical linear algebra to quaternion matrices and tensor
 - **Matrix Operations**: Multiplication, norms, Hermitian conjugate, sparse support
 - **Decompositions**: QR, SVD, LU, eigendecomposition, Schur, Hessenberg
 - **Solvers**: Newton-Schulz pseudoinverse, Q-GMRES with LU preconditioning
-- **Applications**: Image deblurring, completion, signal processing
+- **Applications**: Image deblurring, image completion, quaternion signal processing
 
 ### Key Features
 - ⚡ **Fast**: numpy≥2.3.2 provides 10-15x speedup for quaternion operations
@@ -113,7 +114,7 @@ QuatIca supports cutting-edge research in:
 
 ### Intermediate Users
 1. **[API Reference](api/utils.md)** - Function documentation
-2. **Applications**: Try image processing and signal analysis
+2. **Applications**: Try image deblurring, completion, and Lorenz attractor filtering
 3. **Custom matrices**: Learn quaternion matrix creation patterns
 
 ### Advanced Users
