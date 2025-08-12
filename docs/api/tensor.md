@@ -1,0 +1,3 @@
+# core.tensor
+
+::: core.tensor

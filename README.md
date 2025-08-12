@@ -6,6 +6,16 @@
 
 **Numerical linear algebra for quaternions — fast, practical, and well‑tested.**
 
+## 📚 Documentation
+
+**📖 [Complete Documentation](https://vleplat.github.io/QuatIca/)** - Comprehensive guides, API reference, and examples
+
+**Quick Links:**
+- **[Getting Started](https://vleplat.github.io/QuatIca/getting-started/)** - Setup and installation guide
+- **[Examples](https://vleplat.github.io/QuatIca/examples/)** - Copy-paste commands and code snippets  
+- **[API Reference](https://vleplat.github.io/QuatIca/api/utils/)** - Complete function documentation
+- **[Troubleshooting](https://vleplat.github.io/QuatIca/troubleshooting/)** - Common issues and solutions
+
 ## ⚡ Quick Start (2 minutes)
 
 ```bash

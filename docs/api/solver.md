@@ -1,0 +1,3 @@
+# core.solver
+
+::: core.solver

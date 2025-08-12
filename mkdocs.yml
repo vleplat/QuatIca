@@ -1,0 +1,97 @@
+site_name: QuatIca - Quaternion Linear Algebra
+site_description: Fast, practical quaternion linear algebra for Python - matrix operations, decompositions, and real-world applications
+site_url: https://vleplat.github.io/QuatIca
+repo_url: https://github.com/vleplat/QuatIca
+repo_name: vleplat/QuatIca
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.expand
+    - navigation.sections
+    - navigation.top
+    - navigation.tabs
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_signature: true
+            show_source: false
+            show_root_heading: true
+            show_root_toc_entry: true
+            heading_level: 2
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - footnotes
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Examples: examples.md
+  - Applications:
+      - Image Deblurring: applications/image_deblurring.md
+  - API Reference:
+      - Core Functions:
+          - Utils: api/utils.md
+          - Solver: api/solver.md
+          - Data Generation: api/data_gen.md
+          - Visualization: api/visualization.md
+      - Specialized:
+          - QSLST: api/qslst.md
+          - Tensor: api/tensor.md
+      - Decompositions:
+          - Q-SVD: api/decomp/qsvd.md
+          - Eigendecomposition: api/decomp/eigen.md
+          - LU Decomposition: api/decomp/LU.md
+          - Hessenberg: api/decomp/hessenberg.md
+          - Tridiagonalization: api/decomp/tridiagonalize.md
+  - Troubleshooting: troubleshooting.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/vleplat/QuatIca
+  version:
+    provider: mike
+
