@@ -44,9 +44,15 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 # Q-GMRES basic solver test
 python run_analysis.py qgmres
 
-# Schur decomposition demo
-python run_analysis.py schur_demo 15
+# Image completion demo
+python run_analysis.py image_completion
 ```
+
+### Step-by-step Jupyter notebook (all main functions)
+```bash
+jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
+```
+This guided notebook showcases the core QuatIca APIs and verifies results with compact, runnable cells.
 
 ## 🤔 What is QuatIca?
 
