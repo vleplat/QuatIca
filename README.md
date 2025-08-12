@@ -31,7 +31,7 @@ pip install -r requirements.txt
 python run_analysis.py tutorial
 
 # Recommended deblurring demo (64×64, Tikhonov, FFT, cubic)
-python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 ```
 
 ### Windows install notes (if you install PyTorch later)
@@ -267,7 +267,7 @@ python run_analysis.py image_completion
 # Quaternion image deblurring (with optional parameters)
 python run_analysis.py image_deblurring --size 32 --lam 1e-3
 # Optional: add noise SNR in dB
-python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30
+python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30
 
 # Test matrix completion on synthetic images
 python run_analysis.py synthetic
@@ -583,7 +583,7 @@ python run_analysis.py lorenz_benchmark
   python run_analysis.py image_deblurring
   # Options (when running the script directly):
   #   --size 32                # grid size (default 32)
-  #   --lam 1e-3               # Tikhonov lambda (default 1e-3)
+  #   --lam 1e-1               # Tikhonov lambda (default 1e-3)
   #   --snr 30                 # optional AWGN SNR in dB
   #   --ns_mode {dense,sparse,fftT,tikhonov_aug}
   #   --ns_iters K             # iterations for fftT solver
@@ -605,20 +605,20 @@ python run_analysis.py lorenz_benchmark
 #### Examples
 ```bash
 # FFT inverse-NS (order-2)
-python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30 \
+python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30 \
   --ns_mode fftT --fftT_order 2 --ns_iters 14
 
 # FFT inverse-NS (order-3)
-python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30 \
+python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30 \
   --ns_mode fftT --fftT_order 3 --ns_iters 10
 
 # Augmented NS (dense; small sizes only)
-python run_analysis.py image_deblurring --size 32 --lam 1e-3 --snr 30 --ns_mode tikhonov_aug
+python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30 --ns_mode tikhonov_aug
 ```
 
 #### Recommended default test
 ```bash
-python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 ```
 
 #### Parameters
