@@ -45,6 +45,7 @@ def main():
         print("  schur_demo      - Quaternion Schur decomposition demo with comprehensive comparison")
         print("                    Usage: schur_demo [matrix_size] (default: 10)")
         print("                    Examples: schur_demo 10 (fast), schur_demo 25 (comprehensive)")
+        print("  jupyter_test    - Test Jupyter notebook setup and verify environment configuration")
         return
     
     script_name = sys.argv[1]
@@ -67,7 +68,8 @@ def main():
         'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
         'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py',  # Eigenvalue decomposition test
         'ns_compare': 'tests/unit/test_ns_vs_higher_order_compare.py',  # NS vs Higher-Order NS comparison
-        'schur_demo': 'tests/schur_demo.py'  # Quaternion Schur decomposition demo
+        'schur_demo': 'tests/schur_demo.py',  # Quaternion Schur decomposition demo
+        'jupyter_test': 'tests/test_jupyter_setup.py'  # Jupyter setup verification
     }
     
     if script_name not in script_map:
@@ -95,11 +97,11 @@ def main():
     # Run the script
     try:
         # Special handling for files in root directory
-        if script_name == 'demo':
+        if script_name in ['demo', 'tutorial']:
             script_dir = '.'  # Root directory
             cmd = [sys.executable, script_path]
-        elif script_name == 'tutorial':
-            script_dir = '.'  # Run from project root for proper imports
+        elif script_name == 'jupyter_test':
+            script_dir = '.'  # Root directory for jupyter_test
             cmd = [sys.executable, script_path]
         else:
             # Change to the script's directory for proper relative path handling

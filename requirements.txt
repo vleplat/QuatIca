@@ -58,6 +58,20 @@ seaborn>=0.13.0
 # Also ensure Windows Long Path support is enabled if you use Windows.
 
 # =============================================================================
+# JUPYTER NOTEBOOK SUPPORT (OPTIONAL)
+# =============================================================================
+# NOTE: Jupyter is not included by default to keep the installation lightweight.
+# If you plan to use Jupyter notebooks, install these packages after creating the venv:
+#
+#   pip install jupyter notebook jupyterlab ipykernel
+#
+# Then register the kernel:
+#   python -m ipykernel install --user --name=quatica-venv --display-name="QuatIca (quatica-venv)"
+#
+# See the README.md "Jupyter Notebook Setup" section for complete instructions.
+# =============================================================================
+
+# =============================================================================
 # PERFORMANCE WARNINGS
 # =============================================================================
 # 

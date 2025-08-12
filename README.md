@@ -42,6 +42,81 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode 
   - CPU: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`
   - CUDA 12.1: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121`
 
+## 🐍 Jupyter Notebook Setup
+
+**⚠️ IMPORTANT**: If you plan to use Jupyter notebooks, you need to register a kernel for your virtual environment.
+
+### **Step 1: Install Jupyter in your virtual environment**
+```bash
+# Activate your virtual environment first
+source quatica/bin/activate   # Windows: quatica\Scripts\activate
+
+# Install Jupyter
+pip install jupyter notebook
+
+# Or install JupyterLab (recommended)
+pip install jupyterlab
+```
+
+### **Step 2: Register the kernel**
+```bash
+# Make sure your virtual environment is activated
+source quatica/bin/activate   # Windows: quatica\Scripts\activate
+
+# Register the kernel (this creates a kernel named 'quatica-venv')
+python -m ipykernel install --user --name=quatica-venv --display-name="QuatIca (quatica-venv)"
+```
+
+### **Step 3: Launch Jupyter and select the correct kernel**
+```bash
+# Launch Jupyter (make sure venv is activated)
+jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
+
+# Or launch JupyterLab
+jupyter lab QuatIca_Core_Functionality_Demo.ipynb
+```
+
+### **Step 4: Select the correct kernel in your notebook**
+1. Open the notebook
+2. **CRITICAL**: Click on "Kernel" → "Change kernel" → Select **"QuatIca (quatica-venv)"**
+3. If you don't see the kernel, restart Jupyter and try again
+
+### **Troubleshooting Jupyter Issues**
+
+**Problem**: `ModuleNotFoundError: No module named 'quaternion'` in Jupyter
+**Solution**: 
+1. Make sure you're using the correct kernel (see Step 4 above)
+2. Verify kernel registration: `jupyter kernelspec list`
+3. Re-register the kernel if needed
+
+**Problem**: Jupyter opens but can't find the quaternion package
+**Solution**:
+1. Check that your virtual environment is activated when you launch Jupyter
+2. Verify the kernel points to the correct Python: `jupyter kernelspec show quatica-venv`
+3. Ensure `numpy-quaternion` is installed: `pip list | grep quaternion`
+
+**Problem**: Multiple kernels available, unsure which to use
+**Solution**:
+- Use the kernel named **"QuatIca (quatica-venv)"** or similar
+- Avoid the default `python3` kernel (this is usually the system/Anaconda kernel)
+
+### **Verification**
+After setup, you can verify everything works in two ways:
+
+**Option 1: Run the verification script**
+```bash
+python tests/test_jupyter_setup.py
+```
+
+**Option 2: Test in a notebook cell**
+```python
+import quaternion
+import numpy as np
+print("✅ QuatIca environment working correctly!")
+print(f"numpy version: {np.__version__}")
+print(f"quaternion version: {quaternion.__version__}")
+```
+
 ## 🎯 Working examples (copy & paste)
 
 ```bash
