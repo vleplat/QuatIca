@@ -1314,7 +1314,7 @@ python run_analysis.py pseudoinverse
 A comprehensive paper describing QuatIca's algorithms and applications is currently in preparation. For now, please cite this software using:
 
 ```bibtex
-@software{quatica2024,
+@software{quatica2025,
   title = {QuatIca: Quaternion Linear Algebra Library},
   author = {Valentin Leplat and Junjun Pan and Salman Ahmadi-Asl and Ning Zheng},
   year = {2024},
