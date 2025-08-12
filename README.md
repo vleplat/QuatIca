@@ -108,9 +108,9 @@ QuatIca brings modern numerical linear algebra to quaternion matrices and tensor
 
 QuatIca was inspired by the pioneering work in quaternion linear algebra, particularly the **QTFM (Quaternion Toolbox for MATLAB)** developed by Stephen J. Sangwine and Nicolas Le Bihan. Their comprehensive MATLAB implementation demonstrated the power and potential of quaternion-based numerical methods.
 
-Recognizing the growing importance of Python in scientific computing and the need for robust quaternion tools in the Python ecosystem, we developed QuatIca to bring these capabilities to Python users. We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspiration that drove us to create this library.
+Recognizing the growing importance of Python in scientific computing and the need for robust quaternion tools in the Python ecosystem, we developed QuatIca to bring these capabilities to Python users. To achieve this vision, QuatIca builds upon the exceptional foundation provided by the Python scientific computing ecosystem. The library depends on the excellent **NumPy** (≥2.3.2), **SciPy**, and **Matplotlib** packages, which form the backbone of modern scientific computing in Python. In particular, QuatIca leverages the powerful **numpy-quaternion** package for fundamental quaternion arithmetic operations, providing robust and efficient quaternion data structures that enable all higher-level matrix and tensor operations in our library.
 
-Our goal is to continue advancing the field of quaternion linear algebra while making these powerful tools accessible to the broader Python community, from researchers and engineers to students and practitioners across diverse domains.
+We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspiration that drove us to create this library, and to the maintainers of NumPy, SciPy, Matplotlib, and numpy-quaternion for their foundational contributions to scientific computing. Our goal is to continue advancing the field of quaternion linear algebra while making these powerful tools accessible to the broader Python community, from researchers and engineers to students and practitioners across diverse domains.
 
 ## ⚠️ CRITICAL PERFORMANCE INFORMATION
 
