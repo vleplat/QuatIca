@@ -4,26 +4,62 @@
   <img src="Logo.png" alt="QuatIca Logo" width="250">
 </div>
 
-**A comprehensive Python library for Numerical Linear Algebra with Quaternions**
+**Numerical linear algebra for quaternions — fast, practical, and well‑tested.**
+
+## ⚡ Quick Start (2 minutes)
+
+```bash
+# 1) Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+
+# 2) Install dependencies (PyTorch is optional; see Windows notes below)
+pip install -U pip wheel
+pip install -r requirements.txt
+
+# 3) Run a tutorial or a working example
+python run_analysis.py tutorial
+
+# Recommended deblurring demo (64×64, Tikhonov, FFT, cubic)
+python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+```
+
+### Windows install notes (if you install PyTorch later)
+- Prefer Python 3.10–3.12 for best wheel availability.
+- Enable Windows Long Path support (per pip hint).
+- Keep the repo path short (e.g., `C:\src\QuatIca`).
+- Install PyTorch explicitly from the official index if needed:
+  - CPU: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu`
+  - CUDA 12.1: `pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121`
+
+## 🎯 Working examples (copy & paste)
+
+```bash
+# Learn the framework
+python run_analysis.py tutorial
+
+# Quaternion image deblurring (QSLST vs NS/HON), FFT specialization
+python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+
+# Q-GMRES basic solver test
+python run_analysis.py qgmres
+
+# Schur decomposition demo
+python run_analysis.py schur_demo 15
+```
 
 ## 🤔 What is QuatIca?
 
-**QuatIca** is a Python library that extends traditional linear algebra to work with **quaternions** - a mathematical system that extends complex numbers to 4D space. Think of it as "linear algebra on steroids" for 3D and 4D data.
+QuatIca brings mature numerical linear algebra to quaternion matrices and tensors:
+- Matrix ops, norms, factorizations (QR, LU, SVD, eigen, Hessenberg, tridiagonal)
+- Pseudoinverse via Newton–Schulz (incl. higher-order)
+- Q-GMRES solver (with LU preconditioning)
+- Practical applications (image deblurring, completion; signal processing)
 
-### **🎯 What are Quaternions?**
-- **Complex numbers** work in 2D (real + imaginary)
-- **Quaternions** work in 4D (real + 3 imaginary components: i, j, k)
-- **Perfect for**: 3D rotations, color images (RGB), 4D signals, and more
-- **Why useful**: Can represent complex relationships in data that regular matrices can't
-
-### **🚀 What Can You Do With QuatIca?**
-- **Matrix Operations**: Multiply, invert, and analyze quaternion matrices
- - **Matrix Decompositions**: QR decomposition, Q-SVD (full and truncated), **Randomized Q-SVD**, **LU decomposition**, **Hessenberg form (upper Hessenberg reduction)**, **Schur decomposition**, and **Eigenvalue Decomposition** for quaternion matrices
- - **Linear System Solving**: Solve quaternion systems A*x = b using Q-GMRES (iterative Krylov subspace method) with **LU preconditioning** for enhanced convergence
- - **Pseudoinverse Computation**: Newton–Schulz methods including a higher-order (third-order) variant with cubic local convergence
-- **Image Processing**: Complete missing pixels in images using quaternion math
-- **Signal Analysis**: Process 3D/4D signals with quaternion algebra
-- **Data Science**: Extract complex patterns from multi-dimensional data
+### Highlights
+- Fast quaternion algebra (numpy>=2.3.2)
+- Clean APIs, strong unit tests (194 passing)
+- Real working examples with saved outputs
 
 ### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
 - We added a preview of quaternion tensor tools (order-3) laying groundwork for tensor decompositions (e.g., HOSVD, TT, Tucker):
@@ -59,22 +95,21 @@ Our goal is to continue advancing the field of quaternion linear algebra while m
 
 ## 📋 System Requirements
 
-### **Minimum Requirements:**
-- **Python**: 3.8 or higher (3.9+ recommended)
-- **RAM**: 4GB minimum, 8GB recommended for large matrices
-- **Storage**: 500MB free space
-- **OS**: Windows, macOS, or Linux
+### Minimum
+- Python 3.9+
+- macOS/Linux/Windows
+- 4 GB RAM (8+ GB recommended)
 
-### **Recommended:**
-- **Python**: 3.9 or 3.10
-- **RAM**: 16GB for large-scale analysis
-- **CPU**: Multi-core processor for faster computation
-
+### Recommended
+- Python 3.10–3.12 (Windows users: prefer 3.10–3.12)
+- 16 GB RAM for large problems
+- Multi-core CPU
 
 
 
 
-## 🚀 Quick Start Guide
+
+## 🚀 Quick Start Guide (more details)
 
 ### **🎯 For Complete Beginners (Step-by-Step)**
 
@@ -261,6 +296,7 @@ QuatIca/
 │   ├── data_gen.py         # Matrix generation functions
 │   ├── visualization.py    # Plotting and visualization tools
 │   ├── tensor.py           # Quaternion tensor utilities (norms, |T|, unfold/fold)
+│   ├── qslst.py            # QSLST (Algorithm 2) + FFT specialization utilities
 │   └── decomp/             # Matrix decomposition algorithms
 │       ├── __init__.py
 │       ├── qsvd.py         # QR and Q-SVD implementations
@@ -295,9 +331,11 @@ QuatIca/
 │   │   └── test_hessenberg.py  # Hessenberg reduction unit tests
 ├── applications/
 │   ├── image_completion/   # Image processing applications
-│   │   ├── script_real_image_completion.py    # Real image completion
-│   │   ├── script_synthetic_image_completion.py # Synthetic image completion
-│   │   └── script_small_image_completion.py   # Small image completion
+│   │   ├── script_real_image_completion.py       # Real image completion
+│   │   ├── script_synthetic_image_completion.py  # Synthetic image completion
+│   │   └── script_small_image_completion.py      # Small image completion
+│   ├── image_deblurring/   # Image deblurring (QSLST vs NS/HON)
+│   │   └── script_image_deblurring.py
 │   └── signal_processing/  # Signal processing applications
 │       ├── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
 │       └── benchmark_lorenz_methods.py   # Q-GMRES vs Newton-Schulz benchmark
