@@ -71,6 +71,8 @@ nav:
   - Examples: examples.md
   - Applications:
       - Image Deblurring: applications/image_deblurring.md
+      - Image Completion: applications/image_completion.md
+      - Lorenz Attractor Filtering: applications/lorenz_attractor.md
   - API Reference:
       - Core Functions:
           - Utils: api/utils.md
@@ -86,6 +88,7 @@ nav:
           - LU Decomposition: api/decomp/LU.md
           - Hessenberg: api/decomp/hessenberg.md
           - Tridiagonalization: api/decomp/tridiagonalize.md
+          - Schur Decomposition: api/decomp/schur.md
   - Troubleshooting: troubleshooting.md
 
 extra:
