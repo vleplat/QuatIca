@@ -39,7 +39,7 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode 
 python run_analysis.py tutorial
 
 # Quaternion image deblurring (QSLST vs NS/HON), FFT specialization
-python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 
 # Q-GMRES basic solver test
 python run_analysis.py qgmres
