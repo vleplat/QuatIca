@@ -344,6 +344,7 @@ QuatIca/
 ├── tests/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
 │   ├── schur_demo.py       # 🎯 Comprehensive Schur decomposition demo with algorithm comparison
+│   ├── test_jupyter_setup.py          # 🔧 Jupyter environment verification script
 │   ├── unit/               # Unit tests for core functionality
 │   │   ├── test_tensor_quaternion_basics.py       # Quaternion tensor basics (norms, |T|, unfold/fold)
 │   │   ├── test_schur_synthetic.py                 # Synthetic Schur (|T| visuals saved)
@@ -375,12 +376,37 @@ QuatIca/
 │   └── signal_processing/  # Signal processing applications
 │       ├── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
 │       └── benchmark_lorenz_methods.py   # Q-GMRES vs Newton-Schulz benchmark
+├── docs/                   # 📚 MkDocs documentation source
+│   ├── index.md           # Documentation homepage
+│   ├── getting-started.md # Installation and setup guide
+│   ├── examples.md        # Code examples and tutorials
+│   ├── troubleshooting.md # Common issues and solutions
+│   ├── api/               # Auto-generated API documentation
+│   │   ├── utils.md       # Core utilities API docs
+│   │   ├── solver.md      # Solver algorithms API docs
+│   │   ├── tensor.md      # Tensor operations API docs
+│   │   ├── qslst.md       # QSLST methods API docs
+│   │   ├── data_gen.md    # Data generation API docs
+│   │   ├── visualization.md # Plotting tools API docs
+│   │   └── decomp/        # Matrix decomposition API docs
+│   │       ├── qsvd.md    # QR/SVD API documentation
+│   │       ├── eigen.md   # Eigenvalue API documentation
+│   │       ├── LU.md      # LU decomposition API docs
+│   │       ├── hessenberg.md # Hessenberg API docs
+│   │       └── tridiagonalize.md # Tridiagonalization API docs
+│   └── applications/      # Application-specific guides
+│       └── image_deblurring.md # Image deblurring tutorial
+├── .github/workflows/     # 🚀 GitHub Actions CI/CD
+│   └── docs.yml          # Automatic documentation deployment
 ├── data/                   # Sample data and datasets
 │   ├── images/            # Sample images for testing
 │   └── cifar-10-batches-py/ # CIFAR-10 dataset
 ├── References_and_SuppMat/ # Research papers and supplementary materials
 ├── output_figures/        # Generated plots and visualizations (auto-created)
 ├── validation_output/     # Validation plots and analysis figures (auto-created)
+├── mkdocs.yml             # 📖 MkDocs configuration file
+├── JUPYTER_SETUP_GUIDE.md # 🐍 Detailed Jupyter notebook setup guide
+├── Dockerfile             # 🐳 Docker containerization support
 ├── requirements.txt       # Python dependencies
 ├── run_analysis.py       # Easy-to-use script runner
 ├── QuatIca_Core_Functionality_Demo.py     # Interactive demo script testing all core functionality
