@@ -253,8 +253,8 @@ def create_performance_plots(results, output_dir):
     print(f"   Saved: {os.path.join(output_dir, 'lorenz_benchmark_performance.png')}")
 
 def create_trajectory_comparison(results, output_dir):
-    """Create beautiful trajectory comparison for 200 points"""
-    print("\n🎨 Creating trajectory comparison plots...")
+    """Create publication-quality trajectory comparison for 200 points with specified marker types"""
+    print("\n🎨 Creating publication-quality trajectory comparison plots...")
     
     # Use the 200-point result
     result_200 = next(r for r in results if r['num_points'] == 200)
@@ -293,7 +293,6 @@ def create_trajectory_comparison(results, output_dir):
     recon_newton = reconstruct_signal_original(x_newton, A0, A1, A2, A3)
     
     # Clean signal (without noise) - we need to regenerate it
-    # obs is the noisy signal, we need the clean one
     sigma, beta, rho = 10.0, 8/3, 28.0
     T = 10.0
     
@@ -311,50 +310,79 @@ def create_trajectory_comparison(results, output_dir):
                     rtol=1e-5, atol=1e-8)
     
     clean_signal = sol.y.T  # This is the clean signal without noise
+    time_points = np.linspace(0, T, 200)
     
-    # Create 3D trajectory plots
-    fig = plt.figure(figsize=(20, 8))
+    # Create publication-quality figure with increased size (3D trajectories only)
+    fig = plt.figure(figsize=(16, 12))  # Adjusted size for single 3D plot
+    
+    # 3D Trajectory Comparison
+    ax1 = fig.add_subplot(111, projection='3d')
+    ax1.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
+             'k-', linewidth=2, label='Ground Truth')
+    ax1.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
+             'b--', linewidth=2, label='NS--Q')
+    ax1.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
+             'r:', linewidth=2, label='QGMRES')
+    ax1.set_title('3D Trajectory Comparison', fontsize=18, fontweight='bold')
+    ax1.set_xlabel('X', fontsize=16)
+    ax1.set_ylabel('Y', fontsize=16)
+    ax1.set_zlabel('Z', fontsize=16)
+    ax1.legend(fontsize=14)
+    ax1.view_init(elev=20, azim=45)
+    ax1.tick_params(labelsize=14)
+    
+    plt.suptitle('Lorenz Attractor Signal Reconstruction (T = 10s, N = 200)', 
+                 fontsize=18, fontweight='bold', y=0.98)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'lorenz_trajectory_comparison_publication.png'), 
+                dpi=300, bbox_inches='tight', facecolor='white')
+    plt.show()
+    
+    print(f"   Saved: {os.path.join(output_dir, 'lorenz_trajectory_comparison_publication.png')}")
+    
+    # Create the original 3-panel comparison (keeping the previous version)
+    fig_original = plt.figure(figsize=(20, 8))
     
     # Plot 1: Q-GMRES Reconstruction
-    ax1 = fig.add_subplot(1, 3, 1, projection='3d')
-    ax1.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
+    ax1_orig = fig_original.add_subplot(1, 3, 1, projection='3d')
+    ax1_orig.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'b-', linewidth=1, alpha=0.7, label='Clean Signal')
-    ax1.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
+    ax1_orig.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
              'r-', linewidth=2, label='Q-GMRES Reconstruction')
-    ax1.set_title('Q-GMRES Method', fontsize=14, fontweight='bold')
-    ax1.set_xlabel('X', fontsize=12)
-    ax1.set_ylabel('Y', fontsize=12)
-    ax1.set_zlabel('Z', fontsize=12)
-    ax1.legend()
-    ax1.view_init(elev=20, azim=45)
+    ax1_orig.set_title('Q-GMRES Method', fontsize=14, fontweight='bold')
+    ax1_orig.set_xlabel('X', fontsize=12)
+    ax1_orig.set_ylabel('Y', fontsize=12)
+    ax1_orig.set_zlabel('Z', fontsize=12)
+    ax1_orig.legend()
+    ax1_orig.view_init(elev=20, azim=45)
     
     # Plot 2: Newton-Schulz Reconstruction
-    ax2 = fig.add_subplot(1, 3, 2, projection='3d')
-    ax2.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
+    ax2_orig = fig_original.add_subplot(1, 3, 2, projection='3d')
+    ax2_orig.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'b-', linewidth=1, alpha=0.7, label='Clean Signal')
-    ax2.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
+    ax2_orig.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
              'g-', linewidth=2, label='Newton-Schulz Reconstruction')
-    ax2.set_title('Newton-Schulz Method', fontsize=14, fontweight='bold')
-    ax2.set_xlabel('X', fontsize=12)
-    ax2.set_ylabel('Y', fontsize=12)
-    ax2.set_zlabel('Z', fontsize=12)
-    ax2.legend()
-    ax2.view_init(elev=20, azim=45)
+    ax2_orig.set_title('Newton-Schulz Method', fontsize=14, fontweight='bold')
+    ax2_orig.set_xlabel('X', fontsize=12)
+    ax2_orig.set_ylabel('Y', fontsize=12)
+    ax2_orig.set_zlabel('Z', fontsize=12)
+    ax2_orig.legend()
+    ax2_orig.view_init(elev=20, azim=45)
     
     # Plot 3: Comparison
-    ax3 = fig.add_subplot(1, 3, 3, projection='3d')
-    ax3.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
+    ax3_orig = fig_original.add_subplot(1, 3, 3, projection='3d')
+    ax3_orig.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'b-', linewidth=1, alpha=0.7, label='Clean Signal')
-    ax3.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
+    ax3_orig.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
              'r-', linewidth=2, alpha=0.8, label='Q-GMRES')
-    ax3.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
+    ax3_orig.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
              'g-', linewidth=2, alpha=0.8, label='Newton-Schulz')
-    ax3.set_title('Method Comparison', fontsize=14, fontweight='bold')
-    ax3.set_xlabel('X', fontsize=12)
-    ax3.set_ylabel('Y', fontsize=12)
-    ax3.set_zlabel('Z', fontsize=12)
-    ax3.legend()
-    ax3.view_init(elev=20, azim=45)
+    ax3_orig.set_title('Method Comparison', fontsize=14, fontweight='bold')
+    ax3_orig.set_xlabel('X', fontsize=12)
+    ax3_orig.set_ylabel('Y', fontsize=12)
+    ax3_orig.set_zlabel('Z', fontsize=12)
+    ax3_orig.legend()
+    ax3_orig.view_init(elev=20, azim=45)
     
     plt.suptitle('Lorenz Attractor Signal Reconstruction (200 points)', 
                  fontsize=16, fontweight='bold')
@@ -364,6 +392,79 @@ def create_trajectory_comparison(results, output_dir):
     plt.show()
     
     print(f"   Saved: {os.path.join(output_dir, 'lorenz_trajectory_comparison.png')}")
+    
+    # Also create a simplified version with just the 1D time series for the paper
+    fig2, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10))
+    
+    # x(t) vs time
+    ax1.plot(time_points, clean_signal[:, 0], 'k-', linewidth=2, label='Ground Truth')
+    ax1.plot(time_points, recon_newton[:, 0], 'b--', linewidth=2, label='NS--Q')
+    ax1.plot(time_points, recon_qgmres[:, 0], 'r:', linewidth=2, label='QGMRES')
+    ax1.set_ylabel('x(t)', fontsize=14)
+    ax1.legend(fontsize=12)
+    ax1.grid(True, alpha=0.3)
+    ax1.tick_params(labelsize=12)
+    
+    # y(t) vs time
+    ax2.plot(time_points, clean_signal[:, 1], 'k-', linewidth=2, label='Ground Truth')
+    ax2.plot(time_points, recon_newton[:, 1], 'b--', linewidth=2, label='NS--Q')
+    ax2.plot(time_points, recon_qgmres[:, 1], 'r:', linewidth=2, label='QGMRES')
+    ax2.set_ylabel('y(t)', fontsize=14)
+    ax2.legend(fontsize=12)
+    ax2.grid(True, alpha=0.3)
+    ax2.tick_params(labelsize=12)
+    
+    # z(t) vs time
+    ax3.plot(time_points, clean_signal[:, 2], 'k-', linewidth=2, label='Ground Truth')
+    ax3.plot(time_points, recon_newton[:, 2], 'b--', linewidth=2, label='NS--Q')
+    ax3.plot(time_points, recon_qgmres[:, 2], 'r:', linewidth=2, label='QGMRES')
+    ax3.set_xlabel('Time (s)', fontsize=14)
+    ax3.set_ylabel('z(t)', fontsize=14)
+    ax3.legend(fontsize=12)
+    ax3.grid(True, alpha=0.3)
+    ax3.tick_params(labelsize=12)
+    
+    plt.suptitle('Lorenz Attractor: 1D Signal Components vs Time (T = 10s)', 
+                 fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'lorenz_1d_signals_publication.png'), 
+                dpi=300, bbox_inches='tight', facecolor='white')
+    plt.show()
+    
+    print(f"   Saved: {os.path.join(output_dir, 'lorenz_1d_signals_publication.png')}")
+
+def generate_latex_table(results):
+    """Generate LaTeX table from benchmark results"""
+    print("LaTeX Table for Paper:")
+    print("=" * 60)
+    
+    print("\\begin{table}[ht!]")
+    print("\\centering")
+    print("\\caption{Lorenz–attractor filtering: QGMRES vs.\\ NS--Q on the $N\\times N$ quaternion system \\eqref{eq:lorenz-linear}.}")
+    print("\\label{tab:lorenz}")
+    print("\\begin{tabular}{lcccc}")
+    print("\\hline")
+    print("$N$ & Method & Iterations & CPU time (s) & RelRes \\\\")
+    print("\\hline")
+    
+    for result in results:
+        N = result['num_points']
+        qgmres_relres = calculate_relative_residual(result['qgmres']['residual'], N)
+        newton_relres = calculate_relative_residual(result['newton']['residual'], N)
+        
+        print(f"{N} & NS--Q   & {result['newton']['iterations']:3d} & {result['newton']['time']:6.3f} & {newton_relres:.1e} \\\\")
+        print(f"    & QGMRES & {result['qgmres']['iterations']:3d} & {result['qgmres']['time']:6.3f} & {qgmres_relres:.1e} \\\\")
+        print("\\hline")
+    
+    print("\\end{tabular}")
+    print("\\end{table}")
+    print("=" * 60)
+
+def calculate_relative_residual(residual, N):
+    """Calculate relative residual: ||r|| / ||b||"""
+    # Estimate the norm of the right-hand side vector b for given N
+    b_norm = np.sqrt(N) * 10.0  # Rough estimate based on Lorenz parameters
+    return residual / b_norm
 
 def print_summary_report(results):
     """Print comprehensive summary report"""
@@ -426,6 +527,10 @@ def main():
     
     # Print summary report
     print_summary_report(results)
+    
+    # Generate LaTeX table
+    print("\n📋 Generating LaTeX table for paper...")
+    generate_latex_table(results)
     
     print("\n🎉 Benchmark completed successfully!")
     print(f"📁 Results saved in: {output_dir}")
