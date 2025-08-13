@@ -317,6 +317,9 @@ def create_trajectory_comparison(results, output_dir):
     
     # 3D Trajectory Comparison
     ax1 = fig.add_subplot(111, projection='3d')
+    # Plot observed (noisy) signal with transparency
+    ax1.plot(obs[:, 1], obs[:, 2], obs[:, 3], 
+             'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax1.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'k-', linewidth=2, label='Ground Truth')
     ax1.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
@@ -345,6 +348,8 @@ def create_trajectory_comparison(results, output_dir):
     
     # Plot 1: Q-GMRES Reconstruction
     ax1_orig = fig_original.add_subplot(1, 3, 1, projection='3d')
+    ax1_orig.plot(obs[:, 1], obs[:, 2], obs[:, 3], 
+             'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax1_orig.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'b-', linewidth=1, alpha=0.7, label='Clean Signal')
     ax1_orig.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
@@ -358,6 +363,8 @@ def create_trajectory_comparison(results, output_dir):
     
     # Plot 2: Newton-Schulz Reconstruction
     ax2_orig = fig_original.add_subplot(1, 3, 2, projection='3d')
+    ax2_orig.plot(obs[:, 1], obs[:, 2], obs[:, 3], 
+             'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax2_orig.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'b-', linewidth=1, alpha=0.7, label='Clean Signal')
     ax2_orig.plot(recon_newton[:, 0], recon_newton[:, 1], recon_newton[:, 2], 
@@ -371,6 +378,8 @@ def create_trajectory_comparison(results, output_dir):
     
     # Plot 3: Comparison
     ax3_orig = fig_original.add_subplot(1, 3, 3, projection='3d')
+    ax3_orig.plot(obs[:, 1], obs[:, 2], obs[:, 3], 
+             'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax3_orig.plot(clean_signal[:, 0], clean_signal[:, 1], clean_signal[:, 2], 
              'b-', linewidth=1, alpha=0.7, label='Clean Signal')
     ax3_orig.plot(recon_qgmres[:, 0], recon_qgmres[:, 1], recon_qgmres[:, 2], 
@@ -397,6 +406,7 @@ def create_trajectory_comparison(results, output_dir):
     fig2, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10))
     
     # x(t) vs time
+    ax1.plot(time_points, obs[:, 1], 'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax1.plot(time_points, clean_signal[:, 0], 'k-', linewidth=2, label='Ground Truth')
     ax1.plot(time_points, recon_newton[:, 0], 'b--', linewidth=2, label='NS--Q')
     ax1.plot(time_points, recon_qgmres[:, 0], 'r:', linewidth=2, label='QGMRES')
@@ -406,6 +416,7 @@ def create_trajectory_comparison(results, output_dir):
     ax1.tick_params(labelsize=12)
     
     # y(t) vs time
+    ax2.plot(time_points, obs[:, 2], 'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax2.plot(time_points, clean_signal[:, 1], 'k-', linewidth=2, label='Ground Truth')
     ax2.plot(time_points, recon_newton[:, 1], 'b--', linewidth=2, label='NS--Q')
     ax2.plot(time_points, recon_qgmres[:, 1], 'r:', linewidth=2, label='QGMRES')
@@ -415,6 +426,7 @@ def create_trajectory_comparison(results, output_dir):
     ax2.tick_params(labelsize=12)
     
     # z(t) vs time
+    ax3.plot(time_points, obs[:, 3], 'lightgreen', linewidth=1, alpha=0.6, label='Observed (Noisy)')
     ax3.plot(time_points, clean_signal[:, 2], 'k-', linewidth=2, label='Ground Truth')
     ax3.plot(time_points, recon_newton[:, 2], 'b--', linewidth=2, label='NS--Q')
     ax3.plot(time_points, recon_qgmres[:, 2], 'r:', linewidth=2, label='QGMRES')
