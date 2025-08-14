@@ -38,6 +38,9 @@ def main():
         print("                                            --ns_iters K  --fftT_order {2,3}")
         print("                    Recommended:")
         print("                      image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12")
+        print("  deblur_benchmark - Comprehensive image deblurring benchmark with LaTeX table generation")
+        print("                     Runs multiple sizes (32,64,128,256,400,512) on kodim16/kodim20 with optimized lambdas")
+        print("                     Generates performance plots and publication-ready LaTeX tables")
         print("  synthetic       - Synthetic image completion (controlled experiments)")
         print("  synthetic_matrices - Test pseudoinverse on synthetic matrices")
         print("  eigenvalue_test - Eigenvalue decomposition test (tridiagonalization and eigendecomposition)")
@@ -64,6 +67,7 @@ def main():
         'test_newton': 'tests/unit/test_simple_newton.py',  # Disabled - not working properly
         'image_completion': 'applications/image_completion/script_real_image_completion.py',
         'image_deblurring': 'applications/image_deblurring/script_image_deblurring.py',
+        'deblur_benchmark': 'applications/image_deblurring/run_deblur_benchmark.py',
         'synthetic': 'applications/image_completion/script_synthetic_image_completion.py',  # Matrix completion on synthetic images
         'synthetic_matrices': 'tests/pseudoinverse/script_synthetic_matrices.py',  # Pseudoinverse test on synthetic matrices
         'eigenvalue_test': 'tests/decomp/eigenvalue_demo.py',  # Eigenvalue decomposition test
@@ -121,6 +125,10 @@ def main():
             # Pass optional args to image deblurring script (e.g., --size, --lam, --snr)
             cmd.extend(sys.argv[2:])
             print(f"Additional arguments passed to image_deblurring: {sys.argv[2:]}")
+        elif script_name == 'deblur_benchmark' and len(sys.argv) > 2:
+            # Pass optional args to deblur benchmark script
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to deblur_benchmark: {sys.argv[2:]}")
         
         result = subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "="*50)

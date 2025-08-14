@@ -234,6 +234,7 @@ python run_analysis.py <script_name>
 | `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
 | `image_completion` | **Image Completion Demo** - Fills missing pixels in real images | **Practical application** |
 | `image_deblurring` | **Quaternion Image Deblurring** - QSLST (Algorithm 2) vs NS/HON with FFT specialization | **Image restoration** |
+| `deblur_benchmark` | **🏆 Comprehensive Image Deblurring Benchmark** - Multi-size benchmark with LaTeX table generation | **Performance analysis** and publication results |
 | `synthetic` | **Synthetic Image Completion** - Matrix completion on generated test images | Controlled experiments |
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types | Algorithm validation |
 | `eigenvalue_test` | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition | **Matrix analysis** and eigenvalue computation |
@@ -268,6 +269,9 @@ python run_analysis.py image_completion
 python run_analysis.py image_deblurring --size 32 --lam 1e-3
 # Optional: add noise SNR in dB
 python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30
+
+# Comprehensive image deblurring benchmark (publication-ready results)
+python run_analysis.py deblur_benchmark
 
 # Test matrix completion on synthetic images
 python run_analysis.py synthetic
@@ -372,7 +376,10 @@ QuatIca/
 │   │   ├── script_synthetic_image_completion.py  # Synthetic image completion
 │   │   └── script_small_image_completion.py      # Small image completion
 │   ├── image_deblurring/   # Image deblurring (QSLST vs NS/HON)
-│   │   └── script_image_deblurring.py
+│   │   ├── script_image_deblurring.py
+│   │   ├── run_deblur_benchmark.py
+│   │   ├── optimize_lambda.py
+│   │   └── visualize_results.py
 │   └── signal_processing/  # Signal processing applications
 │       ├── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
 │       └── benchmark_lorenz_methods.py   # Q-GMRES vs Newton-Schulz benchmark
@@ -620,6 +627,33 @@ python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30 --ns_mode 
 ```bash
 python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 ```
+
+### **🏆 `deblur_benchmark` - Comprehensive Image Deblurring Benchmark**
+- **What it is**: Automated benchmark comparing FFT-NS-Q vs QSLST-FFT across multiple image sizes with optimized parameters
+- **Perfect for**: Performance analysis and generating publication-ready results
+- **Duration**: ~5-10 minutes (runs 12 experiments: 2 images × 6 sizes)
+- **Input**: kodim16 and kodim20 images at sizes 32, 64, 128, 256, 400, 512
+- **Output**: 
+  - **LaTeX table** ready for publication with PSNR, SSIM, CPU time metrics
+  - **JSON results** file for further analysis
+  - **Performance plots** comparing methods across sizes
+  - **Side-by-side image comparisons** for visual assessment
+- **Features**:
+  - **Optimized lambda values** per image/size combination
+  - **30dB SNR** noise level for realistic conditions
+  - **Gaussian blur** (radius=2, sigma=1.0) with periodic boundary conditions
+  - **FFT-NS-Q** with 12 iterations and order-2 Newton-Schulz
+  - **Publication-ready formatting** with proper LaTeX table structure
+- **Usage**:
+  ```bash
+  # Run complete benchmark
+  python run_analysis.py deblur_benchmark
+  
+  # Results saved to:
+  # - output_figures/deblur_benchmark_results.json
+  # - LaTeX table printed to console
+  # - Comparison plots: output_figures/deblur_comparison_*.png
+  ```
 
 #### Parameters
 - --size N: resize `data/images/kodim16.png` to N×N (default 32).

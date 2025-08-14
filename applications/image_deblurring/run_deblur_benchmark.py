@@ -28,7 +28,7 @@ def run_deblur_experiment(image_name, size, snr=40, lam=0.1, ns_iters=12):
     # Build command
     cmd = [
         sys.executable, 
-        "applications/image_deblurring/script_image_deblurring.py",
+        "script_image_deblurring.py",
         "--image", image_name,
         "--size", str(size),
         "--lam", str(lam),
