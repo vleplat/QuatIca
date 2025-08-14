@@ -172,7 +172,7 @@ def main():
     Q_clean = rgb_to_quat(rgb, real_part=0.0)
 
     # Build blur PSF and generate blurred observation (periodic boundary)
-    psf = build_psf_gaussian(radius=2, sigma=1.0)
+    psf = build_psf_gaussian(radius=4, sigma=1.0)
     Q_blur = apply_blur_fft(Q_clean, psf, boundary='periodic')
 
     # Optional noise (SNR in dB)

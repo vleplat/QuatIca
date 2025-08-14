@@ -4,10 +4,10 @@ Image Deblurring Benchmark Script for Report
 
 This script runs the image deblurring experiments according to the report requirements:
 - Compare FFT-NS-Q vs QSLST-FFT on kodim16 and kodim20
-- Test sizes: 32, 64, 128
-- Blur kernel: Gaussian (radius=2, sigma=1.0)
-- Noise: 40 dB SNR
-- Regularization: λ=0.1
+- Test sizes: 32, 64, 128, 256, 400, 512
+- Blur kernel: Gaussian (radius=4, sigma=1.0) - 9×9 kernel
+- Noise: 30 dB SNR
+- Regularization: Optimized λ per image/size
 - Generate side-by-side comparison plots for N=128
 """
 
@@ -220,7 +220,7 @@ def main():
     print("Parameters:")
     print("  - Images: kodim16, kodim20")
     print("  - Sizes: 32, 64, 128, 256, 400, 512")
-    print("  - Blur: Gaussian (radius=2, sigma=1.0)")
+    print("  - Blur: Gaussian (radius=4, sigma=1.0) - 9×9 kernel")
     print("  - Noise: 30 dB SNR")
     print("  - Regularization: Optimized λ per image/size")
     print("  - NS iterations: 12")
