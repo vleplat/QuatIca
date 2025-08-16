@@ -1,11 +1,33 @@
 [project]
 name = "quatica"
-version = "0.0.4"
-description = "Quatica core package"
-authors = [{name = "Your Name", email = "you@example.com"}]
-license = { text = "MIT" }
-readme = "README.md"
+version = "0.1.0"
+description = "Numerical linear algebra for quaternions — fast, practical, and well‑tested"
+authors = [
+    {name = "Valentin Leplat", email = "valentin.leplat@gmail.com"},
+    {name = "Dmitry Beresnev", email = "dmitry.beresnev@gmail.com"}
+]
+license = { text = "CC0-1.0" }
+readme = "README_PYPI.md"
 requires-python = ">=3.11"
+keywords = ["quaternion", "linear-algebra", "matrix", "decomposition", "svd", "pseudoinverse", "gmres"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://vleplat.github.io/QuatIca/"
+Documentation = "https://vleplat.github.io/QuatIca/"
+Repository = "https://github.com/vleplat/QuatIca"
+"Bug Tracker" = "https://github.com/vleplat/QuatIca/issues"
+"Colab Demo" = "https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing"
 dependencies = [
     "matplotlib>=3.10.3",
     "numpy>=2.3.2",
