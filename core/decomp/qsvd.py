@@ -3,11 +3,11 @@ Quaternion SVD Implementations for QuatIca
 
 This module provides Q-SVD routines leveraging existing primitives in utils.py:
 
-1. Classical Q-SVD via real-block embedding and LAPACK ✅ WORKING
-2. Full Classical Q-SVD (no truncation) ✅ WORKING
-3. QR decomposition for quaternion matrices ✅ WORKING
-4. Randomized Q-SVD (rand_qsvd) using Gaussian sketching + power iterations ⚠️ PLACEHOLDER
-5. Pass-efficient Q-SVD (pass_eff_qsvd) alternating a single QR per pass ⚠️ PLACEHOLDER
+1. Classical Q-SVD via real-block embedding and LAPACK 
+2. Full Classical Q-SVD (no truncation) 
+3. QR decomposition for quaternion matrices 
+4. Randomized Q-SVD (rand_qsvd) using Gaussian sketching + power iterations 
+5. Pass-efficient Q-SVD (pass_eff_qsvd) alternating a single QR per pass 
 
 All routines operate on quaternion arrays (numpy.quaternion) and reuse utilities:
 - real_expand(Q), real_contract(R, m, n)

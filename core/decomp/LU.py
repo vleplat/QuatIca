@@ -11,12 +11,9 @@ Algorithm: Gaussian elimination with partial pivoting
 - Supports both 2-output (L, U) and 3-output (L, U, P) modes
 
 References:
-- MATLAB QTFM (Quaternion Toolbox for MATLAB) implementation
+- MATLAB QTFM (Quaternion Toolbox for MATLAB) implementation: http://qtfm.sourceforge.net/ by Stephen J. Sangwine & Nicolas Le Bihan
 - Golub, G. H., & Van Loan, C. F. (1996). Matrix Computations (3rd ed.)
 - Algorithm 3.2.1, section 3.2.6, modified along the lines of section 3.2.11
-
-Copyright © 2010, 2011, 2016, 2022 Stephen J. Sangwine and Nicolas Le Bihan.
-Adapted for QuatIca framework.
 """
 
 import numpy as np

@@ -3,7 +3,7 @@
 QSLST: Quaternion Special Least Squares with Tikhonov Regularization
 ====================================================================
 
-This module provides a *practical* implementation of Algorithm 2 (QSLST) for
+This module provides a *practical* implementation of Algorithm 2 (QSLST) from [1] for
 quaternion-valued image restoration. It follows the formulation
 
     (A^T A + λ I) X = A^T B,
@@ -36,6 +36,14 @@ Core API
 - psnr(x, x_ref), relative_error(x, x_ref)
 
 All functions are fully numpy-based.
+
+References
+----------
+[1] Fei, W., Tang, J., & Shan, M.
+    Quaternion special least squares with Tikhonov regularization method in image restoration. 
+    Numerical Algorithms, 1-20. (2025)
+    https://doi.org/10.1007/s11075-025-02187-6
+
 """
 
 from __future__ import annotations

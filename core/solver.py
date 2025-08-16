@@ -147,7 +147,7 @@ class DeepLinearNewtonSchulz:
     Implements the alternating gradient method for deep linear networks using
     proper Newton-Schulz updates for each layer individually.
     
-    The method optimizes ||X * W_1 * ... * W_d - X|| -> min
+    The method optimizes ||X * W_1 * ... * W_d - I||_F -> min
     where each W_i is updated using the damped Newton-Schulz formula:
     W_i^(k+1) = W_i^(k) - γ * W_i^(k) * (hat_W * hat_X * W_i^(k) - I)
     """
