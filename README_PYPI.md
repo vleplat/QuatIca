@@ -36,29 +36,50 @@ pip install quatica
 ### Basic Usage
 
 ```python
-import quatica
 import numpy as np
-from numpy import quaternion
+import quaternion
+from quatica.data_gen import create_test_matrix
+from quatica.utils import quat_matmat, quat_frobenius_norm
+from quatica.decomp.qsvd import qr_qua, classical_qsvd
+from quatica.solver import NewtonSchulzPseudoinverse, QGMRESSolver
 
 # Create quaternion matrices
-A = quatica.create_test_matrix(4, 3, density=0.8)
-B = quatica.create_test_matrix(3, 2, density=0.8)
+A = create_test_matrix(4, 3)
+B = create_test_matrix(3, 2)
 
 # Basic operations
-C = quatica.quat_matmat(A, B)  # Matrix multiplication
-norm_A = quatica.quat_frobenius_norm(A)  # Frobenius norm
+C = quat_matmat(A, B)  # Matrix multiplication
+norm_A = quat_frobenius_norm(A)  # Frobenius norm
 
 # Advanced: Pseudoinverse computation
-A_pinv = quatica.NewtonSchulzPseudoinverse(A, max_iters=50)
+ns_solver = NewtonSchulzPseudoinverse(gamma=0.5)
+A_pinv, residuals, metrics = ns_solver.compute(A)
 
 # Decompositions
-Q, R = quatica.quat_qr(A)  # QR decomposition
-U, s, V = quatica.quat_svd(A)  # SVD decomposition
+Q, R = qr_qua(A)  # QR decomposition
+U, s, V = classical_qsvd(A, rank=2)  # SVD decomposition
 
 # Linear system solving
-x = quatica.quat_gmres(A, b)  # Q-GMRES solver
+b = create_test_matrix(4, 1)
+qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100)
+x, info = qgmres_solver.solve(A, b)
 
 print("✅ QuatIca is working!")
+```
+
+### 🎓 Getting Started
+
+After installing QuatIca, you can start coding immediately. For comprehensive examples and tutorials, clone the [GitHub repository](https://github.com/vleplat/QuatIca) and use the interactive tutorial:
+
+```bash
+# Comprehensive tutorial with visualizations (recommended for beginners)
+python run_analysis.py tutorial
+
+# Core functionality demo (comprehensive overview)
+python run_analysis.py demo
+
+# Q-GMRES solver introduction
+python run_analysis.py qgmres
 ```
 
 ## 🤔 What is QuatIca?
@@ -83,67 +104,106 @@ QuatIca brings modern numerical linear algebra to quaternion matrices and tensor
 
 ### Matrix Operations
 ```python
+from quatica.data_gen import create_test_matrix
+from quatica.utils import quat_matmat, quat_frobenius_norm
+
 # Basic operations
-A = quatica.create_test_matrix(5, 4)
-B = quatica.create_test_matrix(4, 3)
-C = quatica.quat_matmat(A, B)
-norm = quatica.quat_frobenius_norm(A)
+A = create_test_matrix(5, 4)
+B = create_test_matrix(4, 3)
+C = quat_matmat(A, B)
+norm = quat_frobenius_norm(A)
 ```
 
 ### Matrix Decompositions
 ```python
+from quatica.decomp.qsvd import qr_qua, classical_qsvd_full
+from quatica.decomp.eigen import quaternion_eigendecomposition
+from quatica.decomp import quaternion_lu
+from quatica.utils import quat_hermitian
+
 # QR decomposition
-Q, R = quatica.quat_qr(A)
+Q, R = qr_qua(A)
 
 # SVD decomposition
-U, s, V = quatica.quat_svd(A)
+U, s, V = classical_qsvd_full(A)
 
 # Eigendecomposition (Hermitian matrices)
-eigenvals, eigenvecs = quatica.quat_eig(A)
+A_herm = A + quat_hermitian(A)  # Make Hermitian
+eigenvals, eigenvecs = quaternion_eigendecomposition(A_herm)
 
 # LU decomposition
-L, U, P = quatica.quat_lu(A)
+L, U, P = quaternion_lu(A)
 ```
 
 ### Pseudoinverse and Linear Systems
 ```python
+from quatica.solver import NewtonSchulzPseudoinverse, QGMRESSolver
+
 # Newton-Schulz pseudoinverse
-A_pinv = quatica.NewtonSchulzPseudoinverse(A, max_iters=50)
+ns_solver = NewtonSchulzPseudoinverse(gamma=0.5)
+A_pinv, residuals, metrics = ns_solver.compute(A)
 
 # Q-GMRES solver
-x, info = quatica.quat_gmres(A, b, restart=20, maxiter=100)
+qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, restart=20)
+x, info = qgmres_solver.solve(A, b)
 ```
 
 ### Advanced Algorithms
 ```python
+from quatica.decomp.qsvd import rand_qsvd
+from quatica.utils import power_iteration_nonhermitian
+from quatica.decomp.schur import quaternion_schur_unified
+
 # Randomized SVD
-U_rand, s_rand, V_rand = quatica.rand_qsvd(A, rank=10, n_iter=2)
+U_rand, s_rand, V_rand = rand_qsvd(A, rank=10, n_iter=2)
 
 # Power iteration for dominant eigenvector
-eigenval, eigenvec = quatica.power_iteration_nonhermitian(A, max_iter=100)
+eigenval, eigenvec = power_iteration_nonhermitian(A, max_iter=100)
 
 # Schur decomposition
-Q, T = quatica.quat_schur(A, variant='rayleigh')
+Q, T = quaternion_schur_unified(A, variant='rayleigh')
 ```
 
 ## 🏗️ Applications
 
-### Image Processing
-```python
-# Image deblurring with quaternion representation
-import quatica.applications.image_deblurring as deblur
+QuatIca excels in various real-world applications. Explore comprehensive examples and demos:
 
-# Load and process image
-result = deblur.quaternion_deblur(image_path, lambda_reg=0.1)
-```
+### 🚀 **Interactive Demos (Coming Soon!)**
+- **🔬 Colab Demos for Applications** - Interactive notebooks for image processing, signal analysis, and more
+- **📊 Live Examples** - Run applications directly in your browser without installation
 
-### Signal Processing
-```python
-# Quaternion-based signal analysis
-import quatica.applications.signal_processing as signal
+### 📂 **GitHub Repository Examples**
 
-# Process quaternion-valued signals
-processed_signal = signal.quaternion_filter(quaternion_signal)
+Clone the [QuatIca repository](https://github.com/vleplat/QuatIca) for complete application examples:
+
+**Image Processing Applications:**
+- **Quaternion Image Deblurring** - Compare QSLST vs Newton-Schulz methods
+- **Image Completion** - Matrix completion techniques for missing pixels  
+- **Deblurring Benchmarks** - Comprehensive performance analysis
+
+**Signal Processing Applications:**
+- **Lorenz Attractor Analysis** - Q-GMRES solver for dynamical systems
+- **Quaternion Signal Processing** - Multi-channel signal analysis
+- **Method Comparisons** - Performance benchmarks across algorithms
+
+**Research & Analysis Tools:**
+- **Pseudoinverse Analysis** - Single and multi-image studies
+- **CIFAR-10 Analysis** - Large-scale image dataset processing
+- **Synthetic Matrix Validation** - Controlled experiments and verification
+
+### 📋 **Quick Access**
+
+```bash
+# Clone the repository
+git clone https://github.com/vleplat/QuatIca.git
+cd QuatIca
+
+# See all available applications
+python run_analysis.py
+
+# Run specific examples
+python run_analysis.py image_deblurring --size 64
+python run_analysis.py lorenz_signal --num_points 500
 ```
 
 ## 🔬 Research Applications
@@ -195,12 +255,12 @@ QuatIca is thoroughly validated:
 If you use QuatIca in your research, please cite:
 
 ```bibtex
-@software{quatica2024,
-  title={QuatIca: Quaternion Linear Algebra Library},
-  author={Valentin Leplat and Dmitry Beresnev},
-  year={2024},
-  url={https://github.com/vleplat/QuatIca},
-  doi={10.5281/zenodo.XXXXXXX}
+@software{quatica2025,
+  title = {QuatIca: Quaternion Linear Algebra Library},
+  author = {Valentin Leplat and Junjun Pan and Salman Ahmadi-Asl and Dmitry Beresnev and Henni Ouerdane and Michael Ng},
+  year = {2025},
+  url = {https://github.com/vleplat/QuatIca},
+  note = {Numerical linear algebra for quaternions}
 }
 ```
 
