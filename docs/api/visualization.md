@@ -1,3 +1,3 @@
-# core.visualization
+# quatica.visualization
 
-::: core.visualization
+::: quatica.visualization

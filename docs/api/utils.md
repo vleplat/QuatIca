@@ -1,3 +1,3 @@
-# core.utils
+# quatica.utils
 
-::: core.utils
+::: quatica.utils

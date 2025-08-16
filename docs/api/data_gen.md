@@ -1,3 +1,3 @@
-# core.data_gen
+# quatica.data_gen
 
-::: core.data_gen
+::: quatica.data_gen

@@ -1,3 +1,3 @@
-# core.decomp.hessenberg
+# quatica.decomp.hessenberg
 
-::: core.decomp.hessenberg
+::: quatica.decomp.hessenberg

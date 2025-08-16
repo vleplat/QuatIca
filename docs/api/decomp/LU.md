@@ -1,3 +1,3 @@
-# core.decomp.LU
+# quatica.decomp.LU
 
-::: core.decomp.LU
+::: quatica.decomp.LU

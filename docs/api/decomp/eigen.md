@@ -1,3 +1,3 @@
-# core.decomp.eigen
+# quatica.decomp.eigen
 
-::: core.decomp.eigen
+::: quatica.decomp.eigen

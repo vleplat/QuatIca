@@ -1,3 +1,3 @@
-# core.decomp.tridiagonalize
+# quatica.decomp.tridiagonalize
 
-::: core.decomp.tridiagonalize
+::: quatica.decomp.tridiagonalize

@@ -2,7 +2,7 @@ import numpy as np
 import quaternion
 from scipy import sparse
 
-# Support both package and script import contexts for core.utils
+# Support both package and script import contexts for quatica.utils
 try:
     from .utils import SparseQuaternionMatrix, quat_matmat
 except Exception:

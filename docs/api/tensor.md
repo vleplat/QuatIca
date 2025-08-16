@@ -1,3 +1,3 @@
-# core.tensor
+# quatica.tensor
 
-::: core.tensor
+::: quatica.tensor

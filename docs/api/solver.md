@@ -1,3 +1,3 @@
-# core.solver
+# quatica.solver
 
-::: core.solver
+::: quatica.solver

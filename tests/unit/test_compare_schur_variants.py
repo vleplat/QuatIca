@@ -68,7 +68,7 @@ def _max_below_diagonal(T: np.ndarray) -> float:
     return m
 
 
-## Note: all algorithmic variants are provided by core.decomp.schur (unified API).
+## Note: all algorithmic variants are provided by quatica.decomp.schur (unified API).
 
 
 def run_variants(

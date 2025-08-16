@@ -1,3 +1,3 @@
-# core.qslst
+# quatica.qslst
 
-::: core.qslst
+::: quatica.qslst

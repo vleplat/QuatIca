@@ -1,3 +1,3 @@
 # Schur Decomposition
 
-::: core.decomp.schur
+::: quatica.decomp.schur

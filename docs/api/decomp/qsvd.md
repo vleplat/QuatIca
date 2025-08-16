@@ -1,3 +1,3 @@
-# core.decomp.qsvd
+# quatica.decomp.qsvd
 
-::: core.decomp.qsvd
+::: quatica.decomp.qsvd

@@ -3,7 +3,7 @@ import time
 import numpy as np
 import quaternion
 
-# Support both package and script import contexts for core.utils
+# Support both package and script import contexts for quatica.utils
 try:
     from .utils import (
         A2A0123,
