@@ -772,3 +772,484 @@ class QGMRESSolver:
         return quaternion.as_quat_array(A_real)
 
 
+class RandomizedSketchProjectPseudoinverse:
+    """
+    Randomized Sketch-and-Project (RSP-Q) for quaternion matrix pseudoinverse.
+    
+    Implements the randomized sketch-and-project method for computing the 
+    Moore-Penrose pseudoinverse of quaternion matrices. This method provides
+    global linear convergence in expectation through cheap randomized projections
+    onto sketched identity constraints.
+    
+    The method works by drawing random sketches and projecting onto the constraint
+    set {X: X*Y_k = Omega_k} where Y_k = A*Omega_k and Omega_k is a random sketch.
+    This provides a block Kaczmarz-style approach that converges globally.
+    """
+    
+    def __init__(self, block_size: int = 16, max_iter: int = 1000, tol: float = 1e-6, 
+                 test_sketch_size: int = 8, verbose: bool = False, seed: int = None):
+        """
+        Initialize the RSP-Q solver.
+        
+        Parameters:
+        -----------
+        block_size : int, optional
+            Size of the random sketch block r (default: 16)
+        max_iter : int, optional 
+            Maximum number of iterations (default: 1000)
+        tol : float, optional
+            Convergence tolerance (default: 1e-6)
+        test_sketch_size : int, optional
+            Size of the test sketch for convergence check (default: 8)
+        verbose : bool, optional
+            Whether to print convergence information (default: False)
+        seed : int, optional
+            Random seed for reproducibility (default: None)
+        """
+        self.block_size = block_size
+        self.max_iter = max_iter
+        self.tol = tol
+        self.test_sketch_size = test_sketch_size
+        self.verbose = verbose
+        self.seed = seed
+        if seed is not None:
+            np.random.seed(seed)
+    
+    def _generate_random_sketch(self, rows: int, cols: int) -> np.ndarray:
+        """
+        Generate a random quaternion sketch matrix with i.i.d. standard normal entries.
+        
+        Parameters:
+        -----------
+        rows : int
+            Number of rows in the sketch
+        cols : int
+            Number of columns in the sketch
+            
+        Returns:
+        --------
+        np.ndarray
+            Random quaternion matrix of shape (rows, cols)
+        """
+        # Generate 4 independent standard normal components
+        real_part = np.random.randn(rows, cols)
+        i_part = np.random.randn(rows, cols)
+        j_part = np.random.randn(rows, cols)  
+        k_part = np.random.randn(rows, cols)
+        
+        # Stack and convert to quaternion array
+        sketch_real = np.stack([real_part, i_part, j_part, k_part], axis=-1)
+        return quaternion.as_quat_array(sketch_real)
+
+
+    
+    def _compute_pseudoinverse_thin(self, Y: np.ndarray) -> np.ndarray:
+        """
+        Compute pseudoinverse of thin matrix Y using (Y^H Y)^{-1} Y^H.
+        
+        Uses quaternion-native operations throughout.
+        
+        Parameters:
+        -----------
+        Y : np.ndarray
+            Thin quaternion matrix of shape (m, r) with m >= r
+            
+        Returns:
+        --------
+        np.ndarray
+            Pseudoinverse of Y, shape (r, m)
+        """
+        # Compute Y^H Y (this is r x r)
+        Y_H = quat_hermitian(Y)
+        YHY = quat_matmat(Y_H, Y)
+        
+        # For small matrices, we can use the existing quaternion solver infrastructure
+        # We need to solve (Y^H Y) X = Y^H for X = (Y^H Y)^{-1} Y^H
+        
+        try:
+            # Use the existing Newton-Schulz infrastructure for small matrix inversion
+            # Initialize with scaled identity
+            r = YHY.shape[0]
+            I_r = quat_eye(r)
+            
+            # Simple quaternion matrix inversion using the identity A^{-1} ≈ (2/tr(A)) * I initially
+            trace_YHY = sum(YHY[i, i] for i in range(r))
+            trace_norm = abs(trace_YHY)
+            
+            if trace_norm > 1e-12:
+                alpha = 2.0 / trace_norm
+                YHY_inv = alpha * I_r
+                
+                # Few Newton-Schulz steps for small matrix: X_{k+1} = X_k (2I - A X_k)
+                for _ in range(5):  # Just a few steps for small matrices
+                    AX = quat_matmat(YHY, YHY_inv)
+                    residual = 2.0 * I_r - AX
+                    YHY_inv = quat_matmat(YHY_inv, residual)
+                    
+                    # Check if we have reasonable convergence
+                    test_product = quat_matmat(YHY, YHY_inv)
+                    error = quat_frobenius_norm(test_product - I_r)
+                    if error < 1e-8:
+                        break
+            else:
+                # Matrix is essentially zero, return zero pseudoinverse
+                return np.zeros_like(Y_H)
+                
+        except:
+            # Fallback: return a crude approximation
+            r = YHY.shape[0]
+            YHY_inv = quat_eye(r) * 0.1
+        
+        # Return (Y^H Y)^{-1} Y^H
+        return quat_matmat(YHY_inv, Y_H)
+    
+    def compute_column_variant(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        """
+        Compute pseudoinverse using column variant RSP-Q for full column rank A.
+        
+        Solves XA = I_n by iterative sketch-and-project updates.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Full column rank quaternion matrix of shape (m, n) with m >= n
+            
+        Returns:
+        --------
+        tuple[np.ndarray, dict]
+            Pseudoinverse X of shape (n, m) and convergence information
+        """
+        m, n = A.shape
+        
+        if m < n:
+            raise ValueError("Column variant requires m >= n (full column rank)")
+        
+        # Initialize X_0 = alpha * A^H with alpha = 1 / ||A||_F^2 (matches debug/reference)
+        A_H = quat_hermitian(A)
+        alpha = 1.0 / max(quat_frobenius_norm(A) ** 2, 1e-16)
+        X = alpha * A_H
+        
+        # Generate test sketch for convergence monitoring
+        Pi = self._generate_random_sketch(n, self.test_sketch_size)
+        A_Pi = quat_matmat(A, Pi)  # Precompute A*Pi
+        
+        # Storage for convergence history
+        residual_norms = []
+        iteration_times = []
+        
+        if self.verbose:
+            print(f"RSP-Q Column Variant: Starting (alpha=1/||A||_F^2)")
+            print(f"Matrix size: {m}x{n}, block size: {self.block_size}")
+        
+        for k in range(self.max_iter):
+            start_time = time.time()
+            
+            # Draw random sketch Omega_k
+            Omega_k = self._generate_random_sketch(n, self.block_size)
+            
+            # Compute Y_k = A * Omega_k
+            Y_k = quat_matmat(A, Omega_k)
+            
+            # Compute residual R_k = Omega_k - X_k * Y_k  
+            X_Y_k = quat_matmat(X, Y_k)
+            R_k = Omega_k - X_Y_k
+            
+            # Compute update via thin QR on Y_k: Y_k = U_k R_k^(Y), then solve R_k^(Y) Z = U_k^H
+            try:
+                # Local import to avoid altering global imports
+                try:
+                    from .decomp.qsvd import qr_qua  # package context
+                except Exception:
+                    from core.decomp.qsvd import qr_qua  # script context
+                U_k, RY_k = qr_qua(Y_k)                 # U_k: (m x r), RY_k: (r x r) upper
+                U_k_H = quat_hermitian(U_k)             # (r x m)
+                # Solve RY_k Z = U_k^H for Z (r x m)
+                Z_k = _solve_upper_triangular_quat(RY_k, U_k_H)
+                # Update: X_{k+1} = X_k + R_id * Z_k
+                X = X + quat_matmat(R_k, Z_k)
+            except Exception:
+                if self.verbose:
+                    print(f"Iteration {k}: QR-based update failed, redrawing sketch")
+                continue
+            
+            # Check convergence using test sketch
+            X_A_Pi = quat_matmat(X, A_Pi)
+            residual = Pi - X_A_Pi
+            residual_norm = quat_frobenius_norm(residual) / quat_frobenius_norm(Pi)
+            
+            iteration_time = time.time() - start_time
+            residual_norms.append(residual_norm)
+            iteration_times.append(iteration_time)
+            
+            if self.verbose and k % 10 == 0:
+                print(f"Iteration {k}: residual = {residual_norm:.6e}")
+            
+            # Check for convergence
+            if residual_norm <= self.tol:
+                if self.verbose:
+                    print(f"Converged in {k+1} iterations with residual {residual_norm:.6e}")
+                break
+        
+        else:
+            if self.verbose:
+                print(f"Maximum iterations ({self.max_iter}) reached. Final residual: {residual_norms[-1]:.6e}")
+        
+        convergence_info = {
+            'iterations': len(residual_norms),
+            'residual_norms': residual_norms,
+            'iteration_times': iteration_times,
+            'total_time': sum(iteration_times),
+            'converged': residual_norms[-1] <= self.tol if residual_norms else False
+        }
+        
+        return X, convergence_info
+    
+    def compute_row_variant(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        """
+        Compute pseudoinverse using row variant RSP-Q for full row rank A.
+        
+        Solves AX = I_m by iterative sketch-and-project updates.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Full row rank quaternion matrix of shape (m, n) with m <= n
+            
+        Returns:
+        --------
+        tuple[np.ndarray, dict]
+            Pseudoinverse X of shape (n, m) and convergence information
+        """
+        m, n = A.shape
+        
+        if m > n:
+            raise ValueError("Row variant requires m <= n (full row rank)")
+        
+        # Initialize X_0 = 0 (RSP does not hinge on alpha)
+        X = np.zeros((n, m), dtype=np.quaternion)
+        
+        # Generate test sketch for convergence monitoring  
+        Pi = self._generate_random_sketch(m, self.test_sketch_size)
+        I_m = quat_eye(m)
+        
+        # Storage for convergence history
+        residual_norms = []
+        iteration_times = []
+        
+        if self.verbose:
+            print(f"RSP-Q Row Variant: Starting (zero init)")
+            print(f"Matrix size: {m}x{n}, block size: {self.block_size}")
+        
+        for k in range(self.max_iter):
+            start_time = time.time()
+            
+            # Draw left sketch S_k (should be m x block_size)
+            S_k = self._generate_random_sketch(m, self.block_size)
+            
+            # Compute Z_k = S_k^H * A (S_k^H is block_size x m, result is block_size x n)
+            S_k_H = quat_hermitian(S_k)  # Shape: (block_size, m)
+            Z_k = quat_matmat(S_k_H, A)  # Shape: (block_size, n)
+            
+            # Compute residual: S_k^H - Z_k * X_k
+            Z_k_X = quat_matmat(Z_k, X)
+            residual = S_k_H - Z_k_X
+            
+            # Compute Z_k^\dagger residual via Gram solve on (Z Z^H) W = (S^H - Z X)
+            try:
+                Z_k_H = quat_hermitian(Z_k)              # (n, r)
+                ZZ_H = quat_matmat(Z_k, Z_k_H)           # (r, r)
+                W, ok = self._solve_spd_quat(ZZ_H, residual, tol=1e-8, max_iter=200)  # (r, m)
+                if not ok:
+                    if self.verbose:
+                        print(f"Iteration {k}: ill-conditioned Gram in row variant, redrawing sketch")
+                    continue
+                # Update: X += Z_k^H * W
+                X = X + quat_matmat(Z_k_H, W)
+            except Exception:
+                if self.verbose:
+                    print(f"Iteration {k}: failure in row-variant Gram solve, redrawing sketch")
+                continue
+            
+            # Check convergence: test how close AX is to I_m
+            A_X = quat_matmat(A, X)
+            test_residual = I_m - A_X
+            residual_norm = quat_frobenius_norm(test_residual) / quat_frobenius_norm(I_m)
+            
+            iteration_time = time.time() - start_time
+            residual_norms.append(residual_norm)
+            iteration_times.append(iteration_time)
+            
+            if self.verbose and k % 10 == 0:
+                print(f"Iteration {k}: residual = {residual_norm:.6e}")
+            
+            # Check for convergence
+            if residual_norm <= self.tol:
+                if self.verbose:
+                    print(f"Converged in {k+1} iterations with residual {residual_norm:.6e}")
+                break
+        
+        else:
+            if self.verbose:
+                print(f"Maximum iterations ({self.max_iter}) reached. Final residual: {residual_norms[-1]:.6e}")
+        
+        convergence_info = {
+            'iterations': len(residual_norms),
+            'residual_norms': residual_norms,
+            'iteration_times': iteration_times,
+            'total_time': sum(iteration_times),
+            'converged': residual_norms[-1] <= self.tol if residual_norms else False
+        }
+        
+        return X, convergence_info
+    
+    def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        """
+        Compute the Moore-Penrose pseudoinverse using RSP-Q.
+        
+        Automatically selects column or row variant based on matrix dimensions.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix of shape (m, n)
+            
+        Returns:
+        --------
+        tuple[np.ndarray, dict]
+            Pseudoinverse X and convergence information
+        """
+        m, n = A.shape
+        
+        if m >= n:
+            # Use column variant for tall/square matrices
+            return self.compute_column_variant(A)
+        else:
+            # Use row variant for wide matrices
+            return self.compute_row_variant(A)
+
+
+class HybridRSPNewtonSchulz:
+    """
+    Hybrid RSP-Q + NS (column variant): alternate T randomized sketch-and-project
+    steps with one exact hyperpower (order p) step on the right residual.
+
+    Parameters
+    ----------
+    r : int
+        Sketch block size for RSP-Q phase
+    p : int
+        Hyperpower order for NS step (e.g., 2, 4, 8)
+    T : int
+        Number of RSP steps per cycle before one NS step
+    tol : float
+        Stopping tolerance for proxy residual using test sketch Pi
+    max_iter : int
+        Maximum total RSP steps (cycles*T bounded by this)
+    verbose : bool
+        Verbose logging
+    seed : int | None
+        RNG seed
+    """
+    def __init__(self, r: int = 12, p: int = 4, T: int = 5, tol: float = 1e-6, max_iter: int = 1000,
+                 verbose: bool = False, seed: int | None = None) -> None:
+        self.r = r
+        self.p = p
+        self.T = T
+        self.tol = tol
+        self.max_iter = max_iter
+        self.verbose = verbose
+        self.seed = seed
+        if seed is not None:
+            np.random.seed(seed)
+
+    def _rsp_step_column(self, A: np.ndarray, X: np.ndarray) -> np.ndarray:
+        # One RSP-Q column step using thin QR
+        m, n = A.shape
+        # Draw right sketch Omega (n x r)
+        real = np.random.randn(n, self.r)
+        ii = np.random.randn(n, self.r)
+        jj = np.random.randn(n, self.r)
+        kk = np.random.randn(n, self.r)
+        Omega = quaternion.as_quat_array(np.stack([real, ii, jj, kk], axis=-1))
+        Y = quat_matmat(A, Omega)
+        R_id = Omega - quat_matmat(X, Y)
+        # Y = U R
+        try:
+            try:
+                from .decomp.qsvd import qr_qua
+            except Exception:
+                from core.decomp.qsvd import qr_qua
+            U, R = qr_qua(Y)
+            U_H = quat_hermitian(U)
+            Z = _solve_upper_triangular_quat(R, U_H)
+            return X + quat_matmat(R_id, Z)
+        except Exception:
+            return X  # skip on failure
+
+    def _ns_hyperpower_right(self, A: np.ndarray, X: np.ndarray) -> np.ndarray:
+        # One exact NS/hyperpower step on right residual: X <- (sum_{i=0}^{p-1} F^i) X, F = I - X A
+        n = A.shape[1]
+        I = quat_eye(n)
+        F = I - quat_matmat(X, A)
+        # Accumulate S = I + F + F^2 + ... + F^{p-1}
+        S = I.copy()
+        F_power = F.copy()
+        for _ in range(1, self.p):
+            S = S + F_power
+            F_power = quat_matmat(F_power, F)
+        return quat_matmat(S, X)
+
+    def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        m, n = A.shape
+        if m < n:
+            raise ValueError("HybridRSPNewtonSchulz currently supports column variant (m >= n)")
+        # Init X = alpha A^H
+        A_H = quat_hermitian(A)
+        alpha = 1.0 / max(quat_frobenius_norm(A) ** 2, 1e-16)
+        X = alpha * A_H
+        # Test sketch Pi and A Pi
+        real = np.random.randn(n, min(6, n))
+        ii = np.random.randn(n, min(6, n))
+        jj = np.random.randn(n, min(6, n))
+        kk = np.random.randn(n, min(6, n))
+        Pi = quaternion.as_quat_array(np.stack([real, ii, jj, kk], axis=-1))
+        A_Pi = quat_matmat(A, Pi)
+        Pi_norm = max(quat_frobenius_norm(Pi), 1e-30)
+
+        iter_rsp = 0
+        residuals = []
+        t0 = time.time()
+        while iter_rsp < self.max_iter:
+            # T randomized steps
+            for _ in range(self.T):
+                X = self._rsp_step_column(A, X)
+                iter_rsp += 1
+                # Check convergence proxy occasionally
+                if iter_rsp % 10 == 0:
+                    proxy = quat_frobenius_norm(Pi - quat_matmat(X, A_Pi)) / Pi_norm
+                    residuals.append(proxy)
+                    if self.verbose:
+                        print(f"[Hybrid] iter={iter_rsp} proxy={proxy:.2e}")
+                    if proxy <= self.tol:
+                        break
+            # Hyperpower step
+            X = self._ns_hyperpower_right(A, X)
+            proxy = quat_frobenius_norm(Pi - quat_matmat(X, A_Pi)) / Pi_norm
+            residuals.append(proxy)
+            if self.verbose:
+                print(f"[Hybrid] after-NS proxy={proxy:.2e}")
+            if proxy <= self.tol:
+                break
+
+        info = {
+            'iterations_rsp': iter_rsp,
+            'residual_norms': residuals,
+            'total_time': time.time() - t0,
+            'converged': (residuals[-1] <= self.tol) if residuals else False,
+            'r': self.r,
+            'p': self.p,
+            'T': self.T,
+        }
+        return X, info
+
+
