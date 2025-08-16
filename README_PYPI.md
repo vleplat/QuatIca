@@ -57,12 +57,16 @@ A_pinv, residuals, metrics = ns_solver.compute(A)
 
 # Decompositions
 Q, R = qr_qua(A)  # QR decomposition
-U, s, V = classical_qsvd(A, rank=2)  # SVD decomposition
+U, s, V = classical_qsvd(A, R=2)  # SVD decomposition
 
 # Linear system solving
-b = create_test_matrix(4, 1)
+A = create_test_matrix(3, 3)
+x_true = create_test_matrix(3, 1)
+b = quat_matmat(A, x_true)
 qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100)
 x, info = qgmres_solver.solve(A, b)
+print("Solution x shape:", x.shape)
+print("Convergence info:", info)
 
 print("✅ QuatIca is working!")
 ```
@@ -128,7 +132,10 @@ Q, R = qr_qua(A)
 U, s, V = classical_qsvd_full(A)
 
 # Eigendecomposition (Hermitian matrices)
-A_herm = A + quat_hermitian(A)  # Make Hermitian
+# Create a Hermitian matrix A = B^H @ B
+A = create_test_matrix(4, 3)
+A_H = quat_hermitian(A)
+A_herm = quat_matmat(A_H, A)
 eigenvals, eigenvecs = quaternion_eigendecomposition(A_herm)
 
 # LU decomposition
