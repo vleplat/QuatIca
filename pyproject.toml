@@ -22,12 +22,6 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-[project.urls]
-Homepage = "https://vleplat.github.io/QuatIca/"
-Documentation = "https://vleplat.github.io/QuatIca/"
-Repository = "https://github.com/vleplat/QuatIca"
-"Bug Tracker" = "https://github.com/vleplat/QuatIca/issues"
-"Colab Demo" = "https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing"
 dependencies = [
     "matplotlib>=3.10.3",
     "numpy>=2.3.2",
@@ -36,6 +30,13 @@ dependencies = [
     "scipy>=1.16.1",
     "seaborn>=0.13.0",
 ]
+
+[project.urls]
+Homepage = "https://vleplat.github.io/QuatIca/"
+Documentation = "https://vleplat.github.io/QuatIca/"
+Repository = "https://github.com/vleplat/QuatIca"
+"Bug Tracker" = "https://github.com/vleplat/QuatIca/issues"
+"Colab Demo" = "https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing"
 
 [dependency-groups]
 dev = [
