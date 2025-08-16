@@ -164,9 +164,9 @@ def create_pauli_matrices():
     sigma_x_array[0, 1, 0] = 1.0  # (0,1) real
     sigma_x_array[1, 0, 0] = 1.0  # (1,0) real
     
-    # Convert to quaternion arrays
-    sigma_0 = quaternion.as_quat_array(sigma_0_array.reshape(-1, 4)).reshape(2, 2)
-    sigma_x = quaternion.as_quat_array(sigma_x_array.reshape(-1, 4)).reshape(2, 2)
+    # Convert to quaternion arrays (simplified approach)
+    sigma_0 = quaternion.as_quat_array(sigma_0_array)
+    sigma_x = quaternion.as_quat_array(sigma_x_array)
     
     return sigma_0, sigma_x
 
