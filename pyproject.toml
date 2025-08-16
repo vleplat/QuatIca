@@ -1,6 +1,6 @@
 [project]
 name = "quatica"
-version = "0.0.3"
+version = "0.0.4a1"
 description = "Quatica core package"
 authors = [{name = "Your Name", email = "you@example.com"}]
 license = { text = "MIT" }
