@@ -5,13 +5,13 @@ Unit tests for basic quaternion tensor utilities: norms and mode-n unfolding/fol
 
 import os
 import sys
+
 import numpy as np
 import quaternion  # type: ignore
-import pytest
 
 # Path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
-from tensor import tensor_frobenius_norm, tensor_entrywise_abs, tensor_unfold, tensor_fold
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "quatica"))
+from tensor import tensor_entrywise_abs, tensor_fold, tensor_frobenius_norm, tensor_unfold
 
 
 def random_quat_tensor(shape, seed=0):
@@ -41,4 +41,5 @@ def test_tensor_norms_and_unfold_fold():
         T_back = tensor_fold(M, mode, (I, J, K))
         # Exact equality should hold (no arithmetic changes)
         assert T_back.shape == T.shape
+        assert np.all(quaternion.as_float_array(T_back) == quaternion.as_float_array(T))
         assert np.all(quaternion.as_float_array(T_back) == quaternion.as_float_array(T))

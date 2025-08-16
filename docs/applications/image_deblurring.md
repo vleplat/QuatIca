@@ -7,7 +7,7 @@ Comprehensive guide to quaternion-based image deblurring using QSLST and Newton-
 QuatIca provides state-of-the-art quaternion methods for image deblurring, comparing:
 
 - **QSLST-FFT**: Fast FFT-based Tikhonov regularization
-- **QSLST-Matrix**: Matrix-based Tikhonov implementation  
+- **QSLST-Matrix**: Matrix-based Tikhonov implementation
 - **Newton-Schulz (NS)**: Iterative pseudoinverse method
 - **Higher-Order NS (HON)**: Cubic convergence variant
 
@@ -26,7 +26,7 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode 
 ```bash
 # Image size
 --size 32          # 32×32 grid (fast)
---size 64          # 64×64 grid (recommended)  
+--size 64          # 64×64 grid (recommended)
 --size 128         # 128×128 grid (high quality)
 
 # Regularization
@@ -114,7 +114,7 @@ for each frequency (u,v):
 
 **PSNR (Peak Signal-to-Noise Ratio)**: Higher is better
 - **Excellent**: >40 dB
-- **Good**: 30-40 dB  
+- **Good**: 30-40 dB
 - **Acceptable**: 20-30 dB
 
 **SSIM (Structural Similarity)**: Higher is better (0-1 range)
@@ -162,7 +162,7 @@ python run_analysis.py image_deblurring --lam 1e-1  # More smoothing
 ### Generated Files (in `output_figures/`)
 
 1. **`image_deblurring_comparison.png`**: Side-by-side results
-2. **`image_deblurring_metrics.png`**: PSNR/SSIM comparison  
+2. **`image_deblurring_metrics.png`**: PSNR/SSIM comparison
 3. **`image_deblurring_timing.png`**: Performance analysis
 
 ### Reading the Results
@@ -175,7 +175,7 @@ python run_analysis.py image_deblurring --lam 1e-1  # More smoothing
 
 **Metrics Table**:
 - **PSNR**: Image quality (higher = better)
-- **SSIM**: Structural similarity (closer to 1 = better)  
+- **SSIM**: Structural similarity (closer to 1 = better)
 - **Time**: Processing time (lower = faster)
 
 ## 🔧 Advanced Usage
@@ -268,7 +268,7 @@ python run_analysis.py image_deblurring \
 
 ### For Fast Prototyping
 ```bash
-# Quick testing settings  
+# Quick testing settings
 python run_analysis.py image_deblurring \
     --size 32 \
     --lam 1e-3 \

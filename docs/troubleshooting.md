@@ -9,6 +9,7 @@ Common issues and solutions for QuatIca setup and usage.
 **Problem**: Python is not installed or not in PATH.
 
 **Solutions**:
+
 ```bash
 # Try python3 instead
 python3 --version
@@ -30,6 +31,7 @@ sudo apt update && sudo apt install python3 python3-pip
 **Problem**: pip is not installed or not accessible.
 
 **Solutions**:
+
 ```bash
 # Use python -m pip instead
 python -m pip --version
@@ -46,6 +48,7 @@ sudo apt install python3-pip
 **Problem**: Trying to install to system Python without permissions.
 
 **Solutions**:
+
 ```bash
 # Use virtual environment (RECOMMENDED)
 python3 -m venv quatica
@@ -66,12 +69,14 @@ pip install --user -r requirements.txt
 **Problem**: Using old numpy version (significant performance impact).
 
 **Diagnosis**:
+
 ```bash
 # Check numpy version
 python -c "import numpy; print(f'numpy version: {numpy.__version__}')"
 ```
 
 **Solution**:
+
 ```bash
 # Upgrade to numpy>=2.3.2 (CRITICAL for performance)
 pip install --upgrade "numpy>=2.3.2"
@@ -81,13 +86,14 @@ python -c "import numpy; print(f'numpy version: {numpy.__version__}')"
 ```
 
 !!! warning "Performance Impact"
-    numpy 2.3.2 provides **10-15x speedup** for quaternion operations compared to version 2.2.6. Using older versions will result in dramatically slower performance.
+numpy 2.3.2 provides **10-15x speedup** for quaternion operations compared to version 2.2.6. Using older versions will result in dramatically slower performance.
 
 ### "Memory error" during computation
 
 **Problem**: Insufficient RAM for large matrix operations.
 
 **Solutions**:
+
 ```bash
 # Use smaller problem sizes
 python run_analysis.py lorenz_signal --num_points 100  # Instead of 500
@@ -104,6 +110,7 @@ python run_analysis.py image_deblurring --size 32  # Instead of 128
 **Problem**: opencv-python and tqdm cause 3x performance degradation.
 
 **Diagnosis**:
+
 ```bash
 # Check if problematic packages are installed
 pip list | grep opencv
@@ -111,6 +118,7 @@ pip list | grep tqdm
 ```
 
 **Solution**:
+
 ```bash
 # Remove if not needed
 pip uninstall opencv-python tqdm
@@ -128,16 +136,18 @@ pip install -r requirements.txt  # Only core dependencies
 **Problem**: Python can't find QuatIca core modules.
 
 **Diagnosis**:
+
 ```bash
 # Check if you're in the right directory
 pwd
-ls  # Should see run_analysis.py, core/, tests/, etc.
+ls  # Should see run_analysis.py, quatica/, tests/, etc.
 
 # Check if virtual environment is activated
 echo $VIRTUAL_ENV  # Should show path to quatica environment
 ```
 
 **Solutions**:
+
 ```bash
 # Make sure you're in the QuatIca directory
 cd /path/to/QuatIca
@@ -149,7 +159,7 @@ source quatica/bin/activate  # Mac/Linux
 # Should see (quatica) in your prompt
 
 # Test import
-python -c "from core.utils import quat_matmat; print('Import successful')"
+python -c "from quatica.utils import quat_matmat; print('Import successful')"
 ```
 
 ### "ImportError" for quaternion
@@ -157,6 +167,7 @@ python -c "from core.utils import quat_matmat; print('Import successful')"
 **Problem**: numpy-quaternion not installed properly.
 
 **Solutions**:
+
 ```bash
 # Install quaternion library
 pip install numpy-quaternion
@@ -175,6 +186,7 @@ python -c "import quaternion; print('Quaternion library working')"
 **Problem**: Scripts can't be found or executed.
 
 **Solutions**:
+
 ```bash
 # Always run from QuatIca root directory
 cd /path/to/QuatIca
@@ -192,6 +204,7 @@ python applications/image_completion/script_real_image_completion.py
 **Problem**: Figures not being saved or displayed.
 
 **Diagnosis**:
+
 ```bash
 # Check if output_figures directory exists
 ls -la | grep output_figures
@@ -201,6 +214,7 @@ python -c "import matplotlib; print(f'Backend: {matplotlib.get_backend()}')"
 ```
 
 **Solutions**:
+
 ```bash
 # Create output directory if missing
 mkdir -p output_figures validation_output
@@ -224,12 +238,13 @@ python run_analysis.py tutorial
 **Problem**: Quaternion components not displaying correctly.
 
 **Solutions**:
+
 ```bash
 # Test basic quaternion operations
 python -c "
 import numpy as np
 import quaternion
-from core.utils import quat_frobenius_norm
+from quatica.utils import quat_frobenius_norm
 A = quaternion.as_quat_array(np.random.randn(3, 3, 4))
 print(f'Matrix shape: {A.shape}')
 print(f'Norm: {quat_frobenius_norm(A):.6f}')
@@ -244,6 +259,7 @@ print('Quaternion operations working')
 **Problem**: Tests not passing when run manually.
 
 **Diagnosis**:
+
 ```bash
 # Run specific test with verbose output
 python -m pytest tests/unit/test_basic_algebra.py -v
@@ -257,6 +273,7 @@ print(f'Python path: {sys.path[:3]}...')
 ```
 
 **Solutions**:
+
 ```bash
 # Make sure you're in the right environment and directory
 source quatica/bin/activate
@@ -274,10 +291,11 @@ python tests/unit/test_basic_algebra.py
 **Problem**: Q-GMRES solver not converging or giving poor results.
 
 **Solutions**:
+
 ```bash
 # Try with LU preconditioning
 python -c "
-from core.solver import QGMRESSolver
+from quatica.solver import QGMRESSolver
 solver = QGMRESSolver(preconditioner='left_lu', verbose=True)
 # Use solver...
 "
@@ -291,7 +309,7 @@ solver = QGMRESSolver(max_iter=200, tol=1e-8)
 # Check matrix conditioning
 python -c "
 import numpy as np
-from core.utils import matrix_norm
+from quatica.utils import matrix_norm
 # Check condition number of your matrix
 print(f'Matrix 1-norm: {matrix_norm(A, 1)}')
 print(f'Matrix inf-norm: {matrix_norm(A, np.inf)}')
@@ -305,6 +323,7 @@ print(f'Matrix inf-norm: {matrix_norm(A, np.inf)}')
 **Problem**: Usually related to numpy/BLAS configuration.
 
 **Solutions**:
+
 ```bash
 # Update numpy and dependencies
 pip install --upgrade numpy scipy
@@ -322,17 +341,18 @@ pip list | grep -E "(mkl|openblas|atlas)"
 **Problem**: Ill-conditioned matrices causing numerical warnings.
 
 **Solutions**:
+
 ```bash
 # Use regularization for better conditioning
 python -c "
-from core.solver import NewtonSchulzPseudoinverse
+from quatica.solver import NewtonSchulzPseudoinverse
 solver = NewtonSchulzPseudoinverse(gamma=0.5)  # Damping
 # This improves stability for ill-conditioned matrices
 "
 
 # For Q-GMRES, use preconditioning
 python -c "
-from core.solver import QGMRESSolver
+from quatica.solver import QGMRESSolver
 solver = QGMRESSolver(preconditioner='left_lu')
 "
 ```
@@ -342,6 +362,7 @@ solver = QGMRESSolver(preconditioner='left_lu')
 **Problem**: Harmless warnings from seaborn or other libraries.
 
 **Solution**:
+
 ```bash
 # These warnings are normal and don't affect functionality
 # To suppress warnings (optional):
@@ -359,6 +380,7 @@ warnings.filterwarnings('ignore')
 **Problem**: Environment not working correctly.
 
 **Solutions**:
+
 ```bash
 # Recreate environment from scratch
 rm -rf quatica  # Remove old environment
@@ -431,8 +453,8 @@ python run_analysis.py tutorial 2>&1 | tee error_log.txt
 python -c "
 import numpy as np
 import quaternion
-from core.utils import quat_matmat, quat_frobenius_norm
-from core.solver import NewtonSchulzPseudoinverse
+from quatica.utils import quat_matmat, quat_frobenius_norm
+from quatica.solver import NewtonSchulzPseudoinverse
 
 print('Testing core functionality...')
 A = quaternion.as_quat_array(np.random.randn(4, 4, 4))

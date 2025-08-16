@@ -14,27 +14,27 @@
 # ---
 
 # # QuatIca Core Functionality Demo
-# 
+#
 # This notebook demonstrates all the core functionality examples from the README.
 # Run each cell to see the code in action!
 
 # ## Setup and Imports
 
 import sys
-import os
+
+import matplotlib.pyplot as plt
 import numpy as np
 import quaternion
-import matplotlib.pyplot as plt
 
 # Add the core module to the path
-sys.path.append('core')
+sys.path.append("quatica")
 
 print("✅ All imports successful!")
 
 # ## 1. 🧮 Basic Matrix Operations
 
-from core.utils import quat_matmat, quat_frobenius_norm
-from core.data_gen import create_test_matrix
+from quatica.data_gen import create_test_matrix
+from quatica.utils import quat_frobenius_norm, quat_matmat
 
 # Create test matrices
 A = create_test_matrix(3, 4)
@@ -54,7 +54,7 @@ print("✅ Basic matrix operations work!")
 
 # ## 2. 📐 QR Decomposition
 
-from core.decomp.qsvd import qr_qua
+from quatica.decomp.qsvd import qr_qua
 
 # Create a test matrix
 X_quat = create_test_matrix(4, 3)
@@ -74,7 +74,7 @@ print("✅ QR decomposition works!")
 
 # ## 3. 🔍 Quaternion SVD (Q-SVD)
 
-from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
+from quatica.decomp.qsvd import classical_qsvd, classical_qsvd_full
 
 # Create a test matrix
 X_quat = create_test_matrix(5, 4)
@@ -99,8 +99,8 @@ print("✅ Q-SVD works!")
 
 # ## 4. 🎲 Randomized Q-SVD
 
-from core.decomp.qsvd import rand_qsvd
-from core.utils import quat_hermitian
+from quatica.decomp.qsvd import rand_qsvd
+from quatica.utils import quat_hermitian
 
 # Create a test matrix
 X_quat = create_test_matrix(8, 6)
@@ -113,13 +113,13 @@ print(f"Target rank R = {R}")
 # Test with different power iterations
 for n_iter in [1, 2, 3]:
     print(f"\nTesting with {n_iter} power iteration(s):")
-    
+
     U, s, V = rand_qsvd(X_quat, R, oversample=5, n_iter=n_iter)
     print(f"  U shape: {U.shape}")
     print(f"  V shape: {V.shape}")
     print(f"  s shape: {s.shape}")
     print(f"  Singular values: {s}")
-    
+
     # Test reconstruction
     S_diag = np.diag(s)
     X_recon = quat_matmat(quat_matmat(U, S_diag), quat_hermitian(V))
@@ -140,8 +140,12 @@ print("✅ Randomized Q-SVD works!")
 
 # ## 5. 🔢 Eigenvalue Decomposition
 
-from core.decomp import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
-from core.utils import quat_hermitian
+from quatica.decomp import (
+    quaternion_eigendecomposition,
+    quaternion_eigenvalues,
+    quaternion_eigenvectors,
+)
+from quatica.utils import quat_hermitian
 
 # Create a Hermitian matrix A = B^H @ B
 B = create_test_matrix(4, 3)
@@ -172,7 +176,7 @@ print("✅ Eigenvalue decomposition works!")
 
 # ## 6. 🔧 LU Decomposition
 
-from core.decomp import quaternion_lu, verify_lu_decomposition
+from quatica.decomp import quaternion_lu
 
 # Create a test matrix (set to 300x600 to validate rectangular LU)
 A = create_test_matrix(300, 600)
@@ -226,13 +230,17 @@ print("  U (pivoted) is upper-triangular:", is_Up_upper)
 P_T_L_float = quaternion.as_float_array(P_T_L)
 P_T_L_real = P_T_L_float[:, :, 0]
 is_P_T_L_lower_triangular = np.allclose(P_T_L_real, np.tril(P_T_L_real), atol=1e-12)
-print("  P^T * L is lower triangular:", is_P_T_L_lower_triangular, "(only when no pivoting needed)")
+print(
+    "  P^T * L is lower triangular:",
+    is_P_T_L_lower_triangular,
+    "(only when no pivoting needed)",
+)
 
 print("✅ LU decomposition works!")
 
 # ## 7. Tridiagonalization
 
-from core.decomp import tridiagonalize
+from quatica.decomp import tridiagonalize
 
 # Use the same Hermitian matrix from above
 print("Hermitian matrix A shape:", A_quat.shape)
@@ -253,7 +261,7 @@ print("✅ Tridiagonalization works!")
 
 # ## 8. Pseudoinverse Computation
 
-from core.solver import NewtonSchulzPseudoinverse
+from quatica.solver import NewtonSchulzPseudoinverse
 
 # Create a test matrix
 A = create_test_matrix(3, 4)
@@ -273,7 +281,7 @@ print("✅ Pseudoinverse computation works!")
 
 # ## 9. Linear System Solving
 
-from core.solver import QGMRESSolver
+from quatica.solver import QGMRESSolver
 
 # Create a square system A * x = b
 A = create_test_matrix(3, 3)
@@ -296,7 +304,7 @@ print("✅ Linear system solving works!")
 
 # ## 10. Visualization
 
-from core.visualization import Visualizer
+from quatica.visualization import Visualizer
 
 # Create a test matrix
 A = create_test_matrix(4, 4)
@@ -310,12 +318,12 @@ print("✅ Visualization works!")
 
 # ## 11. Determinant and Rank Computation
 
-from core.utils import det, rank
-from core.data_gen import generate_random_unitary_matrix
+from quatica.data_gen import generate_random_unitary_matrix
+from quatica.utils import det, rank
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("DETERMINANT AND RANK COMPUTATION DEMONSTRATIONS")
-print("="*60)
+print("=" * 60)
 
 # ### 10.1 Determinant Demo: Unitary Matrix with Known Determinant
 
@@ -327,7 +335,7 @@ U = generate_random_unitary_matrix(n)
 print(f"Generated unitary matrix U of size {n}×{n}")
 
 # Compute Dieudonné determinant
-det_dieudonne = det(U, 'Dieudonne')
+det_dieudonne = det(U, "Dieudonne")
 print(f"Dieudonné determinant: {det_dieudonne:.6f}")
 
 # Expected determinant for unitary matrix should be close to 1
@@ -390,12 +398,12 @@ print("✅ All rank examples work correctly!")
 
 # ## 12. Power Iteration for Dominant Eigenvector
 
-from core.utils import power_iteration
-from core.decomp.eigen import quaternion_eigendecomposition
+from quatica.decomp.eigen import quaternion_eigendecomposition
+from quatica.utils import power_iteration
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("POWER ITERATION FOR DOMINANT EIGENVECTOR")
-print("="*60)
+print("=" * 60)
 
 # ### 11.1 Power Iteration Demo: Comparison with Eigendecomposition
 
@@ -408,7 +416,9 @@ print(f"Created Hermitian matrix A of size {A.shape}")
 
 # Run power iteration
 print("\nRunning power iteration...")
-power_eigenvector, power_eigenvalue = power_iteration(A, return_eigenvalue=True, verbose=True)
+power_eigenvector, power_eigenvalue = power_iteration(
+    A, return_eigenvalue=True, verbose=True
+)
 
 # Run eigendecomposition
 print("\nRunning eigendecomposition...")
@@ -417,9 +427,9 @@ eigenvalues, eigenvectors = quaternion_eigendecomposition(A, verbose=False)
 # Find dominant eigenvalue and eigenvector
 dominant_idx = np.argmax(np.abs(eigenvalues))
 dominant_eigenvalue = eigenvalues[dominant_idx]
-dominant_eigenvector = eigenvectors[:, dominant_idx:dominant_idx+1]
+dominant_eigenvector = eigenvectors[:, dominant_idx : dominant_idx + 1]
 
-print(f"\nComparison Results:")
+print("\nComparison Results:")
 print(f"Power iteration eigenvalue: {power_eigenvalue:.6f}")
 print(f"Eigendecomposition dominant eigenvalue: {dominant_eigenvalue:.6f}")
 print(f"Eigenvalue difference: {abs(power_eigenvalue - abs(dominant_eigenvalue)):.2e}")
@@ -452,35 +462,36 @@ print("\n--- Performance Across Matrix Sizes ---")
 sizes = [3, 6, 9]
 for size in sizes:
     print(f"\nTesting {size}×{size} matrix:")
-    
+
     # Create test matrix
     B = create_test_matrix(size, size)
     A = quat_matmat(quat_hermitian(B), B)
-    
+
     # Time power iteration
     import time
+
     start_time = time.time()
     eigenvector, eigenvalue = power_iteration(A, return_eigenvalue=True, verbose=False)
     power_time = time.time() - start_time
-    
+
     # Time eigendecomposition
     start_time = time.time()
     eigenvalues, eigenvectors = quaternion_eigendecomposition(A, verbose=False)
     decomp_time = time.time() - start_time
-    
+
     print(f"  Power iteration: {power_time:.3f}s")
     print(f"  Eigendecomposition: {decomp_time:.3f}s")
-    print(f"  Speedup: {decomp_time/power_time:.1f}x faster")
+    print(f"  Speedup: {decomp_time / power_time:.1f}x faster")
 
 print("✅ Power iteration performance analysis complete!")
 
 # ## 14. 🔬 Advanced Eigenvalue Methods
 
-from core.utils import power_iteration_nonhermitian
+from quatica.utils import power_iteration_nonhermitian
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("COMPLEX POWER ITERATION (ENHANCED WITH VALIDATION)")
-print("="*60)
+print("=" * 60)
 
 # ## 12b.1 Hermitian Case - More reliable convergence
 print("\n--- HERMITIAN CASE ---")
@@ -500,11 +511,15 @@ q_vec, lambda_complex, residuals = power_iteration_nonhermitian(
 )
 
 # Print eigenvalue - should be real for Hermitian matrix
-lam_q = quaternion.quaternion(float(np.real(lambda_complex)), float(np.imag(lambda_complex)), 0.0, 0.0)
+lam_q = quaternion.quaternion(
+    float(np.real(lambda_complex)), float(np.imag(lambda_complex)), 0.0, 0.0
+)
 print(f"Estimated dominant eigenvalue: {lambda_complex}")
 print(f"As quaternion (x-axis subfield): {lam_q}")
 print(f"Imaginary part (should be ~0 for Hermitian): {abs(np.imag(lambda_complex)):.2e}")
-print(f"Residual final: {residuals[-1] if residuals else float('nan'):.3e} | steps: {len(residuals)}")
+print(
+    f"Residual final: {residuals[-1] if residuals else float('nan'):.3e} | steps: {len(residuals)}"
+)
 
 # Plot residual convergence for Hermitian case
 plt.figure(figsize=(12, 4))
@@ -519,6 +534,7 @@ plt.grid(True, which="both", ls=":")
 # ## 12b.2 Synthetic Unitary Similarity Case - A = P S P^H
 print("\n--- SYNTHETIC UNITARY SIMILARITY CASE ---")
 
+
 def complex_to_quaternion_matrix(C):
     """Convert complex matrix to quaternion matrix (x-axis subfield)."""
     m, n = C.shape
@@ -530,19 +546,24 @@ def complex_to_quaternion_matrix(C):
             Q[i, j] = quaternion.quaternion(a, b, 0.0, 0.0)
     return Q
 
+
 def random_complex_unitary(n, rng):
     """Generate random complex unitary matrix."""
     X = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
     Q_complex, _ = np.linalg.qr(X)
     return Q_complex
 
+
 def build_diagonal_complex_quat(values):
     """Build diagonal quaternion matrix from complex values."""
     n = values.shape[0]
     S = np.zeros((n, n), dtype=np.quaternion)
     for i, lam in enumerate(values):
-        S[i, i] = quaternion.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
+        S[i, i] = quaternion.quaternion(
+            float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0
+        )
     return S
+
 
 # Build synthetic A = P S P^H with known spectrum
 rng = np.random.default_rng(1)
@@ -567,14 +588,18 @@ q_vec_synth, lam_synth, residuals_synth = power_iteration_nonhermitian(
 )
 
 # Validate against known spectrum (up to conjugate)
-dists = [abs(lam_synth - ev) for ev in spectrum_vals] + [abs(lam_synth - np.conjugate(ev)) for ev in spectrum_vals]
+dists = [abs(lam_synth - ev) for ev in spectrum_vals] + [
+    abs(lam_synth - np.conjugate(ev)) for ev in spectrum_vals
+]
 min_dist = min(dists)
 scale = max(1e-12, max(abs(ev) for ev in spectrum_vals))
 rel_error = min_dist / scale
 
 print(f"Estimated eigenvalue: {lam_synth}")
 print(f"Relative error to known spectrum: {rel_error:.2e}")
-print(f"Residual final: {residuals_synth[-1] if residuals_synth else float('nan'):.3e} | steps: {len(residuals_synth)}")
+print(
+    f"Residual final: {residuals_synth[-1] if residuals_synth else float('nan'):.3e} | steps: {len(residuals_synth)}"
+)
 
 # Plot residual convergence for synthetic case
 plt.subplot(1, 2, 2)
@@ -592,12 +617,13 @@ print("✅ Enhanced complex power iteration with validation complete!")
 
 # ## 15. 🧮 Schur Decomposition
 
-from core.decomp.schur import quaternion_schur_unified
-from core.utils import quat_eye
+from quatica.decomp.schur import quaternion_schur_unified
+from quatica.utils import quat_eye
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("SCHUR DECOMPOSITION (SYNTHETIC UNITARY SIMILARITY)")
-print("="*60)
+print("=" * 60)
+
 
 # Build synthetic A = P S P^H with known spectrum for validation
 def complex_to_quaternion_matrix_schur(C):
@@ -611,24 +637,30 @@ def complex_to_quaternion_matrix_schur(C):
             Q[i, j] = quaternion.quaternion(a, b, 0.0, 0.0)
     return Q
 
+
 def random_complex_unitary_schur(n, rng):
     """Generate random complex unitary matrix."""
     X = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
     Q_complex, _ = np.linalg.qr(X)
     return Q_complex
 
+
 def build_diagonal_complex_quat_schur(values):
     """Build diagonal quaternion matrix from complex values."""
     n = values.shape[0]
     S = np.zeros((n, n), dtype=np.quaternion)
     for i, lam in enumerate(values):
-        S[i, i] = quaternion.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
+        S[i, i] = quaternion.quaternion(
+            float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0
+        )
     return S
+
 
 def quat_abs_matrix(T):
     """Compute |T| matrix with entrywise quaternion magnitudes."""
     Tf = quaternion.as_float_array(T)
     return np.sqrt(np.sum(Tf**2, axis=2))
+
 
 # Synthetic construction A = P S P^H
 rng = np.random.default_rng(0)
@@ -644,46 +676,49 @@ print(f"Known spectrum: {[f'{v:.3f}' for v in vals[:3]]}... (showing first 3)")
 
 # Schur decomposition
 Q_schur, T_schur, diag_schur = quaternion_schur_unified(
-    A_schur, 
-    variant="rayleigh", 
-    max_iter=2000, 
-    tol=1e-10, 
-    return_diagnostics=True
+    A_schur, variant="rayleigh", max_iter=2000, tol=1e-10, return_diagnostics=True
 )
 
 # Validation metrics
-sim_error = quat_frobenius_norm(quat_matmat(quat_hermitian(Q_schur), quat_matmat(A_schur, Q_schur)) - T_schur)
-unit_error = quat_frobenius_norm(quat_matmat(quat_hermitian(Q_schur), Q_schur) - quat_eye(n_schur))
+sim_error = quat_frobenius_norm(
+    quat_matmat(quat_hermitian(Q_schur), quat_matmat(A_schur, Q_schur)) - T_schur
+)
+unit_error = quat_frobenius_norm(
+    quat_matmat(quat_hermitian(Q_schur), Q_schur) - quat_eye(n_schur)
+)
 
 # Check upper triangular structure
 below_diag_max = 0.0
 for i in range(n_schur):
     for j in range(0, i):
         q = T_schur[i, j]
-        below_diag_max = max(below_diag_max, (q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z)**0.5)
+        below_diag_max = max(
+            below_diag_max, (q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z) ** 0.5
+        )
 
 print(f"Similarity error ||Q^H A Q - T||_F: {sim_error:.3e}")
 print(f"Unitarity error ||Q^H Q - I||_F: {unit_error:.3e}")
 print(f"Below diagonal maximum: {below_diag_max:.3e}")
 
 # Visualize |T| matrix
-from core.visualization import Visualizer
+from quatica.visualization import Visualizer
+
 Visualizer.visualize_matrix(T_schur, component=0, title="Schur T - Real Component")
 
 print("✅ Schur decomposition with synthetic validation complete!")
 
 # ## 16. 📊 Tensor Operations
 
-from core.tensor import (
-    tensor_frobenius_norm,
+from quatica.tensor import (
     tensor_entrywise_abs,
-    tensor_unfold,
     tensor_fold,
+    tensor_frobenius_norm,
+    tensor_unfold,
 )
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("QUATERNION TENSOR ALGEBRA AND DECOMPOSITIONS")
-print("="*60)
+print("=" * 60)
 
 # Build random order-3 quaternion tensor
 I, J, K = 5, 4, 6
@@ -697,7 +732,7 @@ print(f"Frobenius-like norm ||T||_F: {tensor_frobenius_norm(T_tensor):.6f}")
 k = 2
 Abs = tensor_entrywise_abs(T_tensor)
 plt.figure(figsize=(6, 4))
-plt.imshow(Abs[:, :, k], cmap='viridis', aspect='auto')
+plt.imshow(Abs[:, :, k], cmap="viridis", aspect="auto")
 plt.title(f"|T| slice at k={k}")
 plt.colorbar(fraction=0.046, pad=0.04)
 plt.tight_layout()
@@ -713,15 +748,17 @@ ok = np.all(quaternion.as_float_array(T_back) == quaternion.as_float_array(T_ten
 print(f"Unfold/fold round-trip exact equality: {ok}")
 
 print("✅ Tensor operations complete!")
-print("Preview complete — tensor tools lay the groundwork for future tensor decompositions (e.g., HOSVD, TT, Tucker) in quaternion space.")
+print(
+    "Preview complete — tensor tools lay the groundwork for future tensor decompositions (e.g., HOSVD, TT, Tucker) in quaternion space."
+)
 
 # ## 13. 🔧 Hessenberg Form (Upper Hessenberg Reduction)
 
-from core.decomp.hessenberg import hessenbergize, is_hessenberg
+from quatica.decomp.hessenberg import hessenbergize, is_hessenberg
 
-print("\n" + "="*60)
+print("\n" + "=" * 60)
 print("HESSENBERG FORM (UPPER HESSENBERG REDUCTION)")
-print("="*60)
+print("=" * 60)
 
 # Create a random quaternion matrix (general, non-Hermitian)
 X = create_test_matrix(6, 6)
@@ -749,7 +786,8 @@ print(f"  Similarity error ||P X P^H - H||_F: {sim_error:.2e}")
 print("  is_hessenberg(H):", is_hessenberg(H))
 
 # Visualize the real component to illustrate Hessenberg pattern
-from core.visualization import Visualizer
+from quatica.visualization import Visualizer
+
 Visualizer.visualize_matrix(H, component=0, title="Hessenberg H - Real Component")
 
 # ## Summary
@@ -772,4 +810,4 @@ print("✅ Hessenberg form")
 print("✅ Advanced eigenvalue methods")
 print("✅ Schur decomposition")
 print("✅ Tensor operations")
-print("\nThe code examples in the README are working correctly! 🚀") 
+print("\nThe code examples in the README are working correctly! 🚀")

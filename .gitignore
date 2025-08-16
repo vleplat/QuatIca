@@ -34,7 +34,7 @@ venv.bak/
 .idea/
 
 # VS Code
-.vscode/
+# .vscode/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -100,7 +100,7 @@ dmypy.json
 # mkdocs documentation
 
 # Development notes and insights (not for git)
-core/decomp/*_insights.txt
+quatica/decomp/*_insights.txt
 /site
 
 # Educational notebooks (local development)

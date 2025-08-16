@@ -5,14 +5,22 @@ Unit tests for quaternion Hessenberg reduction.
 
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import unittest
+
 import numpy as np
 import quaternion  # type: ignore
 
-from core.decomp.hessenberg import hessenbergize, is_hessenberg
-from core.utils import quat_matmat, quat_frobenius_norm, quat_hermitian, real_expand, quat_eye
+from quatica.decomp.hessenberg import hessenbergize, is_hessenberg
+from quatica.utils import (
+    quat_eye,
+    quat_frobenius_norm,
+    quat_hermitian,
+    quat_matmat,
+    real_expand,
+)
 
 
 def random_quaternion_matrix(n: int, seed: int = 0) -> np.ndarray:
@@ -38,8 +46,8 @@ class TestHessenberg(unittest.TestCase):
             for j in range(n):
                 if i > j + 1:
                     bi, bj = 4 * i, 4 * j
-                    block = R[bi:bi+4, bj:bj+4]
-                    self.assertLessEqual(np.linalg.norm(block, ord='fro'), atol)
+                    block = R[bi : bi + 4, bj : bj + 4]
+                    self.assertLessEqual(np.linalg.norm(block, ord="fro"), atol)
 
     def test_small_identities(self):
         for n in [1, 2]:
@@ -106,14 +114,12 @@ class TestHessenberg(unittest.TestCase):
         for i in range(n):
             for j in range(n):
                 if i >= j + 2:
-                    A[i, j] = quaternion.quaternion(0.5*(i-j), 0.1, -0.2, 0.3)
+                    A[i, j] = quaternion.quaternion(0.5 * (i - j), 0.1, -0.2, 0.3)
         P, H = hessenbergize(A)
         self.assertTrue(is_hessenberg(H))
         self.assert_hessenberg_pattern(H, atol=1e-11)
         self.assert_block_hessenberg_real(H, atol=1e-9)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-
-

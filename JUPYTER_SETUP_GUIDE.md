@@ -90,7 +90,7 @@ jupyter lab QuatIca_Core_Functionality_Demo.ipynb
 ### **Problem 2: Kernel Not Available in Dropdown**
 **Solutions:**
 1. **Check registration**: `jupyter kernelspec list` (should show `quatica-venv`)
-2. **Re-register if missing**: 
+2. **Re-register if missing**:
    ```bash
    source quatica/bin/activate
    python -m ipykernel install --user --name=quatica-venv --display-name="QuatIca (quatica-venv)"
@@ -99,7 +99,7 @@ jupyter lab QuatIca_Core_Functionality_Demo.ipynb
 
 ### **Problem 3: Jupyter Opens but Can't Find Packages**
 **Step-by-step diagnosis:**
-1. **Verify environment activation**: 
+1. **Verify environment activation**:
    ```bash
    source quatica/bin/activate
    which python  # Should point to quatica/bin/python

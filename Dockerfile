@@ -25,4 +25,4 @@ COPY . .
 ENV PYTHONPATH=/app
 
 # Default command
-CMD ["python", "run_analysis.py"] 
+CMD ["python", "run_analysis.py"]

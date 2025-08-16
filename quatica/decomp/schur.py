@@ -23,17 +23,16 @@ from typing import Tuple
 import numpy as np
 import quaternion  # type: ignore
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from utils import (
-    quat_matmat,
-    quat_hermitian,
-    quat_frobenius_norm,
-    real_expand,
-    real_contract,
-    quat_eye,
     ggivens,
+    quat_hermitian,
+    quat_matmat,
+    real_contract,
+    real_expand,
 )
-from .hessenberg import hessenbergize, check_hessenberg
+
+from .hessenberg import check_hessenberg, hessenbergize
 from .tridiagonalize import householder_matrix
 
 
@@ -64,10 +63,12 @@ def _estimate_shifts_power_deflate(H: np.ndarray, steps: int = 5) -> list[float]
         xk = rng.standard_normal((k,))
         x = quaternion.as_quat_array(np.stack([xr, xi, xj, xk], axis=-1))  # (k,)
         x = x.reshape(k, 1)
+
         # normalize
         def _vec_norm(v: np.ndarray) -> float:
             vf = quaternion.as_float_array(v.reshape(-1))  # (k,4)
             return float(np.sqrt(np.sum(vf * vf)))
+
         nrm = _vec_norm(x)
         if nrm > 0:
             x = x / nrm
@@ -140,7 +141,9 @@ def quaternion_schur(
     }
 
     # Helper: apply a single implicit shift sweep (bulge chase) with given sigma
-    def _apply_single_shift(HR_in: np.ndarray, sigma_val: float, m_sz: int) -> Tuple[np.ndarray, np.ndarray]:
+    def _apply_single_shift(
+        HR_in: np.ndarray, sigma_val: float, m_sz: int
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Apply one implicit single-shift sweep (bulge init + full-window chase).
 
         We construct rotations from the shifted matrix HR - sigma I to properly
@@ -171,7 +174,7 @@ def quaternion_schur(
 
     # Active trailing block size and stagnation tracking
     m_active = n
-    prev_max_sub = float('inf')
+    prev_max_sub = float("inf")
     stagnation_count = 0
     k = 0
     while k < max_iter and m_active > 1:
@@ -182,7 +185,11 @@ def quaternion_schur(
         deflated_idx = []
         for i in range(1, m_active):
             h_sub = H[i, i - 1]
-            denom = _quat_scalar_abs(H[i - 1, i - 1]) + _quat_scalar_abs(H[i, i]) + _quat_scalar_abs(h_sub)
+            denom = (
+                _quat_scalar_abs(H[i - 1, i - 1])
+                + _quat_scalar_abs(H[i, i])
+                + _quat_scalar_abs(h_sub)
+            )
             if _quat_scalar_abs(h_sub) <= tol * max(1.0, denom):
                 H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
                 deflated_idx.append(int(i))
@@ -200,7 +207,9 @@ def quaternion_schur(
             subdiag_norm = max(subdiag_norm, _quat_scalar_abs(H[i, i - 1]))
         if subdiag_norm <= tol:
             if verbose:
-                print(f"Converged at iter {k}: active={m_active}, subdiag {subdiag_norm:.2e}")
+                print(
+                    f"Converged at iter {k}: active={m_active}, subdiag {subdiag_norm:.2e}"
+                )
             # Record final iteration diagnostics
             diag_entry = {
                 "iter": k,
@@ -209,7 +218,11 @@ def quaternion_schur(
                 "sigma": None,
                 "subdiag_max": float(subdiag_norm),
                 "subdiag_vector": [
-                    float(np.linalg.norm([H[i, i-1].w, H[i, i-1].x, H[i, i-1].y, H[i, i-1].z]))
+                    float(
+                        np.linalg.norm(
+                            [H[i, i - 1].w, H[i, i - 1].x, H[i, i - 1].y, H[i, i - 1].z]
+                        )
+                    )
                     for i in range(1, m_active)
                 ],
                 "deflated_indices": deflated_idx,
@@ -267,7 +280,11 @@ def quaternion_schur(
             "sigma_list": [float(s) for s in sigma_list],
             "subdiag_max": float(subdiag_norm),
             "subdiag_vector": [
-                float(np.linalg.norm([H[i, i-1].w, H[i, i-1].x, H[i, i-1].y, H[i, i-1].z]))
+                float(
+                    np.linalg.norm(
+                        [H[i, i - 1].w, H[i, i - 1].x, H[i, i - 1].y, H[i, i - 1].z]
+                    )
+                )
                 for i in range(1, m_active)
             ],
             "deflated_indices": deflated_idx,
@@ -288,7 +305,11 @@ def quaternion_schur(
         # Zero very small subdiagonals relative to local scale
         for i in range(1, m_active):
             h_sub = H_tmp[i, i - 1]
-            denom = _quat_scalar_abs(H_tmp[i - 1, i - 1]) + _quat_scalar_abs(H_tmp[i, i]) + 1e-30
+            denom = (
+                _quat_scalar_abs(H_tmp[i - 1, i - 1])
+                + _quat_scalar_abs(H_tmp[i, i])
+                + 1e-30
+            )
             if _quat_scalar_abs(h_sub) <= 1e-2 * tol * max(1.0, denom):
                 H_tmp[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
         HR = real_expand(H_tmp)
@@ -298,7 +319,9 @@ def quaternion_schur(
             resid = 0.0
             for i in range(1, m_active):
                 resid = max(resid, _quat_scalar_abs(H_tmp[i, i - 1]))
-            print(f"Iter {k}: active={m_active}, subdiag max {resid:.2e}, shift {sigma:.3e}")
+            print(
+                f"Iter {k}: active={m_active}, subdiag max {resid:.2e}, shift {sigma:.3e}"
+            )
         k += 1
 
     # Final contraction
@@ -328,8 +351,6 @@ __all__ = [
     "quaternion_schur_unified",
     "quaternion_schur_experimental",
 ]
-
-
 
 
 def quaternion_schur_pure(
@@ -382,7 +403,10 @@ def quaternion_schur_pure(
             # Form Householder on subvector R_work[j:, j] to zero entries below j
             col = R_work[j:, j].copy()
             # If already zero below diagonal, skip
-            if all((col[t].w == 0 and col[t].x == 0 and col[t].y == 0 and col[t].z == 0) for t in range(1, col.shape[0])):
+            if all(
+                (col[t].w == 0 and col[t].x == 0 and col[t].y == 0 and col[t].z == 0)
+                for t in range(1, col.shape[0])
+            ):
                 continue
             # Target vector e1 (real), mapping col -> * e1
             e1 = np.zeros(col.shape[0])
@@ -409,8 +433,15 @@ def quaternion_schur_pure(
             sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
             max_sub = max(max_sub, sv)
             dscale = (
-                (H[i - 1, i - 1].w ** 2 + H[i - 1, i - 1].x ** 2 + H[i - 1, i - 1].y ** 2 + H[i - 1, i - 1].z ** 2) ** 0.5
-                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2) ** 0.5
+                (
+                    H[i - 1, i - 1].w ** 2
+                    + H[i - 1, i - 1].x ** 2
+                    + H[i - 1, i - 1].y ** 2
+                    + H[i - 1, i - 1].z ** 2
+                )
+                ** 0.5
+                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2)
+                ** 0.5
                 + 1e-30
             )
             if sv <= tol * max(1.0, dscale):
@@ -500,8 +531,15 @@ def quaternion_schur_pure_implicit(
             sv = (h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z) ** 0.5
             # Local scale
             dscale = (
-                (H[i - 1, i - 1].w ** 2 + H[i - 1, i - 1].x ** 2 + H[i - 1, i - 1].y ** 2 + H[i - 1, i - 1].z ** 2) ** 0.5
-                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2) ** 0.5
+                (
+                    H[i - 1, i - 1].w ** 2
+                    + H[i - 1, i - 1].x ** 2
+                    + H[i - 1, i - 1].y ** 2
+                    + H[i - 1, i - 1].z ** 2
+                )
+                ** 0.5
+                + (H[i, i].w ** 2 + H[i, i].x ** 2 + H[i, i].y ** 2 + H[i, i].z ** 2)
+                ** 0.5
                 + 1e-30
             )
             if sv <= tol * max(1.0, dscale):
@@ -556,11 +594,32 @@ def quaternion_schur_unified(
 
     # Map simple variants to existing functions
     if variant == "none":
-        return quaternion_schur_pure(A, max_iter=max_iter, tol=tol, verbose=verbose, return_diagnostics=return_diagnostics, shift_mode="none")
+        return quaternion_schur_pure(
+            A,
+            max_iter=max_iter,
+            tol=tol,
+            verbose=verbose,
+            return_diagnostics=return_diagnostics,
+            shift_mode="none",
+        )
     if variant == "rayleigh":
-        return quaternion_schur_pure(A, max_iter=max_iter, tol=tol, verbose=verbose, return_diagnostics=return_diagnostics, shift_mode="rayleigh")
+        return quaternion_schur_pure(
+            A,
+            max_iter=max_iter,
+            tol=tol,
+            verbose=verbose,
+            return_diagnostics=return_diagnostics,
+            shift_mode="rayleigh",
+        )
     if variant == "implicit":
-        return quaternion_schur_pure_implicit(A, max_iter=max_iter, tol=tol, verbose=verbose, return_diagnostics=return_diagnostics, shift_mode="rayleigh")
+        return quaternion_schur_pure_implicit(
+            A,
+            max_iter=max_iter,
+            tol=tol,
+            verbose=verbose,
+            return_diagnostics=return_diagnostics,
+            shift_mode="rayleigh",
+        )
 
     # Advanced quaternion-only implicit variants ('aed' and 'ds')
     n = A.shape[0]
@@ -608,8 +667,15 @@ def quaternion_schur_unified(
         # Select shifts
         if variant == "ds" and n >= 2:
             # Double-shift surrogate: two scalar shifts from trailing 2x2 (real parts)
-            if precompute_shifts and shift_schedule is not None and shift_idx + 1 < len(shift_schedule):
-                sigmas = [float(shift_schedule[shift_idx]), float(shift_schedule[shift_idx + 1])]
+            if (
+                precompute_shifts
+                and shift_schedule is not None
+                and shift_idx + 1 < len(shift_schedule)
+            ):
+                sigmas = [
+                    float(shift_schedule[shift_idx]),
+                    float(shift_schedule[shift_idx + 1]),
+                ]
                 shift_idx += 2
             else:
                 w11 = float(H[n - 2, n - 2].w)
@@ -620,7 +686,11 @@ def quaternion_schur_unified(
                 evals = np.linalg.eigvals(B2)
                 sigmas = [float(np.real(evals[0])), float(np.real(evals[1]))]
         else:
-            if precompute_shifts and shift_schedule is not None and shift_idx < len(shift_schedule):
+            if (
+                precompute_shifts
+                and shift_schedule is not None
+                and shift_idx < len(shift_schedule)
+            ):
                 sigmas = [float(shift_schedule[shift_idx])]
                 shift_idx += 1
             else:
@@ -654,8 +724,14 @@ def quaternion_schur_unified(
             d0 = H[i - 1, i - 1]
             d1 = H[i, i]
             dscale_sq = (
-                d0.w * d0.w + d0.x * d0.x + d0.y * d0.y + d0.z * d0.z +
-                d1.w * d1.w + d1.x * d1.x + d1.y * d1.y + d1.z * d1.z
+                d0.w * d0.w
+                + d0.x * d0.x
+                + d0.y * d0.y
+                + d0.z * d0.z
+                + d1.w * d1.w
+                + d1.x * d1.x
+                + d1.y * d1.y
+                + d1.z * d1.z
             )
             bound_sq = (aed_factor * tol) * (aed_factor * tol) * max(1.0, dscale_sq)
             if variant in ("aed", "ds") and sv_sq <= bound_sq:
@@ -751,8 +827,14 @@ def quaternion_schur_experimental(
             sv_sq = h.w * h.w + h.x * h.x + h.y * h.y + h.z * h.z
             d0, d1 = H[i - 1, i - 1], H[i, i]
             dscale_sq = (
-                d0.w * d0.w + d0.x * d0.x + d0.y * d0.y + d0.z * d0.z +
-                d1.w * d1.w + d1.x * d1.x + d1.y * d1.y + d1.z * d1.z
+                d0.w * d0.w
+                + d0.x * d0.x
+                + d0.y * d0.y
+                + d0.z * d0.z
+                + d1.w * d1.w
+                + d1.x * d1.x
+                + d1.y * d1.y
+                + d1.z * d1.z
             )
             if sv_sq <= (tol * tol) * max(1.0, dscale_sq):
                 H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
@@ -789,7 +871,9 @@ def quaternion_schur_experimental(
                         continue
                     e1 = np.zeros(2)
                     e1[0] = 1.0
-                    Hj_sub = householder_matrix(np.array([v0, v1], dtype=np.quaternion), e1)
+                    Hj_sub = householder_matrix(
+                        np.array([v0, v1], dtype=np.quaternion), e1
+                    )
                     apply_left_rows(H, s, Hj_sub)
                     apply_right_cols(H, s, Hj_sub)
                     apply_right_cols(Q_accum, s, Hj_sub)
@@ -802,15 +886,19 @@ def quaternion_schur_experimental(
             max_sub = max(max_sub, sv)
 
         if return_diagnostics:
-            diag["iterations"].append({
-                "iter": k,
-                "lo": int(lo),
-                "hi": int(hi),
-                "variant": variant,
-                "max_subdiag": float(max_sub),
-            })
+            diag["iterations"].append(
+                {
+                    "iter": k,
+                    "lo": int(lo),
+                    "hi": int(hi),
+                    "variant": variant,
+                    "max_subdiag": float(max_sub),
+                }
+            )
         if verbose and (k % 50 == 0 or max_sub <= tol):
-            print(f"experimental[{variant}] iter {k}: window=[{start}:{hi}], max subdiag {max_sub:.2e}")
+            print(
+                f"experimental[{variant}] iter {k}: window=[{start}:{hi}], max subdiag {max_sub:.2e}"
+            )
         if hi <= lo or max_sub <= tol:
             if return_diagnostics:
                 diag["converged"] = True

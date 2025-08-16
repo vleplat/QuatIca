@@ -1,4 +1,3 @@
-
 """
 QSLST: Quaternion Special Least Squares with Tikhonov Regularization
 ====================================================================
@@ -40,27 +39,30 @@ All functions are fully numpy-based.
 References
 ----------
 [1] Fei, W., Tang, J., & Shan, M.
-    Quaternion special least squares with Tikhonov regularization method in image restoration. 
+    Quaternion special least squares with Tikhonov regularization method in image restoration.
     Numerical Algorithms, 1-20. (2025)
     https://doi.org/10.1007/s11075-025-02187-6
 
 """
 
 from __future__ import annotations
-import numpy as np
+
 import math
-from numpy.fft import rfft2, irfft2, fft2, ifft2, fftshift
-from typing import Tuple, Optional
+from typing import Optional, Tuple
+
+import numpy as np
+from numpy.fft import fft2, ifft2
 
 # -----------------------------
 # Quaternion helpers
 # -----------------------------
 
+
 def rgb_to_quat(rgb: np.ndarray, real_part: float = 0.0) -> np.ndarray:
     """
     Convert an RGB image to quaternion form (H, W, 4).
 
-    Maps RGB color channels to quaternion imaginary parts with configurable 
+    Maps RGB color channels to quaternion imaginary parts with configurable
     real component. Common choice: q0=real_part, q1=R, q2=G, q3=B.
 
     Parameters:
@@ -121,7 +123,9 @@ def quat_to_rgb(q: np.ndarray, clip: bool = True) -> np.ndarray:
     return rgb
 
 
-def split_quat_channels(q: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def split_quat_channels(
+    q: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Split quaternion image into individual component channels.
 
@@ -140,13 +144,15 @@ def split_quat_channels(q: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarr
 
     Notes:
     ------
-    Useful for component-wise operations where quaternion channels 
+    Useful for component-wise operations where quaternion channels
     need to be processed separately.
     """
     return q[..., 0], q[..., 1], q[..., 2], q[..., 3]
 
 
-def stack_quat_channels(q0: np.ndarray, q1: np.ndarray, q2: np.ndarray, q3: np.ndarray) -> np.ndarray:
+def stack_quat_channels(
+    q0: np.ndarray, q1: np.ndarray, q2: np.ndarray, q3: np.ndarray
+) -> np.ndarray:
     """
     Stack scalar channels into quaternion image (H, W, 4).
 
@@ -157,7 +163,7 @@ def stack_quat_channels(q0: np.ndarray, q1: np.ndarray, q2: np.ndarray, q3: np.n
     -----------
     q0 : np.ndarray
         Real component array of shape (H, W)
-    q1 : np.ndarray  
+    q1 : np.ndarray
         First imaginary component array of shape (H, W)
     q2 : np.ndarray
         Second imaginary component array of shape (H, W)
@@ -180,6 +186,7 @@ def stack_quat_channels(q0: np.ndarray, q1: np.ndarray, q2: np.ndarray, q3: np.n
 # -----------------------------
 # PSFs and blur application
 # -----------------------------
+
 
 def build_psf_gaussian(radius: int, sigma: float) -> np.ndarray:
     """
@@ -205,7 +212,7 @@ def build_psf_gaussian(radius: int, sigma: float) -> np.ndarray:
     Uses the 2D Gaussian formula: exp(-(x² + y²) / (2σ²)) / (2πσ²)
     The PSF is centered and normalized for convolution operations.
     """
-    K = 2 * radius + 1
+    2 * radius + 1
     ax = np.arange(-radius, radius + 1)
     xx, yy = np.meshgrid(ax, ax, indexing="xy")
     psf = np.exp(-(xx**2 + yy**2) / (2.0 * sigma**2)) / (2.0 * np.pi * sigma**2)
@@ -246,7 +253,7 @@ def build_psf_motion(length: int, angle_deg: float) -> np.ndarray:
     theta = np.deg2rad(angle_deg)
     dx, dy = np.cos(theta), np.sin(theta)
     # Sample L points along the line centered at (c, c)
-    for t in np.linspace(-(L-1)/2.0, (L-1)/2.0, L):
+    for t in np.linspace(-(L - 1) / 2.0, (L - 1) / 2.0, L):
         x = c + t * dx
         y = c + t * dy
         ix = int(round(x))
@@ -295,11 +302,13 @@ def _pad_psf(psf: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     return pad
 
 
-def apply_blur_fft(Q: np.ndarray, psf: np.ndarray, boundary: str = "periodic") -> np.ndarray:
+def apply_blur_fft(
+    Q: np.ndarray, psf: np.ndarray, boundary: str = "periodic"
+) -> np.ndarray:
     """
     Convolve quaternion image with PSF using FFT (per channel).
 
-    Applies blurring to a quaternion image by convolving each quaternion 
+    Applies blurring to a quaternion image by convolving each quaternion
     component independently with the given point spread function using FFT.
 
     Parameters:
@@ -335,7 +344,10 @@ def apply_blur_fft(Q: np.ndarray, psf: np.ndarray, boundary: str = "periodic") -
 # Noise and metrics
 # -----------------------------
 
-def add_awgn_snr(Q: np.ndarray, snr_db: float, rng: Optional[np.random.Generator] = None) -> np.ndarray:
+
+def add_awgn_snr(
+    Q: np.ndarray, snr_db: float, rng: Optional[np.random.Generator] = None
+) -> np.ndarray:
     """
     Add white Gaussian noise to reach a target SNR (in dB) per quaternion image.
 
@@ -385,7 +397,7 @@ def psnr(x: np.ndarray, x_ref: np.ndarray, data_range: Optional[float] = None) -
     x : np.ndarray
         Estimated/reconstructed array
     x_ref : np.ndarray
-        Reference/ground truth array  
+        Reference/ground truth array
     data_range : float, optional
         Dynamic range of the data (default: None, uses max(x_ref) - min(x_ref))
 
@@ -406,7 +418,7 @@ def psnr(x: np.ndarray, x_ref: np.ndarray, data_range: Optional[float] = None) -
         return float("inf")
     if data_range is None:
         data_range = float(x_ref.max() - x_ref.min() or 1.0)
-    return 10.0 * math.log10((data_range ** 2) / mse)
+    return 10.0 * math.log10((data_range**2) / mse)
 
 
 def relative_error(x: np.ndarray, x_ref: np.ndarray) -> float:
@@ -442,10 +454,13 @@ def relative_error(x: np.ndarray, x_ref: np.ndarray) -> float:
 # QSLST restoration
 # -----------------------------
 
-def qslst_restore_fft(Bq: np.ndarray, psf: np.ndarray, lam: float, boundary: str = "periodic") -> np.ndarray:
+
+def qslst_restore_fft(
+    Bq: np.ndarray, psf: np.ndarray, lam: float, boundary: str = "periodic"
+) -> np.ndarray:
     """
     QSLST (Algorithm 2) specialized to convolutional A with periodic BC.
-    
+
     Implements the FFT-based Tikhonov solution for quaternion image restoration
     with convolutional blur operators. Per-channel closed-form solution:
     X_hat = conj(H_hat) * B_hat / (|H_hat|^2 + lam)
@@ -468,7 +483,7 @@ def qslst_restore_fft(Bq: np.ndarray, psf: np.ndarray, lam: float, boundary: str
 
     Notes:
     ------
-    Efficient FFT-based implementation for BCCB (block-circulant with 
+    Efficient FFT-based implementation for BCCB (block-circulant with
     circulant blocks) operators. Each quaternion component is restored
     independently using the same frequency domain filter.
     """
@@ -489,10 +504,10 @@ def qslst_restore_fft(Bq: np.ndarray, psf: np.ndarray, lam: float, boundary: str
 def qslst_restore_matrix(Bq: np.ndarray, A_mat: np.ndarray, lam: float) -> np.ndarray:
     """
     Faithful Algorithm 2 (QSLST) for a generic real matrix A.
-    
+
     Implements the matrix-based QSLST algorithm for non-convolutional operators:
         T = A^T A + lam I
-        E = A^T B  
+        E = A^T B
         X = T^+ E   (Moore-Penrose pseudoinverse)
 
     Since A is real, T is real; then A(T) = I_4 ⊗ T, and A(T)^+ = I_4 ⊗ T^+.
@@ -528,9 +543,9 @@ def qslst_restore_matrix(Bq: np.ndarray, A_mat: np.ndarray, lam: float) -> np.nd
     T_pinv = np.linalg.pinv(T)
     Xq = np.empty_like(Bq)
     for c in range(4):
-        b = Bq[..., c].reshape(-1)                  # B component
-        e = A_mat.T @ b                             # E = A^T b
-        x = T_pinv @ e                              # X = T^+ E
+        b = Bq[..., c].reshape(-1)  # B component
+        e = A_mat.T @ b  # E = A^T b
+        x = T_pinv @ e  # X = T^+ E
         Xq[..., c] = x.reshape(H, W)
     return Xq
 

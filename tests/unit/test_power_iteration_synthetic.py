@@ -9,17 +9,15 @@ Synthetic test for non-Hermitian power iteration on a diagonalizable quaternion 
 
 import os
 import sys
+
 import numpy as np
-import quaternion  # type: ignore
 import pytest
+import quaternion  # type: ignore
 
 # Robust import path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
-from utils import (
-    quat_matmat,
-    quat_hermitian,
-    power_iteration_nonhermitian,
-)
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "quatica"))
+from utils import power_iteration_nonhermitian, quat_hermitian, quat_matmat
+
 
 def complex_to_quaternion_matrix(C: np.ndarray) -> np.ndarray:
     m, n = C.shape
@@ -36,7 +34,9 @@ def build_diagonal_complex_quat(values: np.ndarray) -> np.ndarray:
     n = values.shape[0]
     S = np.zeros((n, n), dtype=np.quaternion)
     for i, lam in enumerate(values):
-        S[i, i] = quaternion.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
+        S[i, i] = quaternion.quaternion(
+            float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0
+        )
     return S
 
 
@@ -44,6 +44,7 @@ def random_complex_unitary(n: int, rng: np.random.Generator) -> np.ndarray:
     X = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
     Q, _ = np.linalg.qr(X)
     return Q
+
 
 @pytest.mark.parametrize("n,seed", [(8, 0), (12, 1)])
 def test_power_iteration_synthetic_unitary_similarity(n: int, seed: int):
@@ -59,11 +60,18 @@ def test_power_iteration_synthetic_unitary_similarity(n: int, seed: int):
 
     # Run non-Hermitian power iteration
     q_vec, lam_c, residuals = power_iteration_nonhermitian(
-        A, max_iterations=8000, eig_tol=1e-14, res_tol=1e-12, seed=seed, return_vector=True
+        A,
+        max_iterations=8000,
+        eig_tol=1e-14,
+        res_tol=1e-12,
+        seed=seed,
+        return_vector=True,
     )
 
     # Metric: eigenvalue close to spectrum (allowing conjugate)
-    dists = [abs(lam_c - ev) for ev in vals] + [abs(lam_c - np.conjugate(ev)) for ev in vals]
+    dists = [abs(lam_c - ev) for ev in vals] + [
+        abs(lam_c - np.conjugate(ev)) for ev in vals
+    ]
     min_dist = min(dists)
     scale = max(1e-12, max(abs(ev) for ev in vals))
     assert min_dist / scale < 1e-10

@@ -1,1 +1,1 @@
-# Signal processing applications using Q-GMRES 
+# Signal processing applications using Q-GMRES

@@ -9,14 +9,15 @@ Transversal validation: Schur vs Power-Iteration on synthetic diagonalizable mat
 
 import os
 import sys
+
 import numpy as np
-import quaternion  # type: ignore
 import pytest
+import quaternion  # type: ignore
 
 # Robust path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
-from utils import quat_matmat, quat_hermitian, power_iteration_nonhermitian
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "quatica"))
 from decomp.schur import quaternion_schur_unified
+from utils import power_iteration_nonhermitian, quat_hermitian, quat_matmat
 
 
 def complex_to_quaternion_matrix(C: np.ndarray) -> np.ndarray:
@@ -40,7 +41,9 @@ def build_diagonal_complex_quat(values: np.ndarray) -> np.ndarray:
     n = values.shape[0]
     S = np.zeros((n, n), dtype=np.quaternion)
     for i, lam in enumerate(values):
-        S[i, i] = quaternion.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
+        S[i, i] = quaternion.quaternion(
+            float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0
+        )
     return S
 
 
@@ -54,15 +57,21 @@ def test_schur_power_synthetic_compare(n: int, seed: int):
     A = quat_matmat(quat_matmat(P, S), quat_hermitian(P))
 
     # Schur (rayleigh variant)
-    Q, T, _ = quaternion_schur_unified(A, variant='rayleigh', max_iter=2000, tol=1e-10, return_diagnostics=True)
+    Q, T, _ = quaternion_schur_unified(
+        A, variant="rayleigh", max_iter=2000, tol=1e-10, return_diagnostics=True
+    )
     Tdiag = [complex(T[i, i].w, T[i, i].x) for i in range(n)]
     lam_schur = Tdiag[int(np.argmax([abs(z) for z in Tdiag]))]
 
     # Power iteration (non-Hermitian)
-    _qv, lam_pi, res = power_iteration_nonhermitian(A, max_iterations=8000, eig_tol=1e-14, res_tol=1e-12, seed=1, return_vector=True)
+    _qv, lam_pi, res = power_iteration_nonhermitian(
+        A, max_iterations=8000, eig_tol=1e-14, res_tol=1e-12, seed=1, return_vector=True
+    )
 
     # Compare eigenvalues up to conjugation
-    rel_err = min(abs(lam_pi - lam_schur), abs(lam_pi - np.conjugate(lam_schur))) / (max(1e-12, abs(lam_schur)))
+    rel_err = min(abs(lam_pi - lam_schur), abs(lam_pi - np.conjugate(lam_schur))) / (
+        max(1e-12, abs(lam_schur))
+    )
 
     # Assertions
     assert rel_err < 1e-10

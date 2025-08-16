@@ -5,14 +5,16 @@ Unit tests for quaternion Schur decomposition.
 
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import unittest
+
 import numpy as np
 import quaternion  # type: ignore
 
-from core.decomp.schur import quaternion_schur
-from core.utils import quat_matmat, quat_hermitian, quat_frobenius_norm
+from quatica.decomp.schur import quaternion_schur
+from quatica.utils import quat_frobenius_norm, quat_hermitian, quat_matmat
 
 
 def random_quaternion_matrix(n: int, seed: int = 0) -> np.ndarray:
@@ -39,17 +41,19 @@ class TestSchur(unittest.TestCase):
         # T should be almost upper-triangular (small subdiagonal)
         subdiag = []
         for i in range(1, T.shape[0]):
-            subdiag.append(np.linalg.norm([T[i, i-1].w, T[i, i-1].x, T[i, i-1].y, T[i, i-1].z]))
+            subdiag.append(
+                np.linalg.norm(
+                    [T[i, i - 1].w, T[i, i - 1].x, T[i, i - 1].y, T[i, i - 1].z]
+                )
+            )
         self.assertLess(max(subdiag), 1e-6)
 
-    # Temporarily removing larger stress test until QR convergence improvements
+        # Temporarily removing larger stress test until QR convergence improvements
         # Similarity: A ≈ Q T Q^H
         A_recon = quat_matmat(quat_matmat(Q, T), QT)
         err = quat_frobenius_norm(A - A_recon) / (1e-12 + quat_frobenius_norm(A))
         self.assertLess(err, 1e-6)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
-
-

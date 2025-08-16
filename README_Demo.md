@@ -70,4 +70,4 @@ If you encounter import errors:
 
 - The script uses small test matrices (3×4, 4×3, etc.) for quick execution
 - All numerical errors should be very small (< 1e-10) indicating high precision
-- The demo confirms that all code examples in the README work correctly 
+- The demo confirms that all code examples in the README work correctly

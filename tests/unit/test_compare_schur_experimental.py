@@ -16,30 +16,27 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-import numpy as np
 import matplotlib
+import numpy as np
 
 # Non-interactive backend for saving figures
 matplotlib.use("Agg")
+# Robust sys.path setup when run directly
+import sys
+
 import matplotlib.pyplot as plt
 import quaternion  # type: ignore
 
-# Robust sys.path setup when run directly
-import sys
 root = os.getcwd()
 if root not in sys.path:
     sys.path.insert(0, root)
-core_path = os.path.join(root, "core")
+core_path = os.path.join(root, "quatica")
 if core_path not in sys.path:
     sys.path.insert(0, core_path)
 
-from core.decomp.schur import quaternion_schur_experimental
-from core.data_gen import create_test_matrix, create_sparse_quat_matrix
-from core.utils import (
-    quat_matmat,
-    quat_hermitian,
-    quat_frobenius_norm,
-)
+from quatica.data_gen import create_sparse_quat_matrix, create_test_matrix
+from quatica.decomp.schur import quaternion_schur_experimental
+from quatica.utils import quat_frobenius_norm, quat_hermitian, quat_matmat
 
 
 def _extract_curve(diag: dict) -> List[float]:
@@ -47,14 +44,14 @@ def _extract_curve(diag: dict) -> List[float]:
 
 
 def _quat_abs(q: quaternion.quaternion) -> float:
-    return float((q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z) ** 0.5)
+    return float((q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z) ** 0.5)
 
 
 def _max_first_subdiag(T: np.ndarray) -> float:
     n = T.shape[0]
     m = 0.0
     for i in range(1, n):
-        m = max(m, _quat_abs(T[i, i-1]))
+        m = max(m, _quat_abs(T[i, i - 1]))
     return m
 
 
@@ -98,7 +95,9 @@ def run_variants(
         curve = _extract_curve(diag)
         sim = quat_frobenius_norm(quat_matmat(quat_hermitian(Q), quat_matmat(A, Q)) - T)
         # Unitarity check of Q: Q^H Q - I
-        unit = quat_frobenius_norm(quat_matmat(quat_hermitian(Q), Q) - np.eye(n, dtype=np.quaternion))
+        unit = quat_frobenius_norm(
+            quat_matmat(quat_hermitian(Q), Q) - np.eye(n, dtype=np.quaternion)
+        )
         sub1 = _max_first_subdiag(T)
         below = _max_below_diagonal(T)
         curves[name] = (curve, cpu, sim, unit, sub1, below)
@@ -127,28 +126,42 @@ def run_variants(
 
     # Visualize |T| for each variant
     import quaternion as _q
+
     for name, T in Ts.items():
         Tf = _q.as_float_array(T)  # (n,n,4)
         Tarr = np.sqrt(np.sum(Tf * Tf, axis=2))
         plt.figure(figsize=(5, 4))
-        im = plt.imshow(Tarr, cmap='viridis', aspect='auto')
+        im = plt.imshow(Tarr, cmap="viridis", aspect="auto")
         plt.colorbar(im, fraction=0.046, pad=0.04)
         plt.title(f"Experimental |T| — {name}, n={n}")
-        plt.xlabel("column"); plt.ylabel("row")
+        plt.xlabel("column")
+        plt.ylabel("row")
         tname = out_dir / f"schur_T{suffix}_n{n}_{name}_abs.png"
-        plt.tight_layout(); plt.savefig(tname, dpi=300); plt.close()
+        plt.tight_layout()
+        plt.savefig(tname, dpi=300)
+        plt.close()
         print(f"saved T visualization: {tname}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare experimental quaternion Schur variants")
+    parser = argparse.ArgumentParser(
+        description="Compare experimental quaternion Schur variants"
+    )
     parser.add_argument("--sizes", nargs="*", type=int, default=[10, 20, 30, 50])
     parser.add_argument("--iters", type=int, default=500)
     parser.add_argument("--tol", type=float, default=1e-10)
-    parser.add_argument("--window", type=int, default=12, help="Trailing window size for AED/DS sweeps")
-    parser.add_argument("--hermitian", action="store_true", help="Use A = B^H @ B (Hermitian)")
-    parser.add_argument("--sparse", action="store_true", help="Use a random sparse quaternion matrix")
-    parser.add_argument("--tag", type=str, default="", help="Optional tag to append to output filenames")
+    parser.add_argument(
+        "--window", type=int, default=12, help="Trailing window size for AED/DS sweeps"
+    )
+    parser.add_argument(
+        "--hermitian", action="store_true", help="Use A = B^H @ B (Hermitian)"
+    )
+    parser.add_argument(
+        "--sparse", action="store_true", help="Use a random sparse quaternion matrix"
+    )
+    parser.add_argument(
+        "--tag", type=str, default="", help="Optional tag to append to output filenames"
+    )
     args = parser.parse_args()
 
     out_dir = Path("validation_output")
@@ -160,24 +173,28 @@ def main():
         elif args.sparse:
             S = create_sparse_quat_matrix(n, n, density=0.05)
             A = quaternion.as_quat_array(
-                np.stack([
-                    S.real.toarray(),
-                    S.i.toarray(),
-                    S.j.toarray(),
-                    S.k.toarray()
-                ], axis=-1)
+                np.stack(
+                    [S.real.toarray(), S.i.toarray(), S.j.toarray(), S.k.toarray()],
+                    axis=-1,
+                )
             )
             tag = args.tag or "sparse"
         else:
             A = create_test_matrix(n, n)
             tag = args.tag or "rand"
 
-        run_variants(A, n=n, iters=args.iters, tol=args.tol, window=args.window, out_dir=out_dir, tag=tag)
+        run_variants(
+            A,
+            n=n,
+            iters=args.iters,
+            tol=args.tol,
+            window=args.window,
+            out_dir=out_dir,
+            tag=tag,
+        )
 
     print("Done.")
 
 
 if __name__ == "__main__":
     main()
-
-

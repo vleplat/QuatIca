@@ -99,7 +99,7 @@ These tests validate enhanced visualization capabilities:
 | `test_kernel_null_space.py` | **Kernel/Null Space** | Right and left null space computation, kernel functions, rank-deficient matrices, orthogonality validation |
 
 - **Matrix Visualization**: Absolute value heatmaps, component visualization
-- **Tensor Visualization**: 3D tensor slice analysis, mode-specific views  
+- **Tensor Visualization**: 3D tensor slice analysis, mode-specific views
 - **Structure Analysis**: Schur form structure, triangular matrix analysis
 - **Convergence Plots**: Algorithm comparison, performance visualization
 - **Null Space Computation**: Left and right kernel computation, rank determination, orthogonality validation
@@ -184,4 +184,4 @@ python -m pytest tests/unit/test_basic_algebra.py
 
 ---
 
-*This directory provides comprehensive testing coverage for all QuatIca functionality. Each test file is designed to be run independently and provides detailed output for debugging and validation.* 
+*This directory provides comprehensive testing coverage for all QuatIca functionality. Each test file is designed to be run independently and provides detailed output for debugging and validation.*

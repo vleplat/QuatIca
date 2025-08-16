@@ -3,16 +3,21 @@
 Quick test for HybridRSPNewtonSchulz (column variant)
 """
 
+import os
+import sys
 import time
+
 import numpy as np
 import quaternion
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from core.utils import quat_matmat, quat_frobenius_norm, quat_hermitian
-from core.solver import HybridRSPNewtonSchulz, RandomizedSketchProjectPseudoinverse, NewtonSchulzPseudoinverse
+from quatica.solver import (
+    HybridRSPNewtonSchulz,
+    NewtonSchulzPseudoinverse,
+    RandomizedSketchProjectPseudoinverse,
+)
+from quatica.utils import quat_frobenius_norm, quat_hermitian, quat_matmat
 
 
 def random_quat_matrix(m: int, n: int, seed: int) -> np.ndarray:
@@ -28,10 +33,10 @@ def mp_errors(A: np.ndarray, X: np.ndarray) -> dict:
     AX = quat_matmat(A, X)
     XA = quat_matmat(X, A)
     return {
-        'e1_AXA_A': quat_frobenius_norm(quat_matmat(AX, A) - A),
-        'e2_XAX_X': quat_frobenius_norm(quat_matmat(XA, X) - X),
-        'e3_AX_herm': quat_frobenius_norm(AX - quat_hermitian(AX)),
-        'e4_XA_herm': quat_frobenius_norm(XA - quat_hermitian(XA)),
+        "e1_AXA_A": quat_frobenius_norm(quat_matmat(AX, A) - A),
+        "e2_XAX_X": quat_frobenius_norm(quat_matmat(XA, X) - X),
+        "e3_AX_herm": quat_frobenius_norm(AX - quat_hermitian(AX)),
+        "e4_XA_herm": quat_frobenius_norm(XA - quat_hermitian(XA)),
     }
 
 
@@ -51,24 +56,36 @@ def main():
     X_ns, metrics_ns, residuals_ns = ns.compute(A)
     ns_time = time.time() - t0
     ns_mp = mp_errors(A, X_ns)
-    print(f"NS(γ=1): time={ns_time:.3f}s, iters={len(residuals_ns):3d}, mp_max={max(ns_mp.values()):.2e}")
+    print(
+        f"NS(γ=1): time={ns_time:.3f}s, iters={len(residuals_ns):3d}, mp_max={max(ns_mp.values()):.2e}"
+    )
 
     # RSP-Q column (solver) as reference
-    rsp = RandomizedSketchProjectPseudoinverse(block_size=sketch_block_size, max_iter=maxit, tol=tol, verbose=True, seed=seed)
+    rsp = RandomizedSketchProjectPseudoinverse(
+        block_size=sketch_block_size, max_iter=maxit, tol=tol, verbose=True, seed=seed
+    )
     t0 = time.time()
     X_rsp, info_rsp = rsp.compute_column_variant(A)
     rsp_time = time.time() - t0
     rsp_mp = mp_errors(A, X_rsp)
-    print(f"RSP-Q(r=12): time={rsp_time:.3f}s, iters={info_rsp.get('iterations', 0):3d}, proxy={info_rsp['residual_norms'][-1] if info_rsp['residual_norms'] else float('nan'):.2e}, mp_max={max(rsp_mp.values()):.2e}")
+    print(
+        f"RSP-Q(r=12): time={rsp_time:.3f}s, iters={info_rsp.get('iterations', 0):3d}, proxy={info_rsp['residual_norms'][-1] if info_rsp['residual_norms'] else float('nan'):.2e}, mp_max={max(rsp_mp.values()):.2e}"
+    )
 
     # Hybrid settings
-    hybrid = HybridRSPNewtonSchulz(r=sketch_block_size, p=3, T=5, tol=tol, max_iter=maxit, verbose=True, seed=seed)
+    hybrid = HybridRSPNewtonSchulz(
+        r=sketch_block_size, p=3, T=5, tol=tol, max_iter=maxit, verbose=True, seed=seed
+    )
     t0 = time.time()
     X_h, info_h = hybrid.compute(A)
     hyb_time = time.time() - t0
     hyb_mp = mp_errors(A, X_h)
-    last_proxy = info_h['residual_norms'][-1] if info_h['residual_norms'] else float('nan')
-    print(f"Hybrid(r=12,p=4,T=5): time={hyb_time:.3f}s, RSP-steps={info_h['iterations_rsp']:3d}, proxy={last_proxy:.2e}, mp_max={max(hyb_mp.values()):.2e}")
+    last_proxy = (
+        info_h["residual_norms"][-1] if info_h["residual_norms"] else float("nan")
+    )
+    print(
+        f"Hybrid(r=12,p=4,T=5): time={hyb_time:.3f}s, RSP-steps={info_h['iterations_rsp']:3d}, proxy={last_proxy:.2e}, mp_max={max(hyb_mp.values()):.2e}"
+    )
 
 
 if __name__ == "__main__":

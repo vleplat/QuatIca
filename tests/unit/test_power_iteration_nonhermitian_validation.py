@@ -16,23 +16,21 @@ Note: Quaternion-space residual ||A q - q lambda|| is not asserted here yet,
 
 import os
 import sys
-from typing import Tuple
 
 import numpy as np
-import quaternion  # type: ignore
 import pytest
+import quaternion  # type: ignore
 
-# Robust path setup to import from core/
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'core'))
+# Robust path setup to import from quatica/
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "quatica"))
+from data_gen import create_test_matrix
+from decomp.eigen import quaternion_eigendecomposition
 from utils import (
     power_iteration,
     power_iteration_nonhermitian,
-    quat_matmat,
-    quat_frobenius_norm,
     quat_hermitian,
+    quat_matmat,
 )
-from data_gen import create_test_matrix
-from decomp.eigen import quaternion_eigendecomposition
 
 
 def complex_to_quaternion_matrix(C: np.ndarray) -> np.ndarray:
@@ -56,11 +54,18 @@ def test_power_iteration_nonhermitian_on_hermitian_matches_baselines(n: int, see
 
     # Run experimental non-Hermitian power iteration
     q_vec, lam_c, res_curve = power_iteration_nonhermitian(
-        A, max_iterations=5000, eig_tol=1e-14, res_tol=1e-10, seed=seed, return_vector=True
+        A,
+        max_iterations=5000,
+        eig_tol=1e-14,
+        res_tol=1e-10,
+        seed=seed,
+        return_vector=True,
     )
 
     # Run classical Hermitian-oriented power iteration (returns magnitude)
-    _v_h, lam_mag = power_iteration(A, max_iterations=2000, tol=1e-12, return_eigenvalue=True)
+    _v_h, lam_mag = power_iteration(
+        A, max_iterations=2000, tol=1e-12, return_eigenvalue=True
+    )
 
     # Run Hermitian eigendecomposition
     eigenvalues, _ = quaternion_eigendecomposition(A, verbose=False)
@@ -69,7 +74,9 @@ def test_power_iteration_nonhermitian_on_hermitian_matches_baselines(n: int, see
 
     # Assertions:
     # - eigenvalue should be real
-    assert abs(np.imag(lam_c)) < 1e-8, f"Expected real eigenvalue for Hermitian A, got {lam_c}"
+    assert abs(np.imag(lam_c)) < 1e-8, (
+        f"Expected real eigenvalue for Hermitian A, got {lam_c}"
+    )
     # - tight match against eigendecomposition (dominant eigenvalue)
     assert abs(lam_c.real - lam_eig.real) / (abs(lam_eig.real) + 1e-15) < 1e-6
     # - classical magnitude is reasonably close to the same dominant eigenvalue (heuristic)
@@ -81,7 +88,9 @@ def test_power_iteration_nonhermitian_on_hermitian_matches_baselines(n: int, see
 
 
 @pytest.mark.parametrize("n,seed", [(6, 2), (9, 3)])
-def test_power_iteration_nonhermitian_matches_numpy_on_complex_embedding(n: int, seed: int):
+def test_power_iteration_nonhermitian_matches_numpy_on_complex_embedding(
+    n: int, seed: int
+):
     rng = np.random.default_rng(seed)
     # Build random complex matrix and compute NumPy eigen-spectrum
     C = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
@@ -92,15 +101,24 @@ def test_power_iteration_nonhermitian_matches_numpy_on_complex_embedding(n: int,
 
     # Run quaternion non-Hermitian power iteration
     q_vec, lam_c, res_curve = power_iteration_nonhermitian(
-        A_quat, max_iterations=10000, eig_tol=1e-14, res_tol=1e-10, seed=seed, return_vector=True
+        A_quat,
+        max_iterations=10000,
+        eig_tol=1e-14,
+        res_tol=1e-10,
+        seed=seed,
+        return_vector=True,
     )
 
     # Check distance to spectrum (allow conjugation)
-    dists = [abs(lam_c - ev) for ev in eigvals] + [abs(lam_c - np.conjugate(ev)) for ev in eigvals]
+    dists = [abs(lam_c - ev) for ev in eigvals] + [
+        abs(lam_c - np.conjugate(ev)) for ev in eigvals
+    ]
     min_dist = min(dists)
     # Allow moderate tolerance pending mapping refinement
     scale = max(1e-12, max(abs(ev) for ev in eigvals))
-    assert min_dist / scale < 2e-1, f"Eigenvalue not close to NumPy spectrum: rel_err={min_dist/scale:.3e}"
+    assert min_dist / scale < 2e-1, (
+        f"Eigenvalue not close to NumPy spectrum: rel_err={min_dist / scale:.3e}"
+    )
 
     # Ensure complex-adjoint residual decreased by at least 1e3 and is reasonably small
     assert res_curve, "No residuals recorded"

@@ -21,7 +21,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from typing import Tuple, List
+from typing import List, Tuple
 
 import numpy as np
 import quaternion  # type: ignore
@@ -30,11 +30,11 @@ import quaternion  # type: ignore
 root = os.getcwd()
 if root not in sys.path:
     sys.path.insert(0, root)
-core_path = os.path.join(root, "core")
+core_path = os.path.join(root, "quatica")
 if core_path not in sys.path:
     sys.path.insert(0, core_path)
 
-from core.data_gen import create_test_matrix
+from quatica.data_gen import create_test_matrix
 
 
 def quaternion_to_complex_adjoint(A: np.ndarray) -> np.ndarray:
@@ -51,13 +51,19 @@ def quaternion_to_complex_adjoint(A: np.ndarray) -> np.ndarray:
     D = Y + 1j * Z
     M = np.zeros((2 * n, 2 * n), dtype=complex)
     M[0:n, 0:n] = C
-    M[0:n, n:2 * n] = D
-    M[n:2 * n, 0:n] = -np.conjugate(D)
-    M[n:2 * n, n:2 * n] = np.conjugate(C)
+    M[0:n, n : 2 * n] = D
+    M[n : 2 * n, 0:n] = -np.conjugate(D)
+    M[n : 2 * n, n : 2 * n] = np.conjugate(C)
     return M
 
 
-def power_iteration_complex(M: np.ndarray, max_iter: int = 300, tol: float = 1e-10, seed: int = 0, res_tol: float | None = None) -> Tuple[complex, np.ndarray, List[float]]:
+def power_iteration_complex(
+    M: np.ndarray,
+    max_iter: int = 300,
+    tol: float = 1e-10,
+    seed: int = 0,
+    res_tol: float | None = None,
+) -> Tuple[complex, np.ndarray, List[float]]:
     """Standard complex power iteration on matrix M returning (lambda, v, residuals).
 
     Residual at step t: ||M v_t - lambda_t v_t||_2
@@ -94,22 +100,44 @@ def power_iteration_complex(M: np.ndarray, max_iter: int = 300, tol: float = 1e-
     return lam, v, residuals
 
 
-def quaternion_power_iteration_complex(A: np.ndarray, max_iter: int = 300, tol: float = 1e-10, seed: int = 0, res_tol: float | None = None) -> Tuple[complex, List[float]]:
+def quaternion_power_iteration_complex(
+    A: np.ndarray,
+    max_iter: int = 300,
+    tol: float = 1e-10,
+    seed: int = 0,
+    res_tol: float | None = None,
+) -> Tuple[complex, List[float]]:
     """Return a complex eigenvalue estimate and residual curve for quaternion A via complex adjoint mapping."""
     M = quaternion_to_complex_adjoint(A)
-    lam, _v, residuals = power_iteration_complex(M, max_iter=max_iter, tol=tol, seed=seed, res_tol=res_tol)
+    lam, _v, residuals = power_iteration_complex(
+        M, max_iter=max_iter, tol=tol, seed=seed, res_tol=res_tol
+    )
     return lam, residuals
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Experimental complex power iteration for quaternion matrices")
+    ap = argparse.ArgumentParser(
+        description="Experimental complex power iteration for quaternion matrices"
+    )
     ap.add_argument("--n", type=int, default=20)
     ap.add_argument("--iters", type=int, default=300)
     ap.add_argument("--tol", type=float, default=1e-10)
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--k", type=int, default=5, help="Number of leading eigenvalues via power-iteration restarts")
-    ap.add_argument("--plot", action="store_true", help="Plot residual convergence curves")
-    ap.add_argument("--res_tol", type=float, default=1e-8, help="Residual tolerance ||Mv - lambda v|| to declare convergence")
+    ap.add_argument(
+        "--k",
+        type=int,
+        default=5,
+        help="Number of leading eigenvalues via power-iteration restarts",
+    )
+    ap.add_argument(
+        "--plot", action="store_true", help="Plot residual convergence curves"
+    )
+    ap.add_argument(
+        "--res_tol",
+        type=float,
+        default=1e-8,
+        help="Residual tolerance ||Mv - lambda v|| to declare convergence",
+    )
     args = ap.parse_args()
 
     n = args.n
@@ -121,7 +149,13 @@ def main():
     resids: List[List[float]] = []
     V = []  # store converged vectors for crude deflation
     for idx in range(max(1, args.k)):
-        lam, v, residuals = power_iteration_complex(M, max_iter=args.iters, tol=args.tol, seed=args.seed + idx, res_tol=args.res_tol)
+        lam, v, residuals = power_iteration_complex(
+            M,
+            max_iter=args.iters,
+            tol=args.tol,
+            seed=args.seed + idx,
+            res_tol=args.res_tol,
+        )
         eigs.append(lam)
         resids.append(residuals)
         # Crude deflation: orthogonalize against previous v's
@@ -133,29 +167,33 @@ def main():
     # Report
     print(f"n={n} | k={len(eigs)} complex eigenvalue estimates:")
     import quaternion as q
+
     for i, lam in enumerate(eigs):
-        last_res = resids[i][-1] if resids[i] else float('nan')
+        last_res = resids[i][-1] if resids[i] else float("nan")
         lam_q = q.quaternion(float(np.real(lam)), float(np.imag(lam)), 0.0, 0.0)
-        print(f"  {i+1:2d}: lam={lam} | lam_quat={lam_q} | |lam|={abs(lam):.6e} | final residual={last_res:.3e} | steps={len(resids[i])}")
+        print(
+            f"  {i + 1:2d}: lam={lam} | lam_quat={lam_q} | |lam|={abs(lam):.6e} | final residual={last_res:.3e} | steps={len(resids[i])}"
+        )
     if args.plot:
         import matplotlib.pyplot as plt
+
         for i, curve in enumerate(resids):
             if curve:
-                plt.semilogy(curve, label=f"eig {i+1}")
+                plt.semilogy(curve, label=f"eig {i + 1}")
         plt.title(f"Complex power iteration residuals (n={n})")
         plt.xlabel("iteration")
         plt.ylabel("||Mv - lambda v||_2")
         plt.grid(True, which="both", ls=":")
         plt.legend()
         from pathlib import Path
+
         out_dir = Path("validation_output")
         out_dir.mkdir(exist_ok=True)
         fname = out_dir / f"complex_power_iteration_n{n}_k{len(eigs)}.png"
-        plt.tight_layout(); plt.savefig(fname, dpi=300)
+        plt.tight_layout()
+        plt.savefig(fname, dpi=300)
         print(f"saved plot: {fname}")
 
 
 if __name__ == "__main__":
     main()
-
-

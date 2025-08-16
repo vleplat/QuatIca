@@ -1,6 +1,7 @@
+from typing import Tuple
+
 import numpy as np
 import quaternion  # type: ignore
-from typing import Tuple
 
 __all__ = [
     "tensor_frobenius_norm",
@@ -14,7 +15,7 @@ def tensor_frobenius_norm(T: np.ndarray) -> float:
     """
     Frobenius-like norm of a quaternion tensor of arbitrary order.
 
-    Computes ||T||_F = sqrt(sum of squares) over all four quaternion components 
+    Computes ||T||_F = sqrt(sum of squares) over all four quaternion components
     (w, x, y, z) across all tensor entries.
 
     Parameters:
@@ -34,14 +35,14 @@ def tensor_frobenius_norm(T: np.ndarray) -> float:
     components across the entire tensor.
     """
     Tf = quaternion.as_float_array(T)
-    return float(np.sqrt(np.sum(Tf ** 2)))
+    return float(np.sqrt(np.sum(Tf**2)))
 
 
 def tensor_entrywise_abs(T: np.ndarray) -> np.ndarray:
     """
     Return entrywise quaternion magnitudes |T| for a quaternion tensor.
 
-    Computes the modulus |q| = sqrt(w² + x² + y² + z²) for each quaternion 
+    Computes the modulus |q| = sqrt(w² + x² + y² + z²) for each quaternion
     entry in the tensor, returning a real-valued tensor.
 
     Parameters:
@@ -61,14 +62,14 @@ def tensor_entrywise_abs(T: np.ndarray) -> np.ndarray:
     """
     Tf = quaternion.as_float_array(T)
     # Last axis are the 4 components (w,x,y,z)
-    return np.sqrt(np.sum(Tf ** 2, axis=-1))
+    return np.sqrt(np.sum(Tf**2, axis=-1))
 
 
 def tensor_unfold(T: np.ndarray, mode: int) -> np.ndarray:
     """
     Mode-n unfolding (matricization) for an order-3 quaternion tensor.
 
-    Converts a 3rd-order tensor into a matrix by arranging fibers along a 
+    Converts a 3rd-order tensor into a matrix by arranging fibers along a
     specified mode. This is a fundamental operation in tensor decompositions.
 
     Parameters:
@@ -91,7 +92,7 @@ def tensor_unfold(T: np.ndarray, mode: int) -> np.ndarray:
     Notes:
     ------
     - Mode 0: unfolding along first dimension → shape (I, J*K)
-    - Mode 1: unfolding along second dimension → shape (J, I*K)  
+    - Mode 1: unfolding along second dimension → shape (J, I*K)
     - Mode 2: unfolding along third dimension → shape (K, I*J)
     """
     if T.ndim != 3 or T.dtype != np.quaternion:

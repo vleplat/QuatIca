@@ -11,8 +11,9 @@
 **📖 [Complete Documentation](https://vleplat.github.io/QuatIca/)** - Comprehensive guides, API reference, and examples
 
 **Quick Links:**
+
 - **[Getting Started](https://vleplat.github.io/QuatIca/getting-started/)** - Setup and installation guide
-- **[Examples](https://vleplat.github.io/QuatIca/examples/)** - Copy-paste commands and code snippets  
+- **[Examples](https://vleplat.github.io/QuatIca/examples/)** - Copy-paste commands and code snippets
 - **[API Reference](https://vleplat.github.io/QuatIca/api/utils/)** - Complete function documentation
 - **[Troubleshooting](https://vleplat.github.io/QuatIca/troubleshooting/)** - Common issues and solutions
 
@@ -35,6 +36,7 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 ```
 
 ### Windows install notes (if you install PyTorch later)
+
 - Prefer Python 3.10–3.12 for best wheel availability.
 - Enable Windows Long Path support (per pip hint).
 - Keep the repo path short (e.g., `C:\src\QuatIca`).
@@ -47,6 +49,7 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 **⚠️ Having issues with `ModuleNotFoundError: No module named 'quaternion'` in Jupyter?**
 
 **Quick Fix:**
+
 ```bash
 # 1. Activate virtual environment
 source quatica/bin/activate   # Windows: quatica\Scripts\activate
@@ -79,30 +82,35 @@ python run_analysis.py image_completion
 ```
 
 ### Step-by-step Jupyter notebook (all main functions)
+
 ```bash
 jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
 ```
+
 This guided notebook showcases the core QuatIca APIs and verifies results with compact, runnable cells.
 
 ## 🤔 What is QuatIca?
 
 QuatIca brings modern numerical linear algebra to quaternion matrices and tensors:
+
 - Matrix ops, norms, factorizations (QR, LU, SVD, eigen, Hessenberg, tridiagonal)
 - Pseudoinverse via Newton–Schulz (incl. higher-order)
 - Q-GMRES solver (with LU preconditioning)
 - Practical applications (image deblurring, completion; signal processing)
 
 ### Highlights
+
 - Fast quaternion algebra (numpy>=2.3.2)
 - Clean APIs, strong unit tests (194 passing)
 - Real working examples with saved outputs
 
 ### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
+
 - We added a preview of quaternion tensor tools (order-3) laying groundwork for tensor decompositions (e.g., HOSVD, TT, Tucker):
   - Tensor Frobenius-like norm, entrywise |T| (quaternion magnitude)
   - Mode-n unfolding and folding for order-3 tensors
 - See the notebook section "13. Preview: Quaternion Tensor Algebra and Decompositions" in `QuatIca_Core_Functionality_Demo.ipynb`.
-- Utilities live in `core/tensor.py`; unit tests in `tests/unit/test_tensor_quaternion_basics.py`.
+- Utilities live in `quatica/tensor.py`; unit tests in `tests/unit/test_tensor_quaternion_basics.py`.
 
 ## 🌟 Motivation and Acknowledgments
 
@@ -115,16 +123,19 @@ We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspi
 ## ⚠️ CRITICAL PERFORMANCE INFORMATION
 
 **numpy Version Requirement:**
+
 - **REQUIRED**: numpy >= 2.3.2 for optimal performance
 - **CRITICAL**: numpy 2.3.2 provides **10-15x speedup** for quaternion matrix operations compared to 2.2.6
 - **WARNING**: Using older numpy versions will result in significantly slower performance
 
 **Package Performance Warnings:**
+
 - **opencv-python** and **tqdm** cause **3x performance degradation** and are NOT included in requirements.txt
 - These packages pull in heavy dependencies that affect numpy performance
 - If you need these for matrix completion features, install them separately but be aware of the performance cost
 
 **Performance Benchmarks (Newton-Schulz Pseudoinverse Computation on 800x1000 matrices):**
+
 - Dense matrices: ~16 seconds with numpy 2.3.2 (vs minutes/hours with 2.2.6)
 - Sparse matrices: ~9 seconds with numpy 2.3.2
 - Small matrices (200x200): ~0.4 seconds
@@ -132,31 +143,32 @@ We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspi
 ## 📋 System Requirements
 
 ### Minimum
+
 - Python 3.9+
 - macOS/Linux/Windows
 - 4 GB RAM (8+ GB recommended)
 
 ### Recommended
+
 - Python 3.10–3.12 (Windows users: prefer 3.10–3.12)
 - 16 GB RAM for large problems
 - Multi-core CPU
-
-
-
-
 
 ## 🚀 Quick Start Guide (more details)
 
 ### **🎯 For Complete Beginners (Step-by-Step)**
 
 #### **Step 1: Install Python**
+
 If you don't have Python installed:
+
 1. Go to [python.org](https://python.org)
 2. Download Python 3.9 or higher
 3. Install with default settings
 4. Verify: Open terminal/command prompt and type `python --version`
 
 #### **Step 2: Download QuatIca**
+
 ```bash
 # Clone the repository (if you have git)
 git clone https://github.com/vleplat/QuatIca.git
@@ -166,6 +178,7 @@ cd QuatIca
 ```
 
 #### **Step 3: Set Up Environment**
+
 ```bash
 # Create a virtual environment (isolated Python environment)
 python3 -m venv quatica
@@ -180,6 +193,7 @@ quatica\Scripts\activate
 ```
 
 #### **Alternative: Docker Setup (For Advanced Users)**
+
 For maximum reproducibility, you can also use Docker:
 
 ```bash
@@ -193,9 +207,10 @@ docker run -it --rm quatica
 docker run -it --rm quatica python run_analysis.py tutorial
 ```
 
-*Note: Docker setup is optional. The virtual environment approach above works perfectly for most users.*
+_Note: Docker setup is optional. The virtual environment approach above works perfectly for most users._
 
 #### **Step 4: Install Dependencies**
+
 ```bash
 # Install all required packages
 pip install -r requirements.txt
@@ -204,6 +219,7 @@ pip install -r requirements.txt
 ```
 
 #### **Step 5: Verify Installation**
+
 ```bash
 # Test if everything works
 python run_analysis.py
@@ -222,23 +238,23 @@ python run_analysis.py <script_name>
 
 #### **📋 Available Scripts (Choose One):**
 
-| Script Name | What It Does | Best For |
-|-------------|--------------|----------|
-| `tutorial` | **🎓 Quaternion Basics Tutorial** - Complete introduction with visualizations | **🚀 START HERE!** Learn the framework |
-| `qgmres` | **Q-GMRES Solver Test** - Tests the iterative Krylov subspace solver | **Linear system solving** with quaternions |
-| `qgmres_bench` | **🚀 Q-GMRES Performance Benchmark** - Comprehensive preconditioner benchmarking | **Algorithm performance** and LU preconditioning analysis |
-| `lorenz_signal` | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES | **Signal processing** applications |
-| `lorenz_benchmark` | **🏆 Method Comparison Benchmark** - Q-GMRES vs Newton-Schulz performance comparison | **Algorithm selection** and performance analysis |
-| `ns_compare` | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots | **Pseudoinverse** benchmarking |
-| `pseudoinverse` | **Single Image Analysis** - Analyzes one image (kodim16.png) | Understanding pseudoinverse structure |
-| `multiple_images` | **Multi-Image Analysis** - Compares multiple small images | Pattern comparison across images |
-| `image_completion` | **Image Completion Demo** - Fills missing pixels in real images | **Practical application** |
-| `image_deblurring` | **Quaternion Image Deblurring** - QSLST (Algorithm 2) vs NS/HON with FFT specialization | **Image restoration** |
-| `deblur_benchmark` | **🏆 Comprehensive Image Deblurring Benchmark** - Multi-size benchmark with LaTeX table generation | **Performance analysis** and publication results |
-| `synthetic` | **Synthetic Image Completion** - Matrix completion on generated test images | Controlled experiments |
-| `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types | Algorithm validation |
-| `eigenvalue_test` | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition | **Matrix analysis** and eigenvalue computation |
-| `schur_demo` | **🎯 Quaternion Schur Decomposition Demo** - Comprehensive comparison of rayleigh vs aed variants | **Matrix decomposition** and algorithm comparison |
+| Script Name          | What It Does                                                                                       | Best For                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `tutorial`           | **🎓 Quaternion Basics Tutorial** - Complete introduction with visualizations                      | **🚀 START HERE!** Learn the framework                    |
+| `qgmres`             | **Q-GMRES Solver Test** - Tests the iterative Krylov subspace solver                               | **Linear system solving** with quaternions                |
+| `qgmres_bench`       | **🚀 Q-GMRES Performance Benchmark** - Comprehensive preconditioner benchmarking                   | **Algorithm performance** and LU preconditioning analysis |
+| `lorenz_signal`      | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES                         | **Signal processing** applications                        |
+| `lorenz_benchmark`   | **🏆 Method Comparison Benchmark** - Q-GMRES vs Newton-Schulz performance comparison               | **Algorithm selection** and performance analysis          |
+| `ns_compare`         | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots              | **Pseudoinverse** benchmarking                            |
+| `pseudoinverse`      | **Single Image Analysis** - Analyzes one image (kodim16.png)                                       | Understanding pseudoinverse structure                     |
+| `multiple_images`    | **Multi-Image Analysis** - Compares multiple small images                                          | Pattern comparison across images                          |
+| `image_completion`   | **Image Completion Demo** - Fills missing pixels in real images                                    | **Practical application**                                 |
+| `image_deblurring`   | **Quaternion Image Deblurring** - QSLST (Algorithm 2) vs NS/HON with FFT specialization            | **Image restoration**                                     |
+| `deblur_benchmark`   | **🏆 Comprehensive Image Deblurring Benchmark** - Multi-size benchmark with LaTeX table generation | **Performance analysis** and publication results          |
+| `synthetic`          | **Synthetic Image Completion** - Matrix completion on generated test images                        | Controlled experiments                                    |
+| `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types              | Algorithm validation                                      |
+| `eigenvalue_test`    | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition             | **Matrix analysis** and eigenvalue computation            |
+| `schur_demo`         | **🎯 Quaternion Schur Decomposition Demo** - Comprehensive comparison of rayleigh vs aed variants  | **Matrix decomposition** and algorithm comparison         |
 
 #### **🎯 Quick Examples:**
 
@@ -330,7 +346,7 @@ python run_analysis.py image_completion
 
 ```
 QuatIca/
-├── core/                    # Core library files
+├── quatica/                    # Core library files
 │   ├── solver.py           # Main algorithms (pseudoinverse computation, Q-GMRES with LU preconditioning)
 │   ├── utils.py            # Quaternion operations, utilities, and power iteration
 │   ├── data_gen.py         # Matrix generation functions
@@ -424,6 +440,7 @@ QuatIca/
 ## 📊 What Each Script Produces
 
 ### **🎓 `tutorial` - Complete Framework Introduction**
+
 - **What it is**: Interactive tutorial with beautiful visualizations
 - **Perfect for**: Learning the framework from scratch
 - **Duration**: ~2-3 minutes with visualizations
@@ -443,6 +460,7 @@ QuatIca/
   - Best practices and key takeaways
 
 ### **⚡ `qgmres` - Q-GMRES Linear System Solver**
+
 - **What it is**: Comprehensive test suite for the Q-GMRES iterative solver
 - **Perfect for**: Testing linear system solving with quaternions
 - **Duration**: ~1-2 minutes
@@ -459,6 +477,7 @@ QuatIca/
   - Performance analysis and timing
 
 ### **🌪️ `lorenz_signal` - Lorenz Attractor Signal Processing**
+
 - **What it is**: 3D signal processing application using Q-GMRES with adaptive LU preconditioning
 - **Perfect for**: Signal processing and dynamical systems analysis
 - **Duration**: Configurable via `--num_points` parameter
@@ -473,6 +492,7 @@ QuatIca/
   - `lorenz_residual_history.png` - Q-GMRES convergence plot
 
 #### **🎛️ Parameter Configuration:**
+
 The script accepts command-line arguments to control resolution and execution time:
 
 ```bash
@@ -493,16 +513,18 @@ python run_analysis.py lorenz_signal --no_show
 ```
 
 #### **📊 Performance Guide:**
-| Points | Execution Time | Resolution | Solver Method | Use Case |
-|--------|----------------|------------|---------------|----------|
-| 100 | ~30 seconds | Low | Standard Q-GMRES | Fast testing, development |
-| 200 | ~20 seconds* | Good | **LU Preconditioned Q-GMRES** | **Default, balanced performance** |
-| 500 | ~2-5 minutes* | High | **LU Preconditioned Q-GMRES** | Publication quality |
-| 1000 | ~8-15 minutes* | Very High | **LU Preconditioned Q-GMRES** | Research, detailed analysis |
+
+| Points | Execution Time  | Resolution | Solver Method                 | Use Case                          |
+| ------ | --------------- | ---------- | ----------------------------- | --------------------------------- |
+| 100    | ~30 seconds     | Low        | Standard Q-GMRES              | Fast testing, development         |
+| 200    | ~20 seconds\*   | Good       | **LU Preconditioned Q-GMRES** | **Default, balanced performance** |
+| 500    | ~2-5 minutes\*  | High       | **LU Preconditioned Q-GMRES** | Publication quality               |
+| 1000   | ~8-15 minutes\* | Very High  | **LU Preconditioned Q-GMRES** | Research, detailed analysis       |
 
 **\*Significantly improved with LU preconditioning (5-10x faster for large systems)**
 
 #### **🔬 What It Covers:**
+
 - **Lorenz attractor signal generation** with configurable resolution
 - **Time simulation**: 10-second simulation window (parameter `T` in script)
 - **Noise addition and signal corruption** simulation
@@ -513,7 +535,9 @@ python run_analysis.py lorenz_signal --no_show
 - **Performance scaling** with different system sizes
 
 #### **⏰ Time Parameter Configuration:**
+
 The script simulates the Lorenz attractor for **10 seconds** by default. To modify the simulation time:
+
 1. **Open the script**: `applications/signal_processing/lorenz_attractor_qgmres.py`
 2. **Find line ~140**: `T, delta, seed = 10.0, 1.0, 0`
 3. **Change the first value**: `T = 20.0` for 20 seconds, `T = 5.0` for 5 seconds
@@ -522,6 +546,7 @@ The script simulates the Lorenz attractor for **10 seconds** by default. To modi
 **Note**: Longer simulation times require more `num_points` for good resolution.
 
 ### **🏆 `lorenz_benchmark` - Method Comparison Benchmark**
+
 - **What it is**: Comprehensive performance comparison between Q-GMRES and Newton-Schulz methods
 - **Perfect for**: Understanding method trade-offs and choosing the right algorithm
 - **Duration**: ~5-10 minutes (comprehensive testing)
@@ -530,26 +555,31 @@ The script simulates the Lorenz attractor for **10 seconds** by default. To modi
   - `lorenz_trajectory_comparison.png` - 3D trajectory reconstruction comparison
 
 #### **📊 Benchmark Results:**
+
 The benchmark tests both methods across different problem sizes (50-200 points) and provides:
 
 **Performance Metrics:**
+
 - Computational time comparison
 - Iteration count analysis
 - Solution accuracy (residual norms)
 - Time vs accuracy trade-off analysis
 
 **Visualization:**
+
 - Side-by-side 3D trajectory reconstructions
 - Clean signal vs reconstructed signal comparison
 - Method performance across different problem sizes
 
 #### **🎯 Key Findings:**
+
 - **Newton-Schulz is ~100x faster** than Q-GMRES on average
 - **Newton-Schulz is ~270x more accurate** than Q-GMRES on average
 - **Newton-Schulz scales better** with problem size
 - **Q-GMRES shows inconsistent accuracy** across different problem sizes
 
 **Usage:**
+
 ```bash
 # Run the complete benchmark
 python run_analysis.py lorenz_benchmark
@@ -568,6 +598,7 @@ python run_analysis.py lorenz_benchmark
   - `sample_images_verification.png` - Sample images for verification -->
 
 ### **🖼️ `pseudoinverse` - Single Image Analysis**
+
 - **Input**: kodim16.png image
 - **Output**: 4 analysis plots:
   - `pseudoinverse_component_analysis.png`
@@ -576,12 +607,15 @@ python run_analysis.py lorenz_benchmark
   - `pseudoinverse_distributions_interpreted.png`
 
 ### **🔄 `image_completion` - Practical Application**
+
 - **Input**: Real RGB images with missing pixels
 - **Output**: Completed images and PSNR metrics
 - **Shows**: How quaternion matrix completion works in practice
 
 ### **🧪 `synthetic` - Controlled Experiments**
+
 ### **🖼️ `image_deblurring` - Quaternion Image Deblurring (QSLST vs NS/HON)**
+
 - **What it is**: Compares QSLST (Algorithm 2) with our NS variants on restoring a blurred/noisy image. Two QSLST paths are provided: a literal matrix-based implementation and an efficient FFT specialization for convolution with periodic boundary (BCCB).
 - **Why it matters**: The target solution is Tikhonov-regularized: x_λ = (A^T A + λI)^{-1} A^T b. FFT diagonalization yields an O(N log N) filter; NS can match it via an augmented system or via inverse-NS on T in the frequency domain.
 - **Output**: Side-by-side grid with Clean, Observed, QSLST-FFT, QSLST-Matrix, NS, and HON panels, including PSNR/SSIM and timing. Images saved to `output_figures/`.
@@ -598,11 +632,13 @@ python run_analysis.py lorenz_benchmark
   ```
 
 #### Problem formulation
+
 - Blur operator A is real (2D convolution, periodic boundary), b is the observed quaternion image (RGB mapped to q=(0,R,G,B)).
 - Tikhonov-regularized LS: minimize ||A x − b||^2 + λ||x||^2 ⇒ (A^T A + λI) x = A^T b.
 - With real A, quaternion components decouple; FFT diagonalizes A^T A.
 
 #### Methods compared
+
 - QSLST-FFT: X̂ = conj(Ĥ) B̂ / (|Ĥ|^2 + λ) per frequency.
 - QSLST-Matrix: T = A^T A + λI; x = T^+ A^T b per component.
 - NS (fftT, order-2): inverse-NS on T: y ← y (2 − T y); x ≈ y A^T b.
@@ -610,6 +646,7 @@ python run_analysis.py lorenz_benchmark
 - NS (tikhonov_aug): augmented C = [A; √λ I], y = [b; 0]; x = C^† y (exact but slower when dense).
 
 #### Examples
+
 ```bash
 # FFT inverse-NS (order-2)
 python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30 \
@@ -624,16 +661,18 @@ python run_analysis.py image_deblurring --size 32 --lam 1e-1 --snr 30 --ns_mode 
 ```
 
 #### Recommended default test
+
 ```bash
 python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 ```
 
 ### **🏆 `deblur_benchmark` - Comprehensive Image Deblurring Benchmark**
+
 - **What it is**: Automated benchmark comparing FFT-NS-Q vs QSLST-FFT across multiple image sizes with optimized parameters
 - **Perfect for**: Performance analysis and generating publication-ready results
 - **Duration**: ~5-10 minutes (runs 12 experiments: 2 images × 6 sizes)
 - **Input**: kodim16 and kodim20 images at sizes 32, 64, 128, 256, 400, 512
-- **Output**: 
+- **Output**:
   - **LaTeX table** ready for publication with PSNR, SSIM, CPU time metrics
   - **JSON results** file for further analysis
   - **Performance plots** comparing methods across sizes
@@ -645,10 +684,11 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
   - **FFT-NS-Q** with 12 iterations and order-2 Newton-Schulz
   - **Publication-ready formatting** with proper LaTeX table structure
 - **Usage**:
+
   ```bash
   # Run complete benchmark
   python run_analysis.py deblur_benchmark
-  
+
   # Results saved to:
   # - output_figures/deblur_benchmark_results.json
   # - LaTeX table printed to console
@@ -656,6 +696,7 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
   ```
 
 #### Parameters
+
 - --size N: resize `data/images/kodim16.png` to N×N (default 32).
 - --lam λ: Tikhonov regularization (default 1e-3).
 - --snr dB: add AWGN at the given SNR.
@@ -668,12 +709,14 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 - **Shows**: Algorithm performance on controlled, reproducible test cases
 
 ### **🔬 `synthetic_matrices` - Algorithm Validation**
+
 - **Input**: Various synthetic matrices (dense, sparse, ill-conditioned) + validation example from literature
 - **Output**: Pseudoinverse computation results, timing, accuracy validation, and interactive plots
 - **Shows**: Algorithm performance on different matrix types, including known theoretical result from Huang et al. (2015)
 - **Note**: Generates interactive plots (not saved to files) for convergence analysis
 
 ### **🎯 `schur_demo` - Comprehensive Schur Decomposition Analysis**
+
 - **What it is**: Educational demo comparing rayleigh vs aed variants for quaternion Schur decomposition
 - **Perfect for**: Understanding algorithm behavior and performance differences
 - **Duration**: ~2-5 minutes (depends on matrix size)
@@ -690,18 +733,17 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
   - **Algorithm comparison**: rayleigh vs aed variant performance
   - **Educational insights**: When to use which algorithm
 - **Usage**:
+
   ```bash
   # Default size (10x10) - fast testing
   python run_analysis.py schur_demo
-  
+
   # Custom size - comprehensive analysis
   python run_analysis.py schur_demo 15
-  
+
   # Large size - full performance analysis
   python run_analysis.py schur_demo 25
   ```
-
-
 
 ## 🔬 Core Functionality
 
@@ -709,7 +751,7 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 
 ```python
 import quaternion
-from core.utils import (
+from quatica.utils import (
     quat_matmat,
     quat_frobenius_norm,
     quat_eye,
@@ -717,8 +759,8 @@ from core.utils import (
     induced_matrix_norm_1,    # max column sum of |A_ij|
     induced_matrix_norm_inf   # max row sum of |A_ij|
 )
-from core.utils import power_iteration, power_iteration_nonhermitian  # see notes below
-from core.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
+from quatica.utils import power_iteration, power_iteration_nonhermitian  # see notes below
+from quatica.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
 
 # Create quaternion matrices
 A = quaternion.as_quat_array(...)
@@ -740,7 +782,7 @@ hon_solver = HigherOrderNewtonSchulzPseudoinverse()
 A_pinv_hon, hon_residuals, hon_metrics = hon_solver.compute(A)
 
 # Solve linear system A*x = b using Q-GMRES
-from core.solver import QGMRESSolver
+from quatica.solver import QGMRESSolver
 
 # Create Q-GMRES solver without preconditioning
 qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=False, preconditioner='none')
@@ -762,7 +804,7 @@ print(f"Preconditioned residual: {info_prec['residual']:.2e}")
 ```python
 import numpy as np
 import quaternion
-from core.utils import matrix_norm, quat_frobenius_norm, induced_matrix_norm_1, induced_matrix_norm_inf
+from quatica.utils import matrix_norm, quat_frobenius_norm, induced_matrix_norm_1, induced_matrix_norm_inf
 
 # Random quaternion matrix (m x n)
 m, n = 4, 5
@@ -784,13 +826,12 @@ n2 = matrix_norm(B, 2)              # via quaternion SVD (costlier)
 print(nf, n1, ninf, n2)
 ```
 
-
-
 ### Matrix Generation
 
 #### **🎲 Random Matrix Generation**
+
 ```python
-from core.data_gen import create_test_matrix, create_sparse_quat_matrix
+from quatica.data_gen import create_test_matrix, create_sparse_quat_matrix
 
 # Generate random dense matrix
 X = create_test_matrix(m=100, n=50, rank=20)
@@ -804,9 +845,11 @@ X_sparse = create_sparse_quat_matrix(m=100, n=50, density=0.1)
 **Step-by-Step Guide to Building Your Own Quaternion Matrices:**
 
 ##### **1. Understanding Quaternion Format**
+
 Quaternion matrices in QuatIca use the format: `[real, i, j, k]` components
+
 - **Real component**: Scalar part (index 0)
-- **i component**: First imaginary part (index 1) 
+- **i component**: First imaginary part (index 1)
 - **j component**: Second imaginary part (index 2)
 - **k component**: Third imaginary part (index 3)
 
@@ -814,8 +857,9 @@ Quaternion matrices in QuatIca use the format: `[real, i, j, k]` components
 
 **What are Pauli Matrices?**
 Pauli matrices are fundamental 2×2 matrices in quantum mechanics:
+
 - **σ₁ (sigma_x)**: `[[0, 1], [1, 0]]` - represents spin-x measurement
-- **σ₂ (sigma_y)**: `[[0, -i], [i, 0]]` - represents spin-y measurement  
+- **σ₂ (sigma_y)**: `[[0, -i], [i, 0]]` - represents spin-y measurement
 - **σ₃ (sigma_z)**: `[[1, 0], [0, -1]]` - represents spin-z measurement
 - **σ₀ (identity)**: `[[1, 0], [0, 1]]` - identity matrix
 
@@ -827,37 +871,37 @@ import quaternion
 
 def create_pauli_matrices_quaternion():
     """Create Pauli matrices in quaternion format using the correct pattern"""
-    
+
     # Step 1: Create numpy arrays with shape (rows, cols, 4) for [real, i, j, k]
     # Each matrix is 2x2, so we need (2, 2, 4) arrays
     sigma_0_array = np.zeros((2, 2, 4), dtype=float)
     sigma_x_array = np.zeros((2, 2, 4), dtype=float)
     sigma_y_array = np.zeros((2, 2, 4), dtype=float)
     sigma_z_array = np.zeros((2, 2, 4), dtype=float)
-    
+
     # Step 2: Fill the components [real, i, j, k]
     # sigma_0 (identity): [1, 0, 0, 0] for diagonal, [0, 0, 0, 0] for off-diagonal
     sigma_0_array[0, 0, 0] = 1.0  # real component of (0,0)
     sigma_0_array[1, 1, 0] = 1.0  # real component of (1,1)
-    
+
     # sigma_x: [0, 0, 0, 0] for diagonal, [0, 0, 0, 0] for (0,1), [1, 0, 0, 0] for (1,0)
     sigma_x_array[0, 1, 0] = 1.0  # real component of (0,1)
     sigma_x_array[1, 0, 0] = 1.0  # real component of (1,0)
-    
+
     # sigma_y: [0, 0, 0, 0] for diagonal, [0, -1, 0, 0] for (0,1), [0, 1, 0, 0] for (1,0)
     sigma_y_array[0, 1, 1] = -1.0  # i component of (0,1)
     sigma_y_array[1, 0, 1] = 1.0   # i component of (1,0)
-    
+
     # sigma_z: [1, 0, 0, 0] for (0,0), [-1, 0, 0, 0] for (1,1)
     sigma_z_array[0, 0, 0] = 1.0   # real component of (0,0)
     sigma_z_array[1, 1, 0] = -1.0  # real component of (1,1)
-    
+
     # Step 3: Convert to quaternion arrays (simplified approach)
     sigma_0 = quaternion.as_quat_array(sigma_0_array)
     sigma_x = quaternion.as_quat_array(sigma_x_array)
     sigma_y = quaternion.as_quat_array(sigma_y_array)
     sigma_z = quaternion.as_quat_array(sigma_z_array)
-    
+
     return sigma_0, sigma_x, sigma_y, sigma_z
 
 # Usage example
@@ -880,7 +924,7 @@ matrix_quat = np.zeros((rows, cols, 4), dtype=float)
 for i in range(rows):
     for j in range(cols):
         matrix_quat[i, j, 0] = real_part[i, j]      # Real component
-        matrix_quat[i, j, 1] = i_part[i, j]         # i component  
+        matrix_quat[i, j, 1] = i_part[i, j]         # i component
         matrix_quat[i, j, 2] = j_part[i, j]         # j component
         matrix_quat[i, j, 3] = k_part[i, j]         # k component
 
@@ -899,7 +943,7 @@ real_matrix[1, 0, 0] = 3.0  # (1,0) real component
 real_matrix[1, 1, 0] = 4.0  # (1,1) real component
 real_quat = quaternion.as_quat_array(real_matrix)
 
-# Complex matrix: [real, i, 0, 0]  
+# Complex matrix: [real, i, 0, 0]
 complex_matrix = np.zeros((2, 2, 4))
 complex_matrix[0, 0, 0] = 1.0  # (0,0) real part
 complex_matrix[0, 0, 1] = 0.0  # (0,0) i part
@@ -932,11 +976,12 @@ pure_quat_result = quaternion.as_quat_array(pure_quat)
 
 QuatIca provides robust implementations of fundamental matrix decompositions for quaternion matrices:
 
-**📖 For a comprehensive overview of all decomposition methods, algorithms, and usage recommendations, see [`core/decomp/README.md`](core/decomp/README.md).**
+**📖 For a comprehensive overview of all decomposition methods, algorithms, and usage recommendations, see [`quatica/decomp/README.md`](quatica/decomp/README.md).**
 
 ### **QR Decomposition**
+
 ```python
-from core.decomp.qsvd import qr_qua
+from quatica.decomp.qsvd import qr_qua
 
 # QR decomposition of quaternion matrix
 Q, R = qr_qua(X_quat)
@@ -944,8 +989,9 @@ Q, R = qr_qua(X_quat)
 ```
 
 ### **Quaternion SVD (Q-SVD)**
+
 ```python
-from core.decomp.qsvd import classical_qsvd, classical_qsvd_full
+from quatica.decomp.qsvd import classical_qsvd, classical_qsvd_full
 
 # Truncated Q-SVD for low-rank approximation
 U, s, V = classical_qsvd(X_quat, R)
@@ -957,6 +1003,7 @@ U_full, s_full, V_full = classical_qsvd_full(X_quat)
 ```
 
 **Features:**
+
 - ✅ **Mathematically validated** with comprehensive tests
 - ✅ **Perfect reconstruction** at full rank
 - ✅ **Monotonic error decrease** with increasing rank
@@ -964,8 +1011,9 @@ U_full, s_full, V_full = classical_qsvd_full(X_quat)
 - ✅ **Production-ready** with 10/10 tests passing
 
 ### **Randomized Q-SVD (Fast Approximation)**
+
 ```python
-from core.decomp.qsvd import rand_qsvd
+from quatica.decomp.qsvd import rand_qsvd
 
 # Fast randomized Q-SVD for large matrices
 U, s, V = rand_qsvd(X_quat, R, oversample=10, n_iter=2)
@@ -973,6 +1021,7 @@ U, s, V = rand_qsvd(X_quat, R, oversample=10, n_iter=2)
 ```
 
 **Features:**
+
 - ✅ **Fast approximation** for large matrices
 - ✅ **Configurable accuracy** via power iterations and oversampling
 - ✅ **Memory efficient** compared to full Q-SVD
@@ -980,8 +1029,9 @@ U, s, V = rand_qsvd(X_quat, R, oversample=10, n_iter=2)
 - ✅ **Based on Gaussian sketching** with power iterations
 
 ### **Eigenvalue Decomposition (Hermitian Matrices)**
+
 ```python
-from core.decomp import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
+from quatica.decomp import quaternion_eigendecomposition, quaternion_eigenvalues, quaternion_eigenvectors
 
 # Full eigendecomposition: A = V @ diag(λ) @ V^H
 eigenvalues, eigenvectors = quaternion_eigendecomposition(A_quat)
@@ -995,6 +1045,7 @@ eigenvecs = quaternion_eigenvectors(A_quat)
 ```
 
 **Features:**
+
 - ✅ **Hermitian matrices only** - specialized for real eigenvalues
 - ✅ **Tridiagonalization approach** - efficient Householder transformations
 - ✅ **High accuracy** - residuals < 10^-15
@@ -1002,8 +1053,9 @@ eigenvecs = quaternion_eigenvectors(A_quat)
 - ✅ **Based on MATLAB QTFM** - follows established mathematical approach
 
 ### Power Iteration (Hermitian vs Non-Hermitian)
+
 ```python
-from core.utils import power_iteration, power_iteration_nonhermitian
+from quatica.utils import power_iteration, power_iteration_nonhermitian
 
 # Hermitian case (recommended): returns dominant eigenvector and a real eigenvalue estimate
 v_dom, lambda_real = power_iteration(A_hermitian, return_eigenvalue=True, verbose=False)
@@ -1018,7 +1070,9 @@ q_vec, lambda_complex, residuals = power_iteration_nonhermitian(
     return_vector=True,
 )
 ```
+
 Notes:
+
 - Use `power_iteration` for Hermitian quaternion matrices; eigenvalues are real and convergence behavior matches theory.
 - If `power_iteration` is applied to non-Hermitian matrices, the returned scalar (when requested) is a real magnitude-based Rayleigh-quotient heuristic (not a true complex eigenvalue).
 - For general (non-Hermitian) quaternion matrices, use `power_iteration_nonhermitian` (experimental). It maps to a 2n×2n complex adjoint in a fixed complex subfield and returns a complex eigenvalue along with a quaternion eigenvector approximation. Residual `||Mv - λ v||_2` is available for convergence diagnostics.
@@ -1026,8 +1080,9 @@ Notes:
 See the demo section “Non-Hermitian Complex Power Iteration (Experimental)” in `QuatIca_Core_Functionality_Demo.py` / `.ipynb` for a complete example and residual plots.
 
 ### **LU Decomposition (Gaussian Elimination with Partial Pivoting)**
+
 ```python
-from core.decomp import quaternion_lu
+from quatica.decomp import quaternion_lu
 
 # LU decomposition with permutation: P @ A = L @ U
 L, U, P = quaternion_lu(A_quat, return_p=True)
@@ -1040,16 +1095,18 @@ L_perm, U_perm = quaternion_lu(A_quat, return_p=False)
 ```
 
 **Features:**
+
 - ✅ **Partial pivoting** - numerically stable for ill-conditioned matrices
 - ✅ **Two output modes** - with/without permutation matrix
-- ✅ **Perfect reconstruction** - P*A = L*U or A = L*U depending on mode
+- ✅ **Perfect reconstruction** - P*A = L*U or A = L\*U depending on mode
 - ✅ **Production-ready** with comprehensive test suite
-- ✅ **Based on MATLAB QTFM** 
+- ✅ **Based on MATLAB QTFM**
 - ✅ **Handles rectangular matrices** - works for m×n matrices
 
 ### **Tridiagonalization (Householder Transformations)**
+
 ```python
-from core.decomp import tridiagonalize
+from quatica.decomp import tridiagonalize
 
 # Tridiagonalize Hermitian matrix: P @ A @ P^H = B
 P, B = tridiagonalize(A_quat)
@@ -1058,6 +1115,7 @@ P, B = tridiagonalize(A_quat)
 ```
 
 **Features:**
+
 - ✅ **Householder transformations** - numerically stable
 - ✅ **Real tridiagonal output** - efficient for eigenvalue computation
 - ✅ **Unitary transformations** - preserves eigenvalues
@@ -1065,9 +1123,10 @@ P, B = tridiagonalize(A_quat)
 - ✅ **Recursive algorithm** - handles matrices of any size
 
 ### **Hessenberg Form (Upper Hessenberg Reduction)**
+
 ```python
-from core.decomp.hessenberg import hessenbergize, is_hessenberg
-from core.utils import quat_hermitian, quat_matmat
+from quatica.decomp.hessenberg import hessenbergize, is_hessenberg
+from quatica.utils import quat_hermitian, quat_matmat
 
 # Reduce a general quaternion matrix to Hessenberg form
 P, H = hessenbergize(X_quat)
@@ -1075,6 +1134,7 @@ P, H = hessenbergize(X_quat)
 ```
 
 **Features:**
+
 - ✅ **Householder similarity transforms** - numerically stable
 - ✅ **Unitarity preserved** - P is unitary (P^H P = I)
 - ✅ **Structure** - H has zeros strictly below the first subdiagonal
@@ -1085,22 +1145,26 @@ P, H = hessenbergize(X_quat)
 QuatIca includes a comprehensive visualization package for validating and demonstrating the correctness of our implementations:
 
 #### **Q-SVD Reconstruction Error Analysis**
+
 ```bash
 # Generate convincing visualizations of Q-SVD validation
 python tests/validation/qsvd_reconstruction_analysis.py
 ```
 
 This creates professional-quality plots showing:
+
 - **Perfect monotonicity**: Reconstruction error decreases as rank increases
 - **Perfect reconstruction**: Full rank achieves 0.000000 error
 - **Consistent behavior**: Same patterns across different matrix sizes
 - **Mathematical correctness**: Our Q-SVD follows proper SVD principles
 
 **Generated plots:**
+
 - `qsvd_reconstruction_error_vs_rank.png` - Detailed analysis for each matrix size
 - `qsvd_relative_error_summary.png` - Summary with log scale convergence
 
 #### **Eigenvalue Decomposition Testing**
+
 ```bash
 # Test eigenvalue decomposition functionality
 python run_analysis.py eigenvalue_test
@@ -1111,12 +1175,14 @@ python -m pytest tests/decomp/test_tridiagonalize.py -v
 ```
 
 This validates:
+
 - **Eigenvalue accuracy**: A @ v = λ @ v for each eigenpair
 - **Hermitian properties**: Real eigenvalues for Hermitian matrices
 - **Tridiagonalization**: P @ A @ P^H = B transformation
 - **Numerical stability**: High precision with residuals < 10^-15
 
 #### **Why This Visualization is Convincing**
+
 1. **Mathematical Validation**: Shows expected SVD behavior
 2. **Visual Proof**: Clear graphs demonstrate monotonicity
 3. **Comprehensive Testing**: Multiple matrix sizes tested
@@ -1128,7 +1194,7 @@ This validates:
 The library includes comprehensive analysis tools:
 
 - **Pseudoinverse Analysis**: Study the structure and properties of quaternion pseudoinverses
-- **Q-GMRES Solver**: Iterative Krylov subspace method for solving quaternion linear systems A*x = b
+- **Q-GMRES Solver**: Iterative Krylov subspace method for solving quaternion linear systems A\*x = b
 - **Class-aware Analysis**: Analyze pseudoinverses with respect to data classes (e.g., CIFAR-10)
 - **Spectral Analysis**: Examine singular value distributions and spectral properties
 - **Visualization**: Generate detailed plots of matrix properties, reconstruction filters, and more
@@ -1136,6 +1202,7 @@ The library includes comprehensive analysis tools:
 ## 🎯 Core Functionality Demo Files
 
 ### **📋 `QuatIca_Core_Functionality_Demo.py` - Interactive Core Functionality Tests**
+
 - **What it is**: Comprehensive Python script testing all 16 core functionality areas
 - **Perfect for**: Verifying that all README code examples work correctly
 - **Duration**: ~30 seconds
@@ -1159,25 +1226,29 @@ The library includes comprehensive analysis tools:
   - Tensor operations (Frobenius norm, unfolding/folding)
 
 **Usage:**
+
 ```bash
 python QuatIca_Core_Functionality_Demo.py
 ```
 
 ### **📓 `QuatIca_Core_Functionality_Demo.ipynb` - Jupyter Notebook Version**
+
 - **What it is**: Interactive Jupyter notebook version of the core functionality tests
 - **Perfect for**: Step-by-step exploration and learning
-- **Features**: 
+- **Features**:
   - Cell-by-cell execution for detailed understanding
   - Interactive visualizations
   - Easy modification and experimentation
   - Educational comments and explanations
 
 **Usage:**
+
 ```bash
 jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
 ```
 
 ### **📖 `README_Demo.md` - Demo Documentation**
+
 - **What it is**: Detailed documentation explaining how to use the demo files
 - **Perfect for**: Understanding the demo structure and troubleshooting
 - **Contains**: Usage instructions, expected outputs, and troubleshooting tips
@@ -1185,16 +1256,19 @@ jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
 ## 🎯 Applications
 
 ### Image Processing
+
 - **Matrix Completion**: Fill in missing pixels in images
 - **Image Inpainting**: Reconstruct damaged or occluded regions
 - **Feature Analysis**: Study quaternion representations of image features
 
 ### Signal Processing
+
 - **Quaternion Signal Analysis**: Process 3D/4D signals using quaternion algebra
 - **Spectral Analysis**: Analyze frequency domain properties
 - **Filter Design**: Design quaternion-based filters
 
 ### Data Science
+
 - **Dimensionality Reduction**: Use quaternion PCA and factorizations
 - **Clustering**: Apply quaternion-based clustering algorithms
 - **Feature Engineering**: Create quaternion-based features
@@ -1220,11 +1294,9 @@ python applications/image_completion/script_real_image_completion.py
 python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 ```
 
-
-
 ### Adding New Features
 
-1. Add core functionality to `core/` directory
+1. Add core functionality to `quatica/` directory
 2. Create tests in `tests/unit/`
 3. Add analysis scripts in `tests/pseudoinverse/`
 4. Update `run_analysis.py` for new scripts
@@ -1245,12 +1317,14 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 QuatIca is actively being extended with cutting-edge algorithms from recent research. The following features will be released soon:
 
 #### **📊 Efficient Q-SVD Computation**
+
 - **High-performance SVD** for quaternion matrices based on **Ma & Bai (2018)**
 - **Structure-preserving one-sided Jacobi method** for computing Q-SVD
 - **Optimized memory usage** for large-scale matrices
 - **Parallel computation** support for multi-core systems
 
 #### **🎵 Advanced Signal Processing Tools**
+
 - **Quaternion Fourier Transform** for 3D/4D signal analysis
 - **Frequency domain processing** with quaternion algebra
 - **Spectral analysis** for multi-dimensional signals
@@ -1263,56 +1337,65 @@ QuatIca is actively being extended with cutting-edge algorithms from recent rese
 - **Structured eigenvalue problems** with quaternion arithmetic -->
 
 #### **🔗 Quaternion Tensor Decompositions (Preview to Full Release)**
+
 - **Tensor models**: HOSVD, Tucker, Tensor-Train (TT) adapted to quaternion tensors
-- **Core utilities**: tensor norms, entrywise magnitudes, mode-n unfolding/folding (already available in `core/tensor.py`)
+- **Core utilities**: tensor norms, entrywise magnitudes, mode-n unfolding/folding (already available in `quatica/tensor.py`)
 - **Demos & tests**: Notebook preview section and `tests/unit/test_tensor_quaternion_basics.py`
 
 **Stay tuned for these exciting new features!** 🚀
-
-
 
 ## 🔧 Troubleshooting
 
 ### **Common Issues and Solutions:**
 
 #### **❌ "Command not found: python"**
+
 - **Solution**: Install Python from [python.org](https://python.org)
 - **Alternative**: Try `python3` instead of `python`
 
 #### **❌ "pip: command not found"**
+
 - **Solution**: Python comes with pip. Try `python -m pip` instead of `pip`
 - **Alternative**: Install pip separately: `python -m ensurepip --upgrade`
 
 #### **❌ "Permission denied" when installing packages**
+
 - **Solution**: Use virtual environment (see installation steps above)
 - **Alternative**: Add `--user` flag: `pip install --user -r requirements.txt`
 
 #### **❌ "numpy version too old"**
+
 - **Solution**: Upgrade numpy: `pip install --upgrade numpy>=2.3.2`
 - **Check version**: `python -c "import numpy; print(numpy.__version__)"`
 
 #### **❌ "Script not found"**
+
 - **Solution**: Make sure you're in the correct directory (`QuatIca`)
 - **Check**: Run `ls` or `dir` to see if `run_analysis.py` exists
 
 #### **❌ "Import error"**
+
 - **Solution**: Activate virtual environment: `source quatica/bin/activate` (Mac/Linux) or `quatica\Scripts\activate` (Windows)
 - **Check**: You should see `(quatica)` at the start of your command line
 
 #### **❌ "Memory error"**
+
 - **Solution**: Close other applications to free RAM
 - **Alternative**: Use smaller datasets or reduce matrix sizes in scripts
 
 #### **❌ "Slow performance"**
+
 - **Check numpy version**: Must be >= 2.3.2 for optimal performance
 - **Solution**: `pip install --upgrade numpy>=2.3.2`
 
 #### **❌ "No visualizations appear"**
+
 - **Solution**: Make sure matplotlib backend is working: `python -c "import matplotlib.pyplot as plt; plt.plot([1,2,3]); plt.show()"`
 - **Alternative**: Check if `output_figures/` directory exists and has write permissions
 - **Note**: Visualizations are automatically saved to `output_figures/` directory
 
 #### **⚠️ "DeprecationWarning about seaborn"**
+
 - **This is normal**: The warning about seaborn date parsing is harmless and doesn't affect functionality
 - **Solution**: Can be ignored - it's a known issue with seaborn and will be fixed in future versions
 
@@ -1357,6 +1440,7 @@ A comprehensive paper describing QuatIca's algorithms and applications is curren
 
 **Note for Researchers:**
 If you use QuatIca in your research, please:
+
 1. Use the above software citation
 2. Check back for our upcoming academic publication
 3. Consider reaching out to discuss collaboration and proper attribution
@@ -1378,6 +1462,7 @@ This library is designed to be a comprehensive framework for quaternion linear a
 This project is licensed under the **CC0 1.0 Universal** license - a public domain dedication that allows you to use, modify, and distribute this software freely for any purpose, including commercial use, without any restrictions.
 
 **Key Points:**
+
 - ✅ **Public Domain**: You can use this software for any purpose
 - ✅ **No Attribution Required**: You don't need to credit the original authors
 - ✅ **Commercial Use**: You can use it in commercial projects
@@ -1390,7 +1475,7 @@ This project is licensed under the **CC0 1.0 Universal** license - a public doma
 
 ## 📧 Support and Contact
 
-For questions, bug reports, or contributions, please contact:  
+For questions, bug reports, or contributions, please contact:
 **v dot leplat [at] innopolis dot ru**
 
 We welcome feedback, collaboration opportunities, and contributions to the QuatIca project.

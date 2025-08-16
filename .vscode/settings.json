@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "./quatica"
+    ],
+    "cSpell.words": [
+        "quatica"
+    ],
+}

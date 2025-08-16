@@ -1,0 +1,57 @@
+[project]
+name = "quatica"
+version = "0.0.3"
+description = "Quatica core package"
+authors = [{name = "Your Name", email = "you@example.com"}]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "matplotlib>=3.10.3",
+    "numpy>=2.3.2",
+    "numpy-quaternion>=2024.0.10",
+    "scikit-learn>=1.5.0",
+    "scipy>=1.16.1",
+    "seaborn>=0.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.30.1",
+    "pre-commit>=4.3.0",
+    "ruff>=0.12.8",
+]
+
+
+[tool.ruff]
+extend-include = ["*.ipynb"]
+fix=true
+unsafe-fixes=true
+line-length=90
+
+[tool.ruff.lint]
+extend-select = ["I"]
+ignore=["E402"]
+
+
+# Building
+
+[build-system]
+requires = ["uv_build>=0.8.7,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "quatica"
+module-root = ""
+
+
+# Publishing
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+# To test (uv publish --index testpypi)
+[tool.uv.sources]
+quatica = { index = "testpypi" }

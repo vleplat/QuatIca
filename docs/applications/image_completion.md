@@ -7,7 +7,7 @@ QuatIca provides powerful quaternion-based image completion capabilities using a
 ## Key Features
 
 - **Multiple completion strategies** for different image types and corruption patterns
-- **Real image completion** for practical restoration scenarios  
+- **Real image completion** for practical restoration scenarios
 - **Synthetic image completion** for controlled testing and validation
 - **Small image completion** for rapid prototyping and development
 
@@ -19,7 +19,7 @@ python applications/image_completion/script_real_image_completion.py
 ```
 Handles real-world image completion tasks with various corruption patterns and noise levels.
 
-### Synthetic Image Completion  
+### Synthetic Image Completion
 ```bash
 python applications/image_completion/script_synthetic_image_completion.py
 ```
@@ -43,7 +43,7 @@ The image completion process leverages quaternion matrix factorization:
 ## Applications
 
 - **Photo restoration** - Repair damaged or corrupted images
-- **Missing data recovery** - Complete images with systematic missing regions  
+- **Missing data recovery** - Complete images with systematic missing regions
 - **Noise reduction** - Clean corrupted image data while preserving structure
 - **Compression artifacts removal** - Restore quality in heavily compressed images
 

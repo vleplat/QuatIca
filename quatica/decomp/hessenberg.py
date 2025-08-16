@@ -26,8 +26,8 @@ import numpy as np
 import quaternion  # type: ignore
 
 # Add parent directory to path for imports within core package structure
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import quat_matmat, quat_hermitian  # noqa: E402
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from utils import quat_hermitian, quat_matmat  # noqa: E402
 
 # Import Householder helpers from tridiagonalization module
 from .tridiagonalize import householder_matrix  # noqa: E402
@@ -43,7 +43,12 @@ def is_hessenberg(H: np.ndarray, atol: float = 1e-12) -> bool:
         for j in range(cols):
             if i > j + 1:
                 hij = H[i, j]
-                if (abs(hij.w) > atol) or (abs(hij.x) > atol) or (abs(hij.y) > atol) or (abs(hij.z) > atol):
+                if (
+                    (abs(hij.w) > atol)
+                    or (abs(hij.x) > atol)
+                    or (abs(hij.y) > atol)
+                    or (abs(hij.z) > atol)
+                ):
                     return False
     return True
 
@@ -61,7 +66,12 @@ def check_hessenberg(H: np.ndarray, atol: float = 1e-12) -> np.ndarray:
         for j in range(cols):
             if i > j + 1:
                 hij = H_clean[i, j]
-                if (abs(hij.w) <= atol) and (abs(hij.x) <= atol) and (abs(hij.y) <= atol) and (abs(hij.z) <= atol):
+                if (
+                    (abs(hij.w) <= atol)
+                    and (abs(hij.x) <= atol)
+                    and (abs(hij.y) <= atol)
+                    and (abs(hij.z) <= atol)
+                ):
                     H_clean[i, j] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
     return H_clean
 
@@ -138,5 +148,3 @@ __all__ = [
     "is_hessenberg",
     "check_hessenberg",
 ]
-
-

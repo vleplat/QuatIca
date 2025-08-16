@@ -5,6 +5,7 @@ Quick copy-paste examples to get you started with QuatIca.
 ## 🚀 Quick Start Commands
 
 ### Learn the Framework
+
 ```bash
 # Start here - interactive tutorial with visualizations
 python run_analysis.py tutorial
@@ -14,6 +15,7 @@ python run_analysis.py demo
 ```
 
 ### Linear System Solving
+
 ```bash
 # Basic Q-GMRES solver test
 python run_analysis.py qgmres
@@ -23,6 +25,7 @@ python run_analysis.py qgmres_bench
 ```
 
 ### Signal Processing
+
 ```bash
 # Lorenz attractor processing (default quality)
 python run_analysis.py lorenz_signal
@@ -38,6 +41,7 @@ python run_analysis.py lorenz_benchmark
 ```
 
 ### Image Processing
+
 ```bash
 # Real image completion
 python run_analysis.py image_completion
@@ -53,6 +57,7 @@ python run_analysis.py synthetic_matrices
 ```
 
 ### Matrix Decompositions
+
 ```bash
 # Eigenvalue decomposition test
 python run_analysis.py eigenvalue_test
@@ -74,7 +79,7 @@ python run_analysis.py ns_compare
 ```python
 import numpy as np
 import quaternion
-from core.utils import quat_matmat, quat_frobenius_norm, quat_eye
+from quatica.utils import quat_matmat, quat_frobenius_norm, quat_eye
 
 # Create quaternion matrices
 A = quaternion.as_quat_array(np.random.randn(4, 4, 4))
@@ -94,7 +99,7 @@ I = quat_eye(4)
 ### Pseudoinverse Computation
 
 ```python
-from core.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
+from quatica.solver import NewtonSchulzPseudoinverse, HigherOrderNewtonSchulzPseudoinverse
 
 # Standard Newton-Schulz pseudoinverse
 ns_solver = NewtonSchulzPseudoinverse(gamma=0.5, max_iter=100, tol=1e-6)
@@ -108,7 +113,7 @@ A_pinv_hon, residuals_hon, covariances_hon = hon_solver.compute(A)
 ### Q-GMRES Linear System Solving
 
 ```python
-from core.solver import QGMRESSolver
+from quatica.solver import QGMRESSolver
 
 # Create Q-GMRES solver
 qgmres_solver = QGMRESSolver(tol=1e-6, max_iter=100, verbose=True)
@@ -128,9 +133,9 @@ x_prec, info_prec = qgmres_lu.solve(A, b)
 ### Matrix Decompositions
 
 ```python
-from core.decomp.qsvd import qr_qua, classical_qsvd, classical_qsvd_full
-from core.decomp.eigen import quaternion_eigendecomposition
-from core.decomp.LU import quaternion_lu
+from quatica.decomp.qsvd import qr_qua, classical_qsvd, classical_qsvd_full
+from quatica.decomp.eigen import quaternion_eigendecomposition
+from quatica.decomp.LU import quaternion_lu
 
 # QR decomposition
 Q, R = qr_qua(A)
@@ -158,16 +163,16 @@ def create_pauli_matrices():
     sigma_0_array = np.zeros((2, 2, 4))
     sigma_0_array[0, 0, 0] = 1.0  # (0,0) real
     sigma_0_array[1, 1, 0] = 1.0  # (1,1) real
-    
+
     # σₓ (sigma_x)
     sigma_x_array = np.zeros((2, 2, 4))
     sigma_x_array[0, 1, 0] = 1.0  # (0,1) real
     sigma_x_array[1, 0, 0] = 1.0  # (1,0) real
-    
+
     # Convert to quaternion arrays (simplified approach)
     sigma_0 = quaternion.as_quat_array(sigma_0_array)
     sigma_x = quaternion.as_quat_array(sigma_x_array)
-    
+
     return sigma_0, sigma_x
 
 sigma_0, sigma_x = create_pauli_matrices()
@@ -176,7 +181,7 @@ sigma_0, sigma_x = create_pauli_matrices()
 ### Visualization
 
 ```python
-from core.visualization import Visualizer
+from quatica.visualization import Visualizer
 
 # Plot residual convergence
 Visualizer.plot_residuals(residuals, title="Newton-Schulz Convergence")
@@ -192,7 +197,7 @@ Visualizer.visualize_matrix_abs(A, title="Matrix Absolute Values")
 ### Matrix Generation
 
 ```python
-from core.data_gen import create_test_matrix, create_sparse_quat_matrix, generate_random_unitary_matrix
+from quatica.data_gen import create_test_matrix, create_sparse_quat_matrix, generate_random_unitary_matrix
 
 # Random dense matrix
 A_dense = create_test_matrix(m=50, n=30, rank=20)
@@ -207,6 +212,7 @@ U_unitary = generate_random_unitary_matrix(n=10)
 ## 🎯 Performance Tips
 
 ### Optimal Setup
+
 ```bash
 # Use numpy>=2.3.2 for 10-15x speedup
 pip install --upgrade "numpy>=2.3.2"
@@ -226,7 +232,7 @@ python -c "import numpy; print(f'numpy: {numpy.__version__}')"
 
 ```python
 # For large matrices, use sparse representations when possible
-from core.utils import SparseQuaternionMatrix
+from quatica.utils import SparseQuaternionMatrix
 
 # Create sparse matrix instead of dense
 A_sparse = create_sparse_quat_matrix(1000, 1000, density=0.01)
