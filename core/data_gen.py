@@ -40,8 +40,8 @@ def create_test_matrix(m: int, n: int, rank: int = None, cond_number: float = No
         S = np.logspace(0, np.log10(cond_number), rank)
         B_real = (U @ np.diag(S) @ V.T)[:, :, np.newaxis] * B_real
     # Convert to quaternion arrays
-    A_quat = quaternion.as_quat_array(A_real.reshape(-1, 4)).reshape(m, rank)
-    B_quat = quaternion.as_quat_array(B_real.reshape(-1, 4)).reshape(rank, n)
+    A_quat = quaternion.as_quat_array(A_real)
+    B_quat = quaternion.as_quat_array(B_real)
     # Return product A * B
     return quat_matmat(A_quat, B_quat)
 
@@ -128,7 +128,7 @@ def small_test_Mat() -> np.ndarray:
     A_real[1,1,0]=6
     A_real[1,1,2]=1
     A_real[1,2,0]=7
-    return quaternion.as_quat_array(A_real.reshape(-1, 4)).reshape(2,3)
+    return quaternion.as_quat_array(A_real)
 
 def theoretical_pseudoinverse_example_5_2() -> np.ndarray:
     """
@@ -170,5 +170,5 @@ def theoretical_pseudoinverse_example_5_2() -> np.ndarray:
         [21/347, -21/694, 0, -33/694]        # 21/347 - 21/694 i - 33/694 k
     ]).reshape(3, 2, 4)
     
-    return quaternion.as_quat_array(A_theoretical.reshape(-1, 4)).reshape(3, 2)
+    return quaternion.as_quat_array(A_theoretical)
 

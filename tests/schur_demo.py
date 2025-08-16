@@ -115,7 +115,7 @@ def create_challenging_random_matrix(n, matrix_type="gaussian"):
     elif matrix_type == "ill_conditioned":
         # Ill-conditioned matrix with extreme eigenvalue spread
         U = rng.standard_normal((n, n, 4))
-        U_quat = quaternion.as_quat_array(U.reshape(-1, 4)).reshape(n, n)
+        U_quat = quaternion.as_quat_array(U)
         
         # Create severely ill-conditioned singular values
         sing_vals = np.logspace(0, -12, n)  # Condition number ~10^12
@@ -124,7 +124,7 @@ def create_challenging_random_matrix(n, matrix_type="gaussian"):
             D[i, i] = quaternion.quaternion(sing_vals[i], 0, 0, 0)
         
         V = rng.standard_normal((n, n, 4))
-        V_quat = quaternion.as_quat_array(V.reshape(-1, 4)).reshape(n, n)
+        V_quat = quaternion.as_quat_array(V)
         
         # A = U * D * V^H
         UD = quat_matmat(U_quat, D)
@@ -140,7 +140,7 @@ def create_challenging_random_matrix(n, matrix_type="gaussian"):
     
     # Stack components and convert to quaternion array
     components = np.stack([real_parts, i_parts, j_parts, k_parts], axis=-1)
-    return quaternion.as_quat_array(components.reshape(-1, 4)).reshape(n, n)
+    return quaternion.as_quat_array(components)
 
 def run_case_2_random_matrices(n_size=25):
     """Case 2: Random Matrices (The Challenge)"""
