@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -1093,7 +1093,7 @@ wheels = [
 
 [[package]]
 name = "quatica"
-version = "0.0.4a1"
+version = "0.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
