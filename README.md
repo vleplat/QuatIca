@@ -21,8 +21,8 @@
 
 ```bash
 # 1) Create and activate a virtual environment
-python3 -m venv quatica
-source quatica/bin/activate   # Windows: quatica\Scripts\activate
+python3 -m venv quat
+source quat/bin/activate   # Windows: quat\Scripts\activate
 
 # 2) Install dependencies (PyTorch is optional; see Windows notes below)
 pip install -U pip wheel
@@ -52,15 +52,15 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 
 ```bash
 # 1. Activate virtual environment
-source quatica/bin/activate   # Windows: quatica\Scripts\activate
+source quat/bin/activate   # Windows: quat\Scripts\activate
 
 # 2. Install Jupyter and register kernel
 pip install jupyter jupyterlab ipykernel
-python -m ipykernel install --user --name=quatica-venv --display-name="QuatIca (quatica-venv)"
+python -m ipykernel install --user --name=quat-venv --display-name="QuatIca (quat-venv)"
 
 # 3. Launch and select correct kernel
 jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
-# In notebook: Kernel → Change kernel → Select "QuatIca (quatica-venv)"
+# In notebook: Kernel → Change kernel → Select "QuatIca (quat-venv)"
 ```
 
 **For complete setup and troubleshooting: 📖 [JUPYTER_SETUP_GUIDE.md](JUPYTER_SETUP_GUIDE.md)**
@@ -181,15 +181,15 @@ cd QuatIca
 
 ```bash
 # Create a virtual environment (isolated Python environment)
-python3 -m venv quatica
+python3 -m venv quat
 
 # Activate the environment
 # On Mac/Linux:
-source quatica/bin/activate
+source quat/bin/activate
 # On Windows:
-quatica\Scripts\activate
+quat\Scripts\activate
 
-# You should see (quatica) at the start of your command line
+# You should see (quat) at the start of your command line
 ```
 
 #### **Alternative: Docker Setup (For Advanced Users)**
@@ -198,13 +198,13 @@ For maximum reproducibility, you can also use Docker:
 
 ```bash
 # Build the Docker image
-docker build -t quatica .
+docker build -t quat .
 
 # Run the container
-docker run -it --rm quatica
+docker run -it --rm quat
 
 # Or run a specific script
-docker run -it --rm quatica python run_analysis.py tutorial
+docker run -it --rm quat python run_analysis.py tutorial
 ```
 
 _Note: Docker setup is optional. The virtual environment approach above works perfectly for most users._
@@ -1375,8 +1375,8 @@ QuatIca is actively being extended with cutting-edge algorithms from recent rese
 
 #### **❌ "Import error"**
 
-- **Solution**: Activate virtual environment: `source quatica/bin/activate` (Mac/Linux) or `quatica\Scripts\activate` (Windows)
-- **Check**: You should see `(quatica)` at the start of your command line
+- **Solution**: Activate virtual environment: `source quat/bin/activate` (Mac/Linux) or `quat\Scripts\activate` (Windows)
+- **Check**: You should see `(quat)` at the start of your command line
 
 #### **❌ "Memory error"**
 
@@ -1410,8 +1410,8 @@ python --version
 # 2. Check numpy version (should be >= 2.3.2)
 python -c "import numpy; print(f'numpy: {numpy.__version__}')"
 
-# 3. Check if virtual environment is active (should see (quatica))
-# If not, activate it: source quatica/bin/activate
+# 3. Check if virtual environment is active (should see (quat))
+# If not, activate it: source quat/bin/activate
 
 # 4. Test the runner script
 python run_analysis.py

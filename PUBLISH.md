@@ -4,6 +4,14 @@ Based on the [official uv guide](https://docs.astral.sh/uv/guides/package/)
 
 Hereafter it is assumed that all required code is in `./quatica` folder, and all the necessary data is exported in `./quatica/__init__.py`
 
+## GitHub Actions Approach (Recommended)
+
+Just push some release tag to the main branch:
+
+```bash
+git tag v1.0.0 && git push --tags
+```
+
 ## Building
 
 ### 1. Change version
