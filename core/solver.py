@@ -327,9 +327,28 @@ class DeepLinearNewtonSchulz:
 
 
 def _solve_lower_triangular_quat(L: np.ndarray, B: np.ndarray) -> np.ndarray:
-    """Solve L X = B for X where L is lower-triangular (dense quaternion), B (n×k).
+    """
+    Solve L X = B for X where L is lower-triangular (dense quaternion), B (n×k).
 
-    Forward substitution in quaternion arithmetic: X[i] = L[ii]^{-1} (B[i] - sum_{j<i} L[i,j] X[j]).
+    Uses forward substitution in quaternion arithmetic: 
+    X[i] = L[ii]^{-1} (B[i] - sum_{j<i} L[i,j] X[j]).
+
+    Parameters:
+    -----------
+    L : np.ndarray
+        Lower triangular quaternion matrix (n×n)
+    B : np.ndarray
+        Right-hand side quaternion matrix (n×k)
+
+    Returns:
+    --------
+    np.ndarray
+        Solution matrix X (n×k) such that L @ X = B
+
+    Notes:
+    ------
+    This function performs forward substitution for dense quaternion matrices.
+    Diagonal elements are inverted using quaternion conjugate division.
     """
     n = L.shape[0]
     k = B.shape[1]
@@ -352,9 +371,28 @@ def _solve_lower_triangular_quat(L: np.ndarray, B: np.ndarray) -> np.ndarray:
 
 
 def _solve_upper_triangular_quat(U: np.ndarray, B: np.ndarray) -> np.ndarray:
-    """Solve U X = B for X where U is upper-triangular (dense quaternion), B (n×k).
+    """
+    Solve U X = B for X where U is upper-triangular (dense quaternion), B (n×k).
 
-    Backward substitution: X[i] = U[ii]^{-1} (B[i] - sum_{j>i} U[i,j] X[j]).
+    Uses backward substitution in quaternion arithmetic:
+    X[i] = U[ii]^{-1} (B[i] - sum_{j>i} U[i,j] X[j]).
+
+    Parameters:
+    -----------
+    U : np.ndarray
+        Upper triangular quaternion matrix (n×n)
+    B : np.ndarray
+        Right-hand side quaternion matrix (n×k)
+
+    Returns:
+    --------
+    np.ndarray
+        Solution matrix X (n×k) such that U @ X = B
+
+    Notes:
+    ------
+    This function performs backward substitution for dense quaternion matrices.
+    Diagonal elements are inverted using quaternion conjugate division.
     """
     n = U.shape[0]
     k = B.shape[1]

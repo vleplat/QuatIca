@@ -7,7 +7,26 @@ import seaborn as sns
 class Visualizer:
     @staticmethod
     def plot_residuals(residuals: dict[str, list[float]], title: str = "Residual Norms", subtitle: str = "") -> None:
-        """Plot MP residual norms over iterations."""
+        """
+        Plot Moore-Penrose residual norms over iterations.
+
+        Creates a logarithmic plot showing the convergence behavior of different
+        residual types during pseudoinverse computation.
+
+        Parameters:
+        -----------
+        residuals : dict[str, list[float]]
+            Dictionary mapping residual names to their values over iterations
+        title : str, optional
+            Main plot title (default: "Residual Norms")
+        subtitle : str, optional
+            Additional subtitle text (default: "")
+
+        Notes:
+        ------
+        Uses semilogy scale to better visualize exponential convergence patterns
+        typical in iterative pseudoinverse algorithms.
+        """
         plt.figure(figsize=(6,4))
         for key, vals in residuals.items():
             plt.semilogy(vals, label=key)
@@ -23,7 +42,26 @@ class Visualizer:
 
     @staticmethod
     def plot_covariances(covariances: list[float], title: str = "Covariance Deviation", subtitle: str = "") -> None:
-        """Plot covariance deviation ||AX - I|| or ||XA - I||."""
+        """
+        Plot covariance deviation ||AX - I|| or ||XA - I|| over iterations.
+
+        Visualizes how well the computed pseudoinverse satisfies the covariance
+        conditions during Newton-Schulz iterations.
+
+        Parameters:
+        -----------
+        covariances : list[float]
+            List of covariance deviation values over iterations
+        title : str, optional
+            Main plot title (default: "Covariance Deviation")
+        subtitle : str, optional
+            Additional subtitle text (default: "")
+
+        Notes:
+        ------
+        Uses logarithmic scale to track convergence. The covariance deviation
+        measures how close XA (or AX) is to the identity matrix.
+        """
         plt.figure(figsize=(6,4))
         plt.semilogy(covariances, marker='o')
         plt.xlabel('Iteration')
@@ -37,7 +75,30 @@ class Visualizer:
 
     @staticmethod
     def visualize_matrix(A: np.ndarray, component: int = 0, cmap: str = 'viridis', title: str = "Matrix Component Heatmap", subtitle: str = "") -> None:
-        """Heatmap of a chosen quaternion component (0=w,1=x,2=y,3=z)."""
+        """
+        Heatmap of a chosen quaternion component (0=w, 1=x, 2=y, 3=z).
+
+        Displays a specific quaternion component as a 2D heatmap to visualize
+        the structure and patterns within the matrix.
+
+        Parameters:
+        -----------
+        A : np.ndarray or SparseQuaternionMatrix
+            Input quaternion matrix
+        component : int, optional
+            Quaternion component to visualize: 0=w, 1=x, 2=y, 3=z (default: 0)
+        cmap : str, optional
+            Matplotlib colormap name (default: 'viridis')
+        title : str, optional
+            Main plot title (default: "Matrix Component Heatmap")
+        subtitle : str, optional
+            Additional subtitle text (default: "")
+
+        Notes:
+        ------
+        Automatically handles both dense and sparse quaternion matrices by
+        converting sparse matrices to dense format for visualization.
+        """
         from utils import SparseQuaternionMatrix
         if isinstance(A, SparseQuaternionMatrix):
             A = quaternion.as_quat_array(
@@ -63,7 +124,29 @@ class Visualizer:
 
     @staticmethod
     def visualize_matrix_abs(A: np.ndarray, cmap: str = 'viridis', title: str = "Matrix Absolute Value", subtitle: str = "") -> None:
-        """Heatmap of quaternion matrix absolute values |q| = sqrt(w² + x² + y² + z²)."""
+        """
+        Heatmap of quaternion matrix absolute values |q| = sqrt(w² + x² + y² + z²).
+
+        Displays the magnitude of each quaternion entry as a 2D heatmap,
+        providing insight into the overall structure and numerical behavior.
+
+        Parameters:
+        -----------
+        A : np.ndarray or SparseQuaternionMatrix
+            Input quaternion matrix
+        cmap : str, optional
+            Matplotlib colormap name (default: 'viridis')
+        title : str, optional
+            Main plot title (default: "Matrix Absolute Value")
+        subtitle : str, optional
+            Additional subtitle text (default: "")
+
+        Notes:
+        ------
+        The absolute value (magnitude) is computed as the quaternion norm,
+        which is invariant under quaternion rotations and provides a
+        scalar measure of quaternion "size".
+        """
         from utils import SparseQuaternionMatrix
         if isinstance(A, SparseQuaternionMatrix):
             A = quaternion.as_quat_array(

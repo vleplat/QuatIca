@@ -6,7 +6,31 @@ from typing import Tuple, List
 # Optimized quaternion matrix operations
 
 def quat_matmat(A, B):
-    """Multiply two quaternion matrices (supports dense × dense, sparse × dense, dense × sparse, sparse × sparse)."""
+    """
+    Multiply two quaternion matrices (supports dense × dense, sparse × dense, dense × sparse, sparse × sparse).
+    
+    Performs quaternion matrix multiplication using optimized algorithms based on the
+    input types. Handles mixed sparse/dense operations efficiently.
+    
+    Parameters:
+    -----------
+    A : np.ndarray or SparseQuaternionMatrix
+        First quaternion matrix
+    B : np.ndarray or SparseQuaternionMatrix
+        Second quaternion matrix
+    
+    Returns:
+    --------
+    np.ndarray or SparseQuaternionMatrix
+        Result of quaternion matrix multiplication A @ B
+    
+    Notes:
+    ------
+    The function automatically selects the appropriate multiplication algorithm:
+    - Dense × Dense: Component-wise quaternion multiplication
+    - Sparse × Dense/Sparse: Uses sparse matrix multiplication routines
+    - Dense × Sparse: Uses left multiplication method
+    """
     if isinstance(A, SparseQuaternionMatrix):
         return A @ B
     elif isinstance(B, SparseQuaternionMatrix):
@@ -27,7 +51,27 @@ def quat_matmat(A, B):
 
 
 def quat_frobenius_norm(A: np.ndarray) -> float:
-    """Compute the Frobenius norm of a quaternion matrix (dense or sparse)."""
+    """
+    Compute the Frobenius norm of a quaternion matrix (dense or sparse).
+    
+    Calculates ||A||_F = sqrt(sum(|A_ij|^2)) where |A_ij| is the modulus
+    of the quaternion at position (i,j).
+    
+    Parameters:
+    -----------
+    A : np.ndarray or SparseQuaternionMatrix
+        Input quaternion matrix
+    
+    Returns:
+    --------
+    float
+        Frobenius norm of the matrix
+    
+    Notes:
+    ------
+    For sparse matrices, the norm is computed efficiently by summing
+    the squared norms of each component separately.
+    """
     if isinstance(A, SparseQuaternionMatrix):
         real_norm = A.real.power(2).sum()
         i_norm = A.i.power(2).sum()
@@ -40,7 +84,27 @@ def quat_frobenius_norm(A: np.ndarray) -> float:
 
 
 def quat_hermitian(A: np.ndarray) -> np.ndarray:
-    """Return the conjugate transpose (Hermitian) of quaternion matrix A (dense or sparse)."""
+    """
+    Return the conjugate transpose (Hermitian) of quaternion matrix A (dense or sparse).
+    
+    Computes A^H = (A*)^T where A* is the complex conjugate and T is transpose.
+    For quaternions q = w + xi + yj + zk, the conjugate is q* = w - xi - yj - zk.
+    
+    Parameters:
+    -----------
+    A : np.ndarray or SparseQuaternionMatrix
+        Input quaternion matrix
+    
+    Returns:
+    --------
+    np.ndarray or SparseQuaternionMatrix
+        Conjugate transpose A^H of the input matrix
+    
+    Notes:
+    ------
+    The Hermitian (conjugate transpose) is fundamental in quaternion linear algebra
+    and appears in definitions of unitary matrices, eigenvalue problems, and norms.
+    """
     if isinstance(A, SparseQuaternionMatrix):
         return A.conjugate().transpose()
     else:
@@ -48,14 +112,54 @@ def quat_hermitian(A: np.ndarray) -> np.ndarray:
 
 
 def quat_eye(n: int) -> np.ndarray:
-    """Create an n×n identity quaternion matrix."""
+    """
+    Create an n×n identity quaternion matrix.
+    
+    Generates the quaternion identity matrix I where I_ij = δ_ij * (1 + 0i + 0j + 0k),
+    i.e., ones on the diagonal and zeros elsewhere.
+    
+    Parameters:
+    -----------
+    n : int
+        Size of the square identity matrix
+    
+    Returns:
+    --------
+    np.ndarray
+        An n×n quaternion identity matrix
+    
+    Notes:
+    ------
+    The quaternion identity matrix satisfies A @ I = I @ A = A for any
+    n×n quaternion matrix A.
+    """
     I = np.zeros((n, n), dtype=np.quaternion)
     np.fill_diagonal(I, quaternion.quaternion(1, 0, 0, 0))
     return I
 
 
 def quat_abs_scalar(q: quaternion.quaternion) -> float:
-    """Return the modulus |q| of a quaternion scalar q."""
+    """
+    Return the modulus |q| of a quaternion scalar q.
+    
+    Computes the absolute value (modulus) of a quaternion q = w + xi + yj + zk
+    as |q| = sqrt(w² + x² + y² + z²).
+    
+    Parameters:
+    -----------
+    q : quaternion.quaternion
+        Input quaternion scalar
+    
+    Returns:
+    --------
+    float
+        Modulus (absolute value) of the quaternion
+    
+    Notes:
+    ------
+    The quaternion modulus satisfies |q₁ * q₂| = |q₁| * |q₂| and is used
+    in defining norms and distances in quaternion space.
+    """
     return float(np.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z))
 
 
@@ -132,7 +236,30 @@ def matrix_norm(A: np.ndarray, ord: str | int | float | None = None) -> float:
     raise ValueError(f"Unsupported ord for matrix_norm: {ord}")
 
 def _is_hermitian_quat(A: np.ndarray, atol: float = 1e-12) -> bool:
-    """Lightweight Hermitian check for quaternion matrices."""
+    """
+    Lightweight Hermitian check for quaternion matrices.
+    
+    Tests whether a quaternion matrix A satisfies A = A^H within tolerance,
+    where A^H is the conjugate transpose.
+    
+    Parameters:
+    -----------
+    A : np.ndarray
+        Quaternion matrix to test
+    atol : float, optional
+        Absolute tolerance for comparison (default: 1e-12)
+    
+    Returns:
+    --------
+    bool
+        True if matrix is Hermitian within tolerance, False otherwise
+    
+    Notes:
+    ------
+    This is an internal function used for optimization in other algorithms.
+    For user-facing Hermitian checks, use ishermitian() which includes
+    additional validation and error handling.
+    """
     try:
         return np.allclose(A, quat_hermitian(A), atol=atol)
     except Exception:
