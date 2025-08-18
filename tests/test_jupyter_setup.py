@@ -111,10 +111,10 @@ def main():
         print("✅ Jupyter packages are available!")
         print("\n📝 Next steps for Jupyter:")
         print(
-            "1. Register a kernel: python -m ipykernel install --user --name=quatica-venv --display-name='QuatIca (quatica-venv)'"
+            "1. Register a kernel: python -m ipykernel install --user --name=quat-venv --display-name='QuatIca (quat-venv)'"
         )
         print("2. Launch Jupyter: jupyter notebook QuatIca_Core_Functionality_Demo.ipynb")
-        print("3. Select the 'QuatIca (quatica-venv)' kernel in your notebook")
+        print("3. Select the 'QuatIca (quat-venv)' kernel in your notebook")
     else:
         print("❌ Jupyter packages are not available.")
         print("   Run: pip install jupyter notebook jupyterlab ipykernel")
