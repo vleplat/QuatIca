@@ -893,6 +893,7 @@ class RandomizedSketchProjectPseudoinverse:
         test_sketch_size: int = 8,
         verbose: bool = False,
         seed: int = None,
+        column_solver: str = "qr",  # "qr" or "spd"
     ):
         """
         Initialize the RSP-Q solver.
@@ -920,6 +921,7 @@ class RandomizedSketchProjectPseudoinverse:
         self.seed = seed
         if seed is not None:
             np.random.seed(seed)
+        self.column_solver = column_solver.lower() if isinstance(column_solver, str) else "qr"
 
     def _generate_random_sketch(self, rows: int, cols: int) -> np.ndarray:
         """
@@ -1124,22 +1126,34 @@ class RandomizedSketchProjectPseudoinverse:
             X_Y_k = quat_matmat(X, Y_k)
             R_k = Omega_k - X_Y_k
 
-            # Compute update via thin QR on Y_k: Y_k = U_k R_k^(Y), then solve R_k^(Y) Z = U_k^H
+            # Compute update via selected strategy
             try:
-                # Local import to avoid altering global imports
-                try:
-                    from .decomp.qsvd import qr_qua  # package context
-                except Exception:
-                    from quatica.decomp.qsvd import qr_qua  # script context
-                U_k, RY_k = qr_qua(Y_k)  # U_k: (m x r), RY_k: (r x r) upper
-                U_k_H = quat_hermitian(U_k)  # (r x m)
-                # Solve RY_k Z = U_k^H for Z (r x m)
-                Z_k = _solve_upper_triangular_quat(RY_k, U_k_H)
-                # Update: X_{k+1} = X_k + R_id * Z_k
-                X = X + quat_matmat(R_k, Z_k)
+                if self.column_solver == "spd":
+                    # SPD-based thin pseudoinverse: Z = (Y^H Y)^{-1} Y^H
+                    Y_H = quat_hermitian(Y_k)           # (r x m)
+                    G = quat_matmat(Y_H, Y_k)           # (r x r)
+                    # Stabilize
+                    rdim = G.shape[0]
+                    G = 0.5 * (G + quat_hermitian(G)) + 1e-10 * quat_eye(rdim)
+                    Z_k, ok = self._solve_spd_quat(G, Y_H, tol=1e-8, max_iter=200)  # (r x m)
+                    if not ok:
+                        # NS fallback on G
+                        G_inv = self._invert_quat_small(G, ns_iters=16)
+                        Z_k = quat_matmat(G_inv, Y_H)
+                    X = X + quat_matmat(R_k, Z_k)
+                else:
+                    # Default QR-based update: Y = U R, solve R Z = U^H
+                    try:
+                        from .decomp.qsvd import qr_qua  # package context
+                    except Exception:
+                        from quatica.decomp.qsvd import qr_qua  # script context
+                    U_k, RY_k = qr_qua(Y_k)  # U_k: (m x r), RY_k: (r x r) upper
+                    U_k_H = quat_hermitian(U_k)  # (r x m)
+                    Z_k = _solve_upper_triangular_quat(RY_k, U_k_H)  # (r x m)
+                    X = X + quat_matmat(R_k, Z_k)
             except Exception:
                 if self.verbose:
-                    print(f"Iteration {k}: QR-based update failed, redrawing sketch")
+                    print(f"Iteration {k}: {self.column_solver} update failed, redrawing sketch")
                 continue
 
             # Check convergence using test sketch
@@ -1317,6 +1331,7 @@ class HybridRSPNewtonSchulz:
         max_iter: int = 1000,
         verbose: bool = False,
         seed: int | None = None,
+        column_solver: str = "qr",  # "qr" or "spd" for RSP step
     ) -> None:
         self.r = r
         self.p = p
@@ -1327,9 +1342,10 @@ class HybridRSPNewtonSchulz:
         self.seed = seed
         if seed is not None:
             np.random.seed(seed)
+        self.column_solver = column_solver.lower() if isinstance(column_solver, str) else "qr"
 
     def _rsp_step_column(self, A: np.ndarray, X: np.ndarray) -> np.ndarray:
-        # One RSP-Q column step using thin QR
+        # One RSP-Q column step using either thin QR or SPD micro-solver
         m, n = A.shape
         # Draw right sketch Omega (n x r)
         real = np.random.randn(n, self.r)
@@ -1339,16 +1355,29 @@ class HybridRSPNewtonSchulz:
         Omega = quaternion.as_quat_array(np.stack([real, ii, jj, kk], axis=-1))
         Y = quat_matmat(A, Omega)
         R_id = Omega - quat_matmat(X, Y)
-        # Y = U R
         try:
-            try:
-                from .decomp.qsvd import qr_qua
-            except Exception:
-                from quatica.decomp.qsvd import qr_qua
-            U, R = qr_qua(Y)
-            U_H = quat_hermitian(U)
-            Z = _solve_upper_triangular_quat(R, U_H)
-            return X + quat_matmat(R_id, Z)
+            if self.column_solver == "spd":
+                # SPD-based thin pseudoinverse on Y
+                Y_H = quat_hermitian(Y)
+                G = quat_matmat(Y_H, Y)
+                rdim = G.shape[0]
+                G = 0.5 * (G + quat_hermitian(G)) + 1e-10 * quat_eye(rdim)
+                # Reuse RSP-Q micro-solver and fallback
+                Z, ok = RandomizedSketchProjectPseudoinverse._solve_spd_quat(self, G, Y_H, tol=1e-8, max_iter=200)
+                if not ok:
+                    G_inv = RandomizedSketchProjectPseudoinverse._invert_quat_small(self, G, ns_iters=16)
+                    Z = quat_matmat(G_inv, Y_H)
+                return X + quat_matmat(R_id, Z)
+            else:
+                # QR path
+                try:
+                    from .decomp.qsvd import qr_qua
+                except Exception:
+                    from quatica.decomp.qsvd import qr_qua
+                U, R = qr_qua(Y)
+                U_H = quat_hermitian(U)
+                Z = _solve_upper_triangular_quat(R, U_H)
+                return X + quat_matmat(R_id, Z)
         except Exception:
             return X  # skip on failure
 
