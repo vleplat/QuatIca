@@ -255,6 +255,7 @@ python run_analysis.py <script_name>
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types              | Algorithm validation                                      |
 | `eigenvalue_test`    | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition             | **Matrix analysis** and eigenvalue computation            |
 | `schur_demo`         | **🎯 Quaternion Schur Decomposition Demo** - Comprehensive comparison of rayleigh vs aed variants  | **Matrix decomposition** and algorithm comparison         |
+| `pinv_bench`         | **Pseudoinverse Benchmark** - NS (γ=1), HON (3rd), RSP-Q (col), Hybrid RSP+NS, CGNE–Q              | **Pseudoinverse** runtime/accuracy comparison             |
 
 #### **🎯 Quick Examples:**
 
@@ -294,6 +295,9 @@ python run_analysis.py synthetic
 
 # Test pseudoinverse on synthetic matrices
 python run_analysis.py synthetic_matrices
+
+# Run pseudoinverse benchmark (saves CSV and plots under validation_output/)
+python run_analysis.py pinv_bench
 
 # Test Schur decomposition with comprehensive comparison
 python run_analysis.py schur_demo
