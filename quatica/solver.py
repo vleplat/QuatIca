@@ -954,7 +954,35 @@ class RandomizedSketchProjectPseudoinverse:
     ) -> tuple[np.ndarray, bool]:
         """
         Solve G X = B where G is quaternion Hermitian SPD (r x r) and B is (r x m).
-        Uses a simple (unpreconditioned) CG in quaternion arithmetic. Returns (X, success).
+        
+        Uses a simple (unpreconditioned) Conjugate Gradient in quaternion arithmetic.
+        This is a micro-solver used internally by the RSP-Q row variant.
+        
+        Parameters:
+        -----------
+        G : np.ndarray
+            Quaternion Hermitian positive definite matrix of shape (r, r)
+        B : np.ndarray
+            Right-hand side quaternion matrix of shape (r, m)
+        tol : float, optional
+            Convergence tolerance for CG iterations (default: 1e-8)
+        max_iter : int, optional
+            Maximum number of CG iterations (default: 200)
+            
+        Returns:
+        --------
+        tuple[np.ndarray, bool]
+            X : np.ndarray
+                Solution matrix of shape (r, m) such that G @ X = B
+            success : bool
+                True if CG converged successfully, False otherwise
+                
+        Notes:
+        ------
+        - Applies mild symmetrization to suppress roundoff: G = 0.5 * (G + G^H)
+        - Uses Fletcher-Reeves CG with real inner products
+        - Returns success=False if CG fails to converge or encounters numerical issues
+        - This is an internal helper function for RSP-Q row variant implementation
         """
         # Mild symmetrization to suppress roundoff
         G = 0.5 * (G + quat_hermitian(G))
@@ -1000,7 +1028,28 @@ class RandomizedSketchProjectPseudoinverse:
     def _invert_quat_small(self, A: np.ndarray, ns_iters: int = 12) -> np.ndarray:
         """
         Compute a small quaternion matrix inverse using Newton–Schulz iteration.
+        
+        This is a fallback method for small matrix inversion when CG-based methods fail.
         Assumes A is well-conditioned Hermitian positive definite (or close).
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Small quaternion matrix to invert, assumed to be well-conditioned
+        ns_iters : int, optional
+            Number of Newton-Schulz iterations (default: 12)
+            
+        Returns:
+        --------
+        np.ndarray
+            Approximate inverse of A with same shape as A
+            
+        Notes:
+        ------
+        - Uses Newton-Schulz iteration: X_{k+1} = X_k (2I - A X_k)
+        - Initializes with X_0 = (2/tr(A)) * I for better convergence
+        - This is an internal helper function used as fallback in RSP-Q methods
+        - Assumes A is small and well-conditioned for reliable convergence
         """
         r = A.shape[0]
         I = quat_eye(r)
@@ -1018,18 +1067,27 @@ class RandomizedSketchProjectPseudoinverse:
     def _compute_pseudoinverse_thin(self, Y: np.ndarray) -> np.ndarray:
         """
         Compute pseudoinverse of thin matrix Y using (Y^H Y)^{-1} Y^H.
-
-        Uses quaternion-native operations throughout.
-
+        
+        Uses quaternion-native operations throughout. This method computes the
+        pseudoinverse of a thin matrix Y by solving the normal equations.
+        
         Parameters:
         -----------
         Y : np.ndarray
             Thin quaternion matrix of shape (m, r) with m >= r
-
+            
         Returns:
         --------
         np.ndarray
             Pseudoinverse of Y, shape (r, m)
+            
+        Notes:
+        ------
+        - Computes Y^H Y and inverts it using Newton-Schulz iteration
+        - Returns (Y^H Y)^{-1} Y^H as the pseudoinverse
+        - Uses scaled identity initialization for better convergence
+        - This is an internal helper function for RSP-Q column variant
+        - Assumes Y is well-conditioned for reliable inversion
         """
         # Compute Y^H Y (this is r x r)
         Y_H = quat_hermitian(Y)
@@ -1078,18 +1136,36 @@ class RandomizedSketchProjectPseudoinverse:
     def compute_column_variant(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
         """
         Compute pseudoinverse using column variant RSP-Q for full column rank A.
-
-        Solves XA = I_n by iterative sketch-and-project updates.
-
+        
+        Solves XA = I_n by iterative sketch-and-project updates. This variant is
+        designed for tall matrices (m >= n) and uses randomized sketching to
+        reduce computational complexity.
+        
         Parameters:
         -----------
         A : np.ndarray
             Full column rank quaternion matrix of shape (m, n) with m >= n
-
+            
         Returns:
         --------
         tuple[np.ndarray, dict]
-            Pseudoinverse X of shape (n, m) and convergence information
+            X : np.ndarray
+                Pseudoinverse of A, shape (n, m)
+            convergence_info : dict
+                Dictionary containing convergence information:
+                - 'iterations': Number of iterations performed
+                - 'residual_norms': List of residual norms per iteration
+                - 'iteration_times': List of CPU times per iteration
+                - 'total_time': Total computation time
+                - 'converged': Boolean indicating if convergence was achieved
+                
+        Notes:
+        ------
+        - Initializes with X_0 = (1/||A||_F^2) * A^H
+        - Uses random sketches of size block_size for each iteration
+        - Supports both QR and SPD update strategies via column_solver parameter
+        - Monitors convergence using a test sketch to avoid computing full residuals
+        - Global linear convergence in expectation for well-conditioned matrices
         """
         m, n = A.shape
 
@@ -1195,7 +1271,37 @@ class RandomizedSketchProjectPseudoinverse:
     def compute_row_variant(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
         """
         RSP-Q row variant: solve A X = I_m for full row rank A (m <= n).
-        Update: X <- X + Z^H (Z Z^H)^{-1} (S^H - Z X), where Z = S^H A.
+        
+        This variant is designed for wide matrices (m <= n) and uses left sketching
+        to project onto sketched identity constraints. The update formula is:
+        X <- X + Z^H (Z Z^H)^{-1} (S^H - Z X), where Z = S^H A.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Full row rank quaternion matrix of shape (m, n) with m <= n
+            
+        Returns:
+        --------
+        tuple[np.ndarray, dict]
+            X : np.ndarray
+                Pseudoinverse of A, shape (n, m)
+            info : dict
+                Dictionary containing convergence information:
+                - 'iterations': Number of iterations performed
+                - 'residual_norms': List of residual norms per iteration
+                - 'iteration_times': List of CPU times per iteration
+                - 'total_time': Total computation time
+                - 'converged': Boolean indicating if convergence was achieved
+                
+        Notes:
+        ------
+        - Initializes with X_0 = 0 (zero initialization is sufficient for RSP)
+        - Uses left sketches S of size block_size for each iteration
+        - Solves (Z Z^H) W = R using CG micro-solver with fallback to Newton-Schulz
+        - Monitors convergence using proxy residual with test sketch
+        - Applies tiny ridge regularization (1e-10) to Gram matrix for stability
+        - Global linear convergence in expectation for well-conditioned matrices
         """
         m, n = A.shape
         if m > n:
@@ -1274,18 +1380,30 @@ class RandomizedSketchProjectPseudoinverse:
     def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
         """
         Compute the Moore-Penrose pseudoinverse using RSP-Q.
-
+        
         Automatically selects column or row variant based on matrix dimensions.
-
+        This is the main entry point for RSP-Q pseudoinverse computation.
+        
         Parameters:
         -----------
         A : np.ndarray
             Quaternion matrix of shape (m, n)
-
+            
         Returns:
         --------
         tuple[np.ndarray, dict]
-            Pseudoinverse X and convergence information
+            X : np.ndarray
+                Moore-Penrose pseudoinverse of A, shape (n, m)
+            convergence_info : dict
+                Dictionary containing convergence information from the selected variant
+                
+        Notes:
+        ------
+        - For m >= n (tall/square matrices): uses column variant (compute_column_variant)
+        - For m < n (wide matrices): uses row variant (compute_row_variant)
+        - Automatically clamps block_size to safe range [1, min(m, n)]
+        - Both variants provide global linear convergence in expectation
+        - The choice between variants is optimal for computational efficiency
         """
         m, n = A.shape
         # Clamp block size once
@@ -1345,7 +1463,30 @@ class HybridRSPNewtonSchulz:
         self.column_solver = column_solver.lower() if isinstance(column_solver, str) else "qr"
 
     def _rsp_step_column(self, A: np.ndarray, X: np.ndarray) -> np.ndarray:
-        # One RSP-Q column step using either thin QR or SPD micro-solver
+        """
+        Perform one RSP-Q column step using either thin QR or SPD micro-solver.
+        
+        This is an internal helper method for the hybrid RSP+NS algorithm.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix of shape (m, n) with m >= n
+        X : np.ndarray
+            Current pseudoinverse approximation of shape (n, m)
+            
+        Returns:
+        --------
+        np.ndarray
+            Updated pseudoinverse approximation of shape (n, m)
+            
+        Notes:
+        ------
+        - Draws random sketch Omega of size (n x r) where r is the block size
+        - Computes Y = A @ Omega and residual R = Omega - X @ Y
+        - Updates X using either QR decomposition or SPD solve based on column_solver
+        - Returns X unchanged if the update step fails
+        """
         m, n = A.shape
         # Draw right sketch Omega (n x r)
         real = np.random.randn(n, self.r)
@@ -1382,7 +1523,31 @@ class HybridRSPNewtonSchulz:
             return X  # skip on failure
 
     def _ns_hyperpower_right(self, A: np.ndarray, X: np.ndarray) -> np.ndarray:
-        # One exact NS/hyperpower step on right residual: X <- (sum_{i=0}^{p-1} F^i) X, F = I - X A
+        """
+        Perform one exact NS/hyperpower step on right residual.
+        
+        This is an internal helper method for the hybrid RSP+NS algorithm.
+        Implements the hyperpower update: X <- (sum_{i=0}^{p-1} F^i) X, where F = I - X A.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix of shape (m, n) with m >= n
+        X : np.ndarray
+            Current pseudoinverse approximation of shape (n, m)
+            
+        Returns:
+        --------
+        np.ndarray
+            Updated pseudoinverse approximation of shape (n, m)
+            
+        Notes:
+        ------
+        - Computes F = I - X @ A as the right residual matrix
+        - Accumulates S = I + F + F^2 + ... + F^{p-1} using p-1 matrix multiplications
+        - Returns S @ X as the updated approximation
+        - This provides exact hyperpower acceleration for the right residual
+        """
         n = A.shape[1]
         I = quat_eye(n)
         F = I - quat_matmat(X, A)
@@ -1395,6 +1560,41 @@ class HybridRSPNewtonSchulz:
         return quat_matmat(S, X)
 
     def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        """
+        Compute pseudoinverse using hybrid RSP-Q + NS algorithm.
+        
+        Alternates T randomized sketch-and-project steps with one exact hyperpower
+        (order p) step on the right residual. This combines the efficiency of
+        randomized methods with the accuracy of exact Newton-Schulz iterations.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix of shape (m, n) with m >= n (full column rank)
+            
+        Returns:
+        --------
+        tuple[np.ndarray, dict]
+            X : np.ndarray
+                Pseudoinverse of A, shape (n, m)
+            info : dict
+                Dictionary containing convergence information:
+                - 'iterations_rsp': Number of RSP iterations performed
+                - 'residual_norms': List of residual norms after each cycle
+                - 'total_time': Total computation time
+                - 'converged': Boolean indicating if convergence was achieved
+                - 'r': Block size used for RSP steps
+                - 'p': Hyperpower order used for NS steps
+                - 'T': Number of RSP steps per cycle
+                
+        Notes:
+        ------
+        - Currently supports only column variant (m >= n)
+        - Initializes with X_0 = (1/||A||_F^2) * A^H
+        - Performs T RSP steps followed by one NS hyperpower step per cycle
+        - Monitors convergence using test sketch to avoid full residual computation
+        - Combines benefits of randomized efficiency and exact convergence
+        """
         m, n = A.shape
         if m < n:
             raise ValueError(
@@ -1479,10 +1679,35 @@ class CGNEQSolver:
 
     def _build_right_preconditioner(self, A: np.ndarray, n: int) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
         """
-        Build a thin Nyström-type right preconditioner M ≈ (A A^H)^{-1}:
-          M = Y (Y^H Y)^{-1} (Y^H Y)^{-1} Y^H, where Y = A Ω, Ω in H^{n x r}.
-
-        Returns (Y, G_inv, G_inv) so that Z M can be applied as: ((Z Y) G_inv) G_inv Y^H
+        Build a thin Nyström-type right preconditioner M ≈ (A A^H)^{-1}.
+        
+        Constructs M = Y (Y^H Y)^{-1} (Y^H Y)^{-1} Y^H, where Y = A Ω and Ω is a
+        random sketch. This provides an approximate inverse for right preconditioning.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix of shape (m, n)
+        n : int
+            Number of columns in A
+            
+        Returns:
+        --------
+        tuple[np.ndarray, np.ndarray, np.ndarray] | None
+            If preconditioner_rank > 0: (Y, G_inv, G_inv) where:
+                Y : np.ndarray
+                    Sketch Y = A @ Ω of shape (m, r)
+                G_inv : np.ndarray
+                    Inverse of G = Y^H @ Y of shape (r, r)
+            If preconditioner_rank <= 0: None
+            
+        Notes:
+        ------
+        - Draws random sketch Ω of shape (n, r) where r = preconditioner_rank
+        - Computes Y = A @ Ω and G = Y^H @ Y
+        - Inverts G using Newton-Schulz iteration for small matrices
+        - Returns None if preconditioner_rank is 0 or exceeds matrix dimensions
+        - This is an internal helper method for CGNE-Q preconditioning
         """
         r = self.preconditioner_rank
         if r <= 0 or r > n:
@@ -1503,7 +1728,30 @@ class CGNEQSolver:
         return (Y, G_inv, G_inv)
 
     def _apply_right_prec(self, Z: np.ndarray, prec: tuple[np.ndarray, np.ndarray, np.ndarray] | None) -> np.ndarray:
-        """Apply Z @ M using the cached (Y, Ginv, Ginv) representation."""
+        """
+        Apply right preconditioner Z @ M using cached representation.
+        
+        Applies the right preconditioner M to Z using the cached (Y, G_inv, G_inv)
+        representation from _build_right_preconditioner.
+        
+        Parameters:
+        -----------
+        Z : np.ndarray
+            Quaternion matrix to be preconditioned
+        prec : tuple[np.ndarray, np.ndarray, np.ndarray] | None
+            Preconditioner representation (Y, G_inv, G_inv) or None
+            
+        Returns:
+        --------
+        np.ndarray
+            Preconditioned matrix Z @ M with same shape as Z
+            
+        Notes:
+        ------
+        - If prec is None, returns Z unchanged (no preconditioning)
+        - Otherwise computes Z @ M = ((Z @ Y) @ G_inv) @ G_inv @ Y^H
+        - This is an internal helper method for CGNE-Q preconditioning
+        """
         if prec is None:
             return Z
         Y, Ginv1, Ginv2 = prec
@@ -1513,6 +1761,42 @@ class CGNEQSolver:
         return quat_matmat(T, quat_hermitian(Y))  # (n x m)
 
     def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        """
+        Compute pseudoinverse using Conjugate Gradient on Normal Equations (CGNE–Q).
+        
+        Minimizes f(X) = 1/2 || X A - I_n ||_F^2 with quaternion-native operations.
+        This method provides global convergence to the Moore-Penrose pseudoinverse
+        by solving the normal equations via conjugate gradient.
+        
+        Parameters:
+        -----------
+        A : np.ndarray
+            Quaternion matrix of shape (m, n) with m >= n (full column rank)
+            
+        Returns:
+        --------
+        tuple[np.ndarray, dict]
+            X : np.ndarray
+                Pseudoinverse of A, shape (n, m)
+            info : dict
+                Dictionary containing convergence information:
+                - 'iterations': Number of CG iterations performed
+                - 'residual_norms': List of relative residual norms per iteration
+                - 'iteration_times': List of CPU times per iteration
+                - 'total_time': Total computation time
+                - 'converged': Boolean indicating if convergence was achieved
+                - 'preconditioner_rank': Rank of preconditioner used (0 if none)
+                
+        Notes:
+        ------
+        - Requires m >= n (full column rank matrices)
+        - Initializes with X_0 = (1/||A||_F^2) * A^H to stay in span{A^H}
+        - Uses Fletcher-Reeves CG with exact line search
+        - Supports optional thin Nyström-type right preconditioning
+        - All operations are quaternion-native with no embeddings
+        - Converges to A^† as ||I_n - X_k A||_F -> 0
+        - Per iteration: one A multiply and one A^H multiply
+        """
         m, n = A.shape
         if m < n:
             raise ValueError("CGNE–Q requires m >= n (full column rank)")
