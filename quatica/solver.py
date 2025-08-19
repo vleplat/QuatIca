@@ -947,6 +947,72 @@ class RandomizedSketchProjectPseudoinverse:
         sketch_real = np.stack([real_part, i_part, j_part, k_part], axis=-1)
         return quaternion.as_quat_array(sketch_real)
 
+    def _solve_spd_quat(
+        self, G: np.ndarray, B: np.ndarray, tol: float = 1e-8, max_iter: int = 200
+    ) -> tuple[np.ndarray, bool]:
+        """
+        Solve G X = B where G is quaternion Hermitian SPD (r x r) and B is (r x m).
+        Uses a simple (unpreconditioned) CG in quaternion arithmetic. Returns (X, success).
+        """
+        # Mild symmetrization to suppress roundoff
+        G = 0.5 * (G + quat_hermitian(G))
+
+        r, m = B.shape
+        X = np.zeros((r, m), dtype=np.quaternion)
+
+        def real_inner(u: np.ndarray, v: np.ndarray) -> float:
+            s = 0.0
+            for i in range(u.shape[0]):
+                prod = u[i].conjugate() * v[i]  # u^H v (quaternion)
+                s += quaternion.as_float_array(prod)[0]  # Re(u^H v)
+            return float(s)
+
+        ok = True
+        for j in range(m):
+            b = B[:, j].copy()
+            x = np.zeros(r, dtype=np.quaternion)
+            rvec = b.copy()
+            p = rvec.copy()
+            rsold = real_inner(rvec, rvec)
+            bnorm = max(1e-16, np.sqrt(rsold))
+            for _ in range(max_iter):
+                Ap = quat_matmat(G, p.reshape(r, 1)).reshape(r)
+                pAp = real_inner(p, Ap)
+                if pAp <= 0 or abs(pAp) < 1e-18:
+                    ok = False
+                    break
+                alpha = rsold / pAp
+                x = x + alpha * p
+                rvec = rvec - alpha * Ap
+                rsnew = real_inner(rvec, rvec)
+                if np.sqrt(rsnew) / bnorm <= tol:
+                    break
+                beta = rsnew / rsold
+                p = rvec + beta * p
+                rsold = rsnew
+            X[:, j] = x
+            if np.sqrt(rsold) / bnorm > max(1e-6, tol * 10):
+                ok = False
+        return X, ok
+
+    def _invert_quat_small(self, A: np.ndarray, ns_iters: int = 12) -> np.ndarray:
+        """
+        Compute a small quaternion matrix inverse using Newton–Schulz iteration.
+        Assumes A is well-conditioned Hermitian positive definite (or close).
+        """
+        r = A.shape[0]
+        I = quat_eye(r)
+        # Scale by approximate spectral norm via trace real part
+        tr = 0.0
+        for i in range(r):
+            tr += quaternion.as_float_array(A[i, i])[0]
+        alpha = 2.0 / max(abs(tr), 1e-12)
+        X = alpha * I
+        for _ in range(ns_iters):
+            AX = quat_matmat(A, X)
+            X = quat_matmat(X, (2.0 * I - AX))
+        return X
+
     def _compute_pseudoinverse_thin(self, Y: np.ndarray) -> np.ndarray:
         """
         Compute pseudoinverse of thin matrix Y using (Y^H Y)^{-1} Y^H.
@@ -1114,111 +1180,82 @@ class RandomizedSketchProjectPseudoinverse:
 
     def compute_row_variant(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
         """
-        Compute pseudoinverse using row variant RSP-Q for full row rank A.
-
-        Solves AX = I_m by iterative sketch-and-project updates.
-
-        Parameters:
-        -----------
-        A : np.ndarray
-            Full row rank quaternion matrix of shape (m, n) with m <= n
-
-        Returns:
-        --------
-        tuple[np.ndarray, dict]
-            Pseudoinverse X of shape (n, m) and convergence information
+        RSP-Q row variant: solve A X = I_m for full row rank A (m <= n).
+        Update: X <- X + Z^H (Z Z^H)^{-1} (S^H - Z X), where Z = S^H A.
         """
         m, n = A.shape
-
         if m > n:
             raise ValueError("Row variant requires m <= n (full row rank)")
 
-        # Initialize X_0 = 0 (RSP does not hinge on alpha)
+        # Clamp block size to safe range
+        r = max(1, min(self.block_size, m, n))
+        # Init: zero is fine for RSP
         X = np.zeros((n, m), dtype=np.quaternion)
 
-        # Generate test sketch for convergence monitoring
-        self._generate_random_sketch(m, self.test_sketch_size)
-        I_m = quat_eye(m)
+        # Cheap test-sketch to monitor AX ≈ I_m without forming AX every time
+        Theta = self._generate_random_sketch(m, self.test_sketch_size)  # (m x s)
+        Theta_norm = max(quat_frobenius_norm(Theta), 1e-30)
 
-        # Storage for convergence history
-        residual_norms = []
-        iteration_times = []
-
+        residual_norms, iteration_times = [], []
         if self.verbose:
-            print("RSP-Q Row Variant: Starting (zero init)")
-            print(f"Matrix size: {m}x{n}, block size: {self.block_size}")
+            print(f"RSP-Q Row Variant: m={m}, n={n}, block={r}")
 
         for k in range(self.max_iter):
-            start_time = time.time()
+            t0 = time.time()
 
-            # Draw left sketch S_k (should be m x block_size)
-            S_k = self._generate_random_sketch(m, self.block_size)
+            # Left sketch and block
+            S = self._generate_random_sketch(m, r)  # (m x r)
+            S_H = quat_hermitian(S)  # (r x m)
+            Z = quat_matmat(S_H, A)  # (r x n)
 
-            # Compute Z_k = S_k^H * A (S_k^H is block_size x m, result is block_size x n)
-            S_k_H = quat_hermitian(S_k)  # Shape: (block_size, m)
-            Z_k = quat_matmat(S_k_H, A)  # Shape: (block_size, n)
+            # Residual on sketched constraints
+            ZX = quat_matmat(Z, X)  # (r x m)
+            Rres = S_H - ZX  # (r x m)
 
-            # Compute residual: S_k^H - Z_k * X_k
-            Z_k_X = quat_matmat(Z_k, X)
-            residual = S_k_H - Z_k_X
-
-            # Compute Z_k^\dagger residual via Gram solve on (Z Z^H) W = (S^H - Z X)
-            try:
-                Z_k_H = quat_hermitian(Z_k)  # (n, r)
-                ZZ_H = quat_matmat(Z_k, Z_k_H)  # (r, r)
-                W, ok = self._solve_spd_quat(
-                    ZZ_H, residual, tol=1e-8, max_iter=200
-                )  # (r, m)
-                if not ok:
-                    if self.verbose:
-                        print(
-                            f"Iteration {k}: ill-conditioned Gram in row variant, redrawing sketch"
-                        )
-                    continue
-                # Update: X += Z_k^H * W
-                X = X + quat_matmat(Z_k_H, W)
-            except Exception:
+            # Solve (Z Z^H) W = R, then X += Z^H W
+            Z_H = quat_hermitian(Z)  # (n x r)
+            ZZ_H = quat_matmat(Z, Z_H)  # (r x r)
+            # Stabilize Gram matrix with tiny ridge
+            ZZ_H = 0.5 * (ZZ_H + quat_hermitian(ZZ_H)) + 1e-10 * quat_eye(r)
+            W, ok = self._solve_spd_quat(ZZ_H, Rres, tol=1e-8, max_iter=200)
+            if not ok:
+                # Fallback: explicit small inverse via Newton–Schulz
+                ZZ_H_inv = self._invert_quat_small(ZZ_H, ns_iters=16)
+                W = quat_matmat(ZZ_H_inv, Rres)
+                ok = True
+            if not ok:
                 if self.verbose:
-                    print(
-                        f"Iteration {k}: failure in row-variant Gram solve, redrawing sketch"
-                    )
+                    print(f"Iter {k}: ill-conditioned sketch; redrawing")
                 continue
+            X = X + quat_matmat(Z_H, W)  # (n x r) @ (r x m) -> (n x m)
 
-            # Check convergence: test how close AX is to I_m
-            A_X = quat_matmat(A, X)
-            test_residual = I_m - A_X
-            residual_norm = quat_frobenius_norm(test_residual) / quat_frobenius_norm(I_m)
+            # Proxy stopping: test AX Theta ≈ Theta
+            AX_Theta = quat_matmat(A, quat_matmat(X, Theta))  # (m x s)
+            proxy = quat_frobenius_norm(Theta - AX_Theta) / Theta_norm
 
-            iteration_time = time.time() - start_time
-            residual_norms.append(residual_norm)
-            iteration_times.append(iteration_time)
+            elapsed = time.time() - t0
+            residual_norms.append(proxy)
+            iteration_times.append(elapsed)
 
             if self.verbose and k % 10 == 0:
-                print(f"Iteration {k}: residual = {residual_norm:.6e}")
+                print(f"Iter {k}: proxy={proxy:.3e}")
 
-            # Check for convergence
-            if residual_norm <= self.tol:
+            if proxy <= self.tol:
                 if self.verbose:
-                    print(
-                        f"Converged in {k + 1} iterations with residual {residual_norm:.6e}"
-                    )
+                    print(f"Converged in {k+1} iters: proxy={proxy:.3e}")
                 break
-
         else:
             if self.verbose:
-                print(
-                    f"Maximum iterations ({self.max_iter}) reached. Final residual: {residual_norms[-1]:.6e}"
-                )
+                print(f"Reached max_iter; final proxy={residual_norms[-1]:.3e}")
 
-        convergence_info = {
+        info = {
             "iterations": len(residual_norms),
             "residual_norms": residual_norms,
             "iteration_times": iteration_times,
             "total_time": sum(iteration_times),
-            "converged": residual_norms[-1] <= self.tol if residual_norms else False,
+            "converged": bool(residual_norms and residual_norms[-1] <= self.tol),
         }
-
-        return X, convergence_info
+        return X, info
 
     def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
         """
@@ -1237,6 +1274,8 @@ class RandomizedSketchProjectPseudoinverse:
             Pseudoinverse X and convergence information
         """
         m, n = A.shape
+        # Clamp block size once
+        self.block_size = max(1, min(self.block_size, m, n))
 
         if m >= n:
             # Use column variant for tall/square matrices
@@ -1378,5 +1417,137 @@ class HybridRSPNewtonSchulz:
             "r": self.r,
             "p": self.p,
             "T": self.T,
+        }
+        return X, info
+
+
+class CGNEQSolver:
+    """
+    Conjugate Gradient on the Normal Equations (CGNE–Q) to solve XA = I_n in matrix form.
+
+    Minimizes f(X) = 1/2 || X A - I_n ||_F^2 with quaternion-native operations.
+
+    - Column case (full column rank): A in H^{m x n} with m >= n
+    - Iterates stay in span{A^H} when initialized with X0 = alpha * A^H
+    - Converges to A^† as ||I_n - X_k A||_F -> 0
+    """
+
+    def __init__(
+        self,
+        tol: float = 1e-6,
+        max_iter: int = 500,
+        verbose: bool = False,
+        preconditioner_rank: int = 0,
+        seed: int | None = None,
+    ) -> None:
+        self.tol = tol
+        self.max_iter = max_iter
+        self.verbose = verbose
+        self.preconditioner_rank = max(0, preconditioner_rank)
+        self.seed = seed
+        if seed is not None:
+            np.random.seed(seed)
+
+    def _build_right_preconditioner(self, A: np.ndarray, n: int) -> tuple[np.ndarray, np.ndarray, np.ndarray] | None:
+        """
+        Build a thin Nyström-type right preconditioner M ≈ (A A^H)^{-1}:
+          M = Y (Y^H Y)^{-1} (Y^H Y)^{-1} Y^H, where Y = A Ω, Ω in H^{n x r}.
+
+        Returns (Y, G_inv, G_inv) so that Z M can be applied as: ((Z Y) G_inv) G_inv Y^H
+        """
+        r = self.preconditioner_rank
+        if r <= 0 or r > n:
+            return None
+        # Draw Ω (n x r)
+        real = np.random.randn(n, r)
+        ii = np.random.randn(n, r)
+        jj = np.random.randn(n, r)
+        kk = np.random.randn(n, r)
+        Omega = quaternion.as_quat_array(np.stack([real, ii, jj, kk], axis=-1))
+        # Y = A Ω (m x r)
+        Y = quat_matmat(A, Omega)
+        # G = Y^H Y (r x r)
+        Y_H = quat_hermitian(Y)
+        G = quat_matmat(Y_H, Y)
+        # Invert G via small Newton–Schulz
+        G_inv = RandomizedSketchProjectPseudoinverse._invert_quat_small(self, G, ns_iters=16)
+        return (Y, G_inv, G_inv)
+
+    def _apply_right_prec(self, Z: np.ndarray, prec: tuple[np.ndarray, np.ndarray, np.ndarray] | None) -> np.ndarray:
+        """Apply Z @ M using the cached (Y, Ginv, Ginv) representation."""
+        if prec is None:
+            return Z
+        Y, Ginv1, Ginv2 = prec
+        ZY = quat_matmat(Z, Y)          # (n x r)
+        T = quat_matmat(ZY, Ginv1)      # (n x r)
+        T = quat_matmat(T, Ginv2)       # (n x r)
+        return quat_matmat(T, quat_hermitian(Y))  # (n x m)
+
+    def compute(self, A: np.ndarray) -> tuple[np.ndarray, dict]:
+        m, n = A.shape
+        if m < n:
+            raise ValueError("CGNE–Q requires m >= n (full column rank)")
+
+        I_n = quat_eye(n)
+        Inorm = max(quat_frobenius_norm(I_n), 1e-30)
+        A_H = quat_hermitian(A)
+
+        # Safe alpha based on Frobenius norm
+        alpha0 = 1.0 / max(quat_frobenius_norm(A) ** 2, 1e-16)
+        X = alpha0 * A_H
+
+        # Residuals and timings
+        residual_norms: list[float] = []
+        times: list[float] = []
+
+        # Optional thin right preconditioner
+        prec = self._build_right_preconditioner(A, n)
+
+        # Initialize CGNE quantities
+        R = I_n - quat_matmat(X, A)        # (n x n)
+        Z = quat_matmat(R, A_H)            # (n x m)
+        Zp = self._apply_right_prec(Z, prec)
+        D = Zp.copy()
+
+        for k in range(self.max_iter):
+            t0 = time.time()
+            W = quat_matmat(D, A)                      # (n x n)
+            Wn = quat_frobenius_norm(W)
+            if Wn <= 1e-20:
+                break
+
+            Zn = quat_frobenius_norm(Zp)
+            alpha_k = (Zn * Zn) / (Wn * Wn)
+
+            # Update X and residuals
+            X = X + alpha_k * D
+            R = R - alpha_k * W
+
+            rnorm_rel = quat_frobenius_norm(R) / Inorm
+            residual_norms.append(rnorm_rel)
+            times.append(time.time() - t0)
+
+            if self.verbose and (k < 5 or k % 10 == 0):
+                print(f"[CGNE–Q] iter={k} rel_res={rnorm_rel:.3e}")
+
+            if rnorm_rel <= self.tol:
+                break
+
+            # Next Z, direction update
+            Z_new = quat_matmat(R, A_H)
+            Zp_new = self._apply_right_prec(Z_new, prec)
+            Zn_new = quat_frobenius_norm(Zp_new)
+            beta_k = (Zn_new * Zn_new) / max(Zn * Zn, 1e-30)
+            D = Zp_new + beta_k * D
+            Z = Z_new
+            Zp = Zp_new
+
+        info = {
+            'iterations': len(residual_norms),
+            'residual_norms': residual_norms,
+            'iteration_times': times,
+            'total_time': sum(times),
+            'converged': bool(residual_norms and residual_norms[-1] <= self.tol),
+            'preconditioner_rank': self.preconditioner_rank,
         }
         return X, info
