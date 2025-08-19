@@ -84,6 +84,9 @@ def main():
         print(
             "  jupyter_test    - Test Jupyter notebook setup and verify environment configuration"
         )
+        print(
+            "  pinv_bench      - Benchmark pseudoinverse methods (NS, HON, RSP-Q, Hybrid, CGNE–Q)"
+        )
         return
 
     script_name = sys.argv[1]
@@ -109,6 +112,7 @@ def main():
         "ns_compare": "tests/unit/test_ns_vs_higher_order_compare.py",  # NS vs Higher-Order NS comparison
         "schur_demo": "tests/schur_demo.py",  # Quaternion Schur decomposition demo
         "jupyter_test": "tests/test_jupyter_setup.py",  # Jupyter setup verification
+        "pinv_bench": "tests/unit/benchmark_pseudoinverse_methods.py",  # Pseudoinverse benchmark
     }
 
     if script_name not in script_map:

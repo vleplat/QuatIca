@@ -631,6 +631,17 @@ python run_analysis.py lorenz_benchmark
   #   --fftT_order {2,3}       # 2=Newton–Schulz, 3=Halley (cubic)
   ```
 
+### Pseudoinverse Benchmark (NS vs HON vs RSP-Q vs Hybrid vs CGNE–Q)
+
+- Compare multiple quaternion pseudoinverse solvers on tall matrices m = n + 50 for n ∈ [20, 500].
+- Reports runtime and relative residuals (rel ||XA − I|| and rel ||AX − I||).
+- Saves a CSV summary and a plot under `validation_output/`.
+
+```bash
+# Run the benchmark and produce summary table, CSV, and plots
+python run_analysis.py pinv_bench
+```
+
 #### Problem formulation
 
 - Blur operator A is real (2D convolution, periodic boundary), b is the observed quaternion image (RGB mapped to q=(0,R,G,B)).
