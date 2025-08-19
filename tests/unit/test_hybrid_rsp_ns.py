@@ -41,11 +41,11 @@ def mp_errors(A: np.ndarray, X: np.ndarray) -> dict:
 
 
 def main():
-    m, n = 500, 200
+    m, n = 500, 250
     tol = 1e-6
-    maxit = 500
+    maxit = 300
     seed = 123
-    sketch_block_size = 30
+    sketch_block_size = 15
 
     print(f"Testing HybridRSPNewtonSchulz on {m}x{n} (column variant)")
     A = random_quat_matrix(m, n, seed)
@@ -74,7 +74,7 @@ def main():
 
     # Hybrid settings
     hybrid = HybridRSPNewtonSchulz(
-        r=sketch_block_size, p=3, T=5, tol=tol, max_iter=maxit, verbose=True, seed=seed
+        r=sketch_block_size, p=5, T=5, tol=tol, max_iter=maxit, verbose=True, seed=seed
     )
     t0 = time.time()
     X_h, info_h = hybrid.compute(A)

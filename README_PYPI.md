@@ -21,9 +21,26 @@
 
 **No installation required! Try QuatIca directly in your browser:**
 
-- **🔬 Core Functionality Demo** → [Open in Colab](https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing)
-  
+- **🔬 Core Functionality Demo** → [Open in Colab](https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing)  
   Test all major features including matrix operations, decompositions, and advanced algorithms without any setup.
+
+- **🖼️  Image Completion Demo** → [Open in Colab](https://colab.research.google.com/drive/1-LB6T6caPmayvtcWcIMNXQgiVI16HOQy?usp=sharing)
+  Fills missing pixels in real images
+
+- **🚀 Lorenz Attractor Method Comparison Benchmark** → [Open in Colab](https://colab.research.google.com/drive/1T_vMBDgRK3LT0uemIuqRUNURV_uHWYuz?usp=sharing)
+  Benchmark Q-GMRES vs Newton–Schulz on a quaternion linear system from the Lorenz attractor, comparing runtime, iterations, and residual accuracy with ready-made plots and a LaTeX table.
+
+- **🖼️  Image Deblurring Demo**  → [Open in Colab](https://colab.research.google.com/drive/1cm8oW5PhPNtI1lfNDYMvNm9xgJLFgO7n?usp=sharing)
+  Run reproducible image-deblurring benchmarks comparing FFT–NS–Q and QSLST–FFT on Kodak images across sizes, with optional λ-optimization, PSNR/SSIM/time reporting, side-by-side visuals, and ready-to-paste LaTeX tables.
+                                → [Open in Colab](https://colab.research.google.com/drive/1vqWvo2ilFZcCnic5VDlf0z-KPzA8J17f?usp=sharing)
+  Similar but with some nice pictures :) !
+
+- **📊  Pseudoinverse runtime/accuracy comparison** → [Open in Colab](https://colab.research.google.com/drive/1H2a4M64RS5GNLzv1FcP-kviTg3qvlez6?usp=sharing)
+  Pseudoinverse Benchmark - NS (γ=1), HON (3rd), RSP-Q (col), Hybrid RSP+NS, CGNE–Q
+
+- **🚀  Q-GMRES Final Performance** → [Open in Colab](https://colab.research.google.com/drive/1re00YLCsXZtiG9tIgB1UPvMcXN8VkO70?usp=sharing)
+  statistically robust comparison of Q-GMRES with and without LU preconditioning across multiple matrix types, sizes, and seeds, producing a publication-ready dashboard of iteration/time improvements and accuracy.
+
 
 ## ⚡ Quick Start (2 minutes)
 
