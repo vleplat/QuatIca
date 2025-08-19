@@ -24,6 +24,8 @@ from datetime import datetime
 import numpy as np
 import quaternion
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib import rcParams
 
 from quatica.solver import (
     NewtonSchulzPseudoinverse,
@@ -65,14 +67,31 @@ def ensure_outdir(path: str) -> None:
 
 
 def main():
+    # Configure matplotlib for publication-quality plots
+    rcParams.update({
+        'font.family': 'serif',
+        'font.size': 12,
+        'axes.labelsize': 14,
+        'axes.titlesize': 16,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+        'legend.fontsize': 11,
+        'figure.titlesize': 18,
+        'lines.linewidth': 2.5,
+        'lines.markersize': 8,
+        'axes.linewidth': 1.2,
+        'grid.linewidth': 0.8,
+        'grid.alpha': 0.3,
+    })
+    
     outdir = os.path.join("validation_output")
     ensure_outdir(outdir)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    sizes = [20, 50, 100, 150]
+    sizes = [20, 50, 100, 150, 200]
     seed = 123
     tol_ns = 1e-8
-    tol_rsp = 1e-2
+    tol_rsp = 1e-3
     tol_cg = 1e-8
 
     rows = []
@@ -134,37 +153,111 @@ def main():
             f"rsp {r['time_rsp']:.3f}/{r['rel_XA_rsp']:.2e} | hyb {r['time_hyb']:.3f}/{r['rel_XA_hyb']:.2e} | cg {r['time_cg']:.3f}/{r['rel_XA_cg']:.2e}"
         )
 
-    # Plots
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4))
-    ns = rows
+    # Publication-quality plots with enhanced styling
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
     xs = [r['n'] for r in rows]
-    # Time
-    axs[0].plot(xs, [r['time_ns'] for r in rows], '-o', label='NS (γ=1)')
-    axs[0].plot(xs, [r['time_hon'] for r in rows], '-o', label='HON (3rd)')
-    axs[0].plot(xs, [r['time_rsp'] for r in rows], '-o', label='RSP-Q col')
-    axs[0].plot(xs, [r['time_hyb'] for r in rows], '-o', label='Hybrid RSP+NS')
-    axs[0].plot(xs, [r['time_cg'] for r in rows], '-o', label='CGNE–Q')
-    axs[0].set_xlabel('n')
-    axs[0].set_ylabel('time [s]')
-    axs[0].set_title('Runtime vs n (m=n+50)')
-    axs[0].grid(True, alpha=0.3)
-    axs[0].legend()
-    # Residual (rel_XA)
-    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_ns']) for r in rows], '-o', label='NS (γ=1)')
-    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_hon']) for r in rows], '-o', label='HON (3rd)')
-    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_rsp']) for r in rows], '-o', label='RSP-Q col')
-    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_hyb']) for r in rows], '-o', label='Hybrid RSP+NS')
-    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_cg']) for r in rows], '-o', label='CGNE–Q')
-    axs[1].set_xlabel('n')
-    axs[1].set_ylabel('rel ||XA - I||_F')
-    axs[1].set_title('Accuracy (rel_XA) vs n')
-    axs[1].grid(True, which='both', alpha=0.3)
-    axs[1].legend()
-
-    fig.tight_layout()
+    
+    # Define publication-quality colors and markers
+    colors = {
+        'NS': '#1f77b4',      # Blue
+        'HON': '#ff7f0e',     # Orange  
+        'RSP': '#2ca02c',     # Green
+        'Hybrid': '#d62728',  # Red
+        'CGNE': '#9467bd',    # Purple
+    }
+    
+    markers = {
+        'NS': 'o',
+        'HON': 's', 
+        'RSP': '^',
+        'Hybrid': 'D',
+        'CGNE': 'v',
+    }
+    
+    # Time plot (left)
+    axs[0].plot(xs, [r['time_ns'] for r in rows], 
+                color=colors['NS'], marker=markers['NS'], 
+                linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                markeredgecolor='white', label='NS ($\\gamma=1$)')
+    
+    axs[0].plot(xs, [r['time_hon'] for r in rows], 
+                color=colors['HON'], marker=markers['HON'],
+                linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                markeredgecolor='white', label='HON (3rd order)')
+    
+    axs[0].plot(xs, [r['time_rsp'] for r in rows], 
+                color=colors['RSP'], marker=markers['RSP'],
+                linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                markeredgecolor='white', label='RSP-Q (column)')
+    
+    axs[0].plot(xs, [r['time_hyb'] for r in rows], 
+                color=colors['Hybrid'], marker=markers['Hybrid'],
+                linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                markeredgecolor='white', label='Hybrid RSP+NS')
+    
+    axs[0].plot(xs, [r['time_cg'] for r in rows], 
+                color=colors['CGNE'], marker=markers['CGNE'],
+                linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                markeredgecolor='white', label='CGNE–Q')
+    
+    axs[0].set_xlabel('Matrix dimension $n$', fontsize=14, fontweight='bold')
+    axs[0].set_ylabel('Runtime [seconds]', fontsize=14, fontweight='bold')
+    axs[0].set_title('Runtime Comparison: $m = n + 50$', fontsize=16, fontweight='bold', pad=20)
+    axs[0].grid(True, alpha=0.3, linestyle='--')
+    axs[0].legend(frameon=True, fancybox=True, shadow=True, loc='upper left')
+    axs[0].set_facecolor('#f8f9fa')
+    
+    # Residual plot (right) - using LaTeX for proper mathematical notation
+    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_ns']) for r in rows], 
+                    color=colors['NS'], marker=markers['NS'],
+                    linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                    markeredgecolor='white', label='NS ($\\gamma=1$)')
+    
+    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_hon']) for r in rows], 
+                    color=colors['HON'], marker=markers['HON'],
+                    linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                    markeredgecolor='white', label='HON (3rd order)')
+    
+    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_rsp']) for r in rows], 
+                    color=colors['RSP'], marker=markers['RSP'],
+                    linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                    markeredgecolor='white', label='RSP-Q (column)')
+    
+    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_hyb']) for r in rows], 
+                    color=colors['Hybrid'], marker=markers['Hybrid'],
+                    linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                    markeredgecolor='white', label='Hybrid RSP+NS')
+    
+    axs[1].semilogy(xs, [max(1e-16, r['rel_XA_cg']) for r in rows], 
+                    color=colors['CGNE'], marker=markers['CGNE'],
+                    linewidth=2.5, markersize=10, markeredgewidth=1.5,
+                    markeredgecolor='white', label='CGNE–Q')
+    
+    axs[1].set_xlabel('Matrix dimension $n$', fontsize=14, fontweight='bold')
+    axs[1].set_ylabel('$\\frac{\\|XA - I_n\\|_F}{\\|I_n\\|_F}$', fontsize=14, fontweight='bold')
+    axs[1].set_title('Relative Residual Error: $m = n + 50$', fontsize=16, fontweight='bold', pad=20)
+    axs[1].grid(True, which='both', alpha=0.3, linestyle='--')
+    axs[1].legend(frameon=True, fancybox=True, shadow=True, loc='upper right')
+    axs[1].set_facecolor('#f8f9fa')
+    
+    # Add minor grid for log scale
+    axs[1].grid(True, which='minor', alpha=0.2, linestyle=':')
+    
+    # Enhance overall figure appearance
+    fig.suptitle('Quaternion Pseudoinverse Methods Benchmark', fontsize=18, fontweight='bold', y=0.98)
+    fig.tight_layout(rect=[0, 0, 1, 0.95])
+    
+    # Save with high resolution for publication
     png_path = os.path.join(outdir, f"pinv_benchmark_{ts}.png")
-    fig.savefig(png_path, dpi=150)
-    print(f"\nSaved CSV: {csv_path}\nSaved plot: {png_path}")
+    fig.savefig(png_path, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none')
+    
+    # Also save as PDF for vector graphics
+    pdf_path = os.path.join(outdir, f"pinv_benchmark_{ts}.pdf")
+    fig.savefig(pdf_path, bbox_inches='tight', facecolor='white', edgecolor='none')
+    
+    print(f"\nSaved CSV: {csv_path}")
+    print(f"Saved PNG (300 DPI): {png_path}")
+    print(f"Saved PDF (vector): {pdf_path}")
 
 
 if __name__ == '__main__':
