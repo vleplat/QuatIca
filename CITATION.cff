@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+title: "QuatIca: Quaternion Linear Algebra Library"
+message: "If you use QuatIca, please cite the specific release you used."
+authors:
+  - family-names: Leplat
+    given-names: Valentin
+  - family-names: Pan
+    given-names: Junjun
+  - family-names: Ahmadi-Asl
+    given-names: Salman
+  - family-names: Beresnev
+    given-names: Dmitry
+  - family-names: Ouerdane
+    given-names: Henni
+  - family-names: Ng
+    given-names: Michael
+preferred-citation:
+  type: software
+  title: "QuatIca"
+  authors:
+    - family-names: Leplat
+      given-names: Valentin
+    - family-names: Pan
+      given-names: Junjun
+    - family-names: Ahmadi-Asl
+      given-names: Salman
+    - family-names: Beresnev
+      given-names: Dmitry
+    - family-names: Ouerdane
+      given-names: Henni
+    - family-names: Ng
+      given-names: Michael
+  year: 2025
+  doi: https://doi.org/10.5281/zenodo.16910158
+  url: "https://github.com/vleplat/QuatIca"

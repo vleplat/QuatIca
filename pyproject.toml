@@ -32,11 +32,12 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://vleplat.github.io/QuatIca/"
+Homepage = "https://github.com/vleplat/QuatIca"
 Documentation = "https://vleplat.github.io/QuatIca/"
 Repository = "https://github.com/vleplat/QuatIca"
 "Bug Tracker" = "https://github.com/vleplat/QuatIca/issues"
 "Colab Demo" = "https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing"
+DOI = "https://doi.org/10.5281/zenodo.16910158"
 
 [dependency-groups]
 dev = [
