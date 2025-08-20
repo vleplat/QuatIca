@@ -21,25 +21,28 @@
 
 **No installation required! Try QuatIca directly in your browser:**
 
-- **🔬 Core Functionality Demo** → [Open in Colab](https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing)  
-  Test all major features including matrix operations, decompositions, and advanced algorithms without any setup.
+### 🎯 **Getting Started**
+| Demo | Description | Link |
+|------|-------------|------|
+| **🔬 Core Functionality Demo** | Test all major features including matrix operations, decompositions, and advanced algorithms without any setup. | [Open in Colab](https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing) |
 
-- **🖼️  Image Completion Demo** → [Open in Colab](https://colab.research.google.com/drive/1-LB6T6caPmayvtcWcIMNXQgiVI16HOQy?usp=sharing)
-  Fills missing pixels in real images
+### 🖼️ **Image Processing Applications**
+| Demo | Description | Link |
+|------|-------------|------|
+| **Image Completion** | Fill missing pixels in real images using quaternion matrix completion algorithms. | [Open in Colab](https://colab.research.google.com/drive/1-LB6T6caPmayvtcWcIMNXQgiVI16HOQy?usp=sharing) |
+| **Image Deblurring (Technical)** | Reproducible benchmarks comparing FFT–NS–Q and QSLST–FFT on Kodak images with λ-optimization, PSNR/SSIM reporting, and LaTeX tables. | [Open in Colab](https://colab.research.google.com/drive/1cm8oW5PhPNtI1lfNDYMvNm9xgJLFgO7n?usp=sharing) |
+| **Image Deblurring (Visual)** | Same as above but with beautiful visual examples and side-by-side comparisons. | [Open in Colab](https://colab.research.google.com/drive/1vqWvo2ilFZcCnic5VDlf0z-KPzA8J17f?usp=sharing) |
 
-- **🚀 Lorenz Attractor Method Comparison Benchmark** → [Open in Colab](https://colab.research.google.com/drive/1T_vMBDgRK3LT0uemIuqRUNURV_uHWYuz?usp=sharing)
-  Benchmark Q-GMRES vs Newton–Schulz on a quaternion linear system from the Lorenz attractor, comparing runtime, iterations, and residual accuracy with ready-made plots and a LaTeX table.
+### 📊 **Algorithm Benchmarks**
+| Demo | Description | Link |
+|------|-------------|------|
+| **Pseudoinverse Methods Comparison** | Comprehensive benchmark of NS (γ=1), HON (3rd), RSP-Q (col), Hybrid RSP+NS, and CGNE–Q with runtime and accuracy analysis. | [Open in Colab](https://colab.research.google.com/drive/1H2a4M64RS5GNLzv1FcP-kviTg3qvlez6?usp=sharing) |
+| **Q-GMRES Performance Analysis** | Statistically robust comparison of Q-GMRES with and without LU preconditioning across multiple matrix types, producing publication-ready dashboards. | [Open in Colab](https://colab.research.google.com/drive/1re00YLCsXZtiG9tIgB1UPvMcXN8VkO70?usp=sharing) |
 
-- **🖼️  Image Deblurring Demo**  → [Open in Colab](https://colab.research.google.com/drive/1cm8oW5PhPNtI1lfNDYMvNm9xgJLFgO7n?usp=sharing)
-  Run reproducible image-deblurring benchmarks comparing FFT–NS–Q and QSLST–FFT on Kodak images across sizes, with optional λ-optimization, PSNR/SSIM/time reporting, side-by-side visuals, and ready-to-paste LaTeX tables.
-                                → [Open in Colab](https://colab.research.google.com/drive/1vqWvo2ilFZcCnic5VDlf0z-KPzA8J17f?usp=sharing)
-  Similar but with some nice pictures :) !
-
-- **📊  Pseudoinverse runtime/accuracy comparison** → [Open in Colab](https://colab.research.google.com/drive/1H2a4M64RS5GNLzv1FcP-kviTg3qvlez6?usp=sharing)
-  Pseudoinverse Benchmark - NS (γ=1), HON (3rd), RSP-Q (col), Hybrid RSP+NS, CGNE–Q
-
-- **🚀  Q-GMRES Final Performance** → [Open in Colab](https://colab.research.google.com/drive/1re00YLCsXZtiG9tIgB1UPvMcXN8VkO70?usp=sharing)
-  statistically robust comparison of Q-GMRES with and without LU preconditioning across multiple matrix types, sizes, and seeds, producing a publication-ready dashboard of iteration/time improvements and accuracy.
+### 🔬 **Research Applications**
+| Demo | Description | Link |
+|------|-------------|------|
+| **Lorenz Attractor Benchmark** | Q-GMRES vs Newton–Schulz comparison on quaternion linear systems from the Lorenz attractor, with runtime, iterations, and residual accuracy analysis. | [Open in Colab](https://colab.research.google.com/drive/1T_vMBDgRK3LT0uemIuqRUNURV_uHWYuz?usp=sharing) |
 
 
 ## ⚡ Quick Start (2 minutes)
