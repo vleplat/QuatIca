@@ -1318,12 +1318,13 @@ python tests/pseudoinverse/analyze_cifar10_pseudoinverse.py
 
 ## 📚 References
 
+- **Iterative solvers for Quaternion Pseudoinverse**: Leplat, V., Ahmadi-Asl, S., Pan, J., & Zheng, N. (2025). Iterative Methods for Computing the Moore-Penrose Pseudoinverse of Quaternion Matrices, with Applications. arXiv preprint arXiv:2508.16979.
 - **Quaternion Pseudoinverse**: Huang, L., Wang, Q.-W., & Zhang, Y. (2015). The Moore–Penrose inverses of matrices over quaternion polynomial rings. Linear Algebra and its Applications, 475, 45-61.
 - **Q-GMRES Solver**: Jia, Z., & Ng, M. K. (2021). Structure Preserving Quaternion Generalized Minimal Residual Method. SIAM Journal on Matrix Analysis and Applications (SIMAX), 42(2), 1-25.
 - **Advanced Q-SVD Method**: Ma, R.-R., & Bai, Z.-J. (2018). A Structure-Preserving One-Sided Jacobi Method for Computing the SVD of a Quaternion Matrix. arXiv preprint arXiv:1811.08671.
 - **QSLST Image Restoration**: Fei, W., Tang, J., & Shan, M. (2025). Quaternion special least squares with Tikhonov regularization method in image restoration. Numerical Algorithms. doi: 10.1007/s11075-025-02187-6.
 - **Pass-Efficient Randomized Algorithms**: Ahmadi-Asl, S., Nobakht Kooshkghazi, M., & Leplat, V. (2025). Pass-efficient Randomized Algorithms for Low-rank Approximation of Quaternion Matrices. arXiv preprint arXiv:2507.13731.
-- **Newton-Schulz Algorithm**: Newton's method for matrix inversion and pseudoinverse computation
+
 
 ## 🚀 Upcoming Features (Coming Soon!)
 
