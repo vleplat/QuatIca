@@ -51,7 +51,6 @@ def check_prerequisites():
         )
 
     try:
-        # Check if inside a git repository
         subprocess.run(
             ["git", "rev-parse", "--is-inside-work-tree"],
             check=True,
@@ -63,23 +62,42 @@ def check_prerequisites():
     print_success("Prerequisites met.")
 
 
+def check_git_status():
+    """Checks if the Git working directory is clean."""
+    print_info("Checking git status...")
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"], check=True, capture_output=True, text=True
+        )
+        if result.stdout:
+            print_error(
+                "Git working directory is not clean. Please commit or stash your changes before running.\n"
+                f"Uncommitted changes:\n{result.stdout}"
+            )
+        print_success("Git working directory is clean.")
+    except subprocess.CalledProcessError as e:
+        print_error(f"Failed to check git status:\n{e.stderr}")
+
+
 def run_command(
     command: list[str], dry_run: bool = False, capture_output: bool = False
 ) -> str:
     """
     Executes a shell command, handles errors, and supports a dry-run mode.
     """
-    cmd_str = " ".join(command)
+    cmd_str = " ".join(f'"{arg}"' if " " in arg else arg for arg in command)
     print_command(cmd_str)
 
     if dry_run:
+        # For 'uv version', we need to simulate its output for parsing
+        if command[0] == "uv" and command[1] == "version":
+            return "DRY_RUN: 1.2.2 => 1.2.3"
         return "DRY_RUN_OUTPUT"
 
     try:
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         if capture_output:
             return result.stdout.strip()
-        # Print stdout for non-capturing commands for user feedback
         if result.stdout:
             print(result.stdout)
         return ""
@@ -107,82 +125,71 @@ def parse_new_version(uv_output: str) -> str:
 def main():
     """Main function to parse arguments and run the publishing workflow."""
     parser = argparse.ArgumentParser(
-        description="Automate package versioning and git tagging using 'uv' and 'git'.",
+        description="Automate package versioning, committing, and git tagging.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
     version_group = parser.add_mutually_exclusive_group(required=True)
     version_group.add_argument(
-        "--bump",
-        choices=["patch", "minor", "major"],
-        help="Increment the version by 'patch', 'minor', or 'major'.",
+        "--bump", choices=["patch", "minor", "major"], help="Increment the version."
     )
     version_group.add_argument(
-        "--set-version",
-        metavar="VERSION",
-        help="Set a specific version number (e.g., '1.2.3').",
+        "--set-version", metavar="VERSION", help="Set a specific version."
     )
-
     parser.add_argument(
-        "--prerelease",
-        choices=["alpha", "beta"],
-        help="Add a pre-release identifier (e.g., 'alpha', 'beta').",
+        "--prerelease", choices=["alpha", "beta"], help="Add a pre-release identifier."
     )
-
-    # --- Control Flow Arguments ---
     parser.add_argument(
         "--no-push",
         action="store_true",
-        help="Do not push the new tag to the remote repository.",
+        help="Do not push the commit and tag to the remote.",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print the commands that would be executed without running them.",
+        "--dry-run", action="store_true", help="Print commands without executing them."
     )
 
     args = parser.parse_args()
 
     if not args.dry_run:
         check_prerequisites()
+        check_git_status()
 
     # 1. Construct and run the 'uv version' command
     uv_command = ["uv", "version"]
     if args.set_version:
         uv_command.append(args.set_version)
-    else:  # --bump is used
+    else:
         uv_command.extend(["--bump", args.bump])
         if args.prerelease:
             uv_command.extend(["--bump", args.prerelease])
 
     uv_output = run_command(uv_command, dry_run=args.dry_run, capture_output=True)
+    new_version = parse_new_version(uv_output)
 
-    if args.dry_run:
-        print_info("Dry run mode: Assuming new version is '1.2.3'.")
-        new_version = "1.2.3"
-    else:
-        new_version = parse_new_version(uv_output)
+    # 2. Add and commit the version change
+    commit_message = f"Bump version to {new_version}"
+    run_command(["git", "add", "pyproject.toml", "uv.lock"], dry_run=args.dry_run)
+    run_command(["git", "commit", "-m", commit_message], dry_run=args.dry_run)
 
-    # 2. Create the git tag
+    # 3. Create the git tag
     tag_name = f"v{new_version}"
-    git_tag_command = ["git", "tag", tag_name]
-    run_command(git_tag_command, dry_run=args.dry_run)
+    run_command(["git", "tag", tag_name], dry_run=args.dry_run)
 
-    # 3. Push the new tag to the remote
+    # 4. Push the commit and the new tag to the remote
     if not args.no_push:
-        git_push_command = ["git", "push", "origin", tag_name]
-        run_command(git_push_command, dry_run=args.dry_run)
+        run_command(["git", "push"], dry_run=args.dry_run)
+        run_command(["git", "push", "origin", tag_name], dry_run=args.dry_run)
     else:
         print_info("Skipping git push due to --no-push flag.")
 
-    print_success(f"Successfully tagged version {tag_name}.")
+    print_success(f"Successfully committed and tagged version {tag_name}.")
     if not args.no_push:
         print_success(
-            "Tag pushed to remote. The GitHub Action should now trigger the publish process."
+            "Commit and tag pushed to remote. The GitHub Action should now trigger."
         )
     else:
         print_info(
-            f"Remember to push the tag manually when ready: git push origin {tag_name}"
+            f"Remember to push the commit and tag manually when ready: git push && git push origin {tag_name}"
         )
 
 
