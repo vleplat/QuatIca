@@ -1,7 +1,7 @@
 # QuatIca: Quaternion Linear Algebra Library
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/vleplat/QuatIca/main/Logo.png" alt="QuatIca Logo" width="250">
+  <img src="https://raw.githubusercontent.com/vleplat/QuatIca/main/Logo.jpg" alt="QuatIca Logo" width="250">
 </div>
 
 **Numerical linear algebra for quaternions — fast, practical, and well‑tested.**
