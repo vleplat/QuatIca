@@ -1093,7 +1093,7 @@ wheels = [
 
 [[package]]
 name = "quatica"
-version = "0.0.4"
+version = "0.1.11"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },

@@ -4,6 +4,64 @@ Based on the [official uv guide](https://docs.astral.sh/uv/guides/package/)
 
 Hereafter it is assumed that all required code is in `./quatica` folder, and all the necessary data is exported in `./quatica/__init__.py`
 
+There are **three main approaches** of publishing:
+
+- [Run the corresponding script](#publishing-via-script-recommended)
+- [Change version](#changing-version) + [GitHub Actions](#github-actions-approach)
+- [Change version](#changing-version) + [Manual approach](#manual-approach)
+
+## Publishing via Script (Recommended)
+
+There is special script `publish.py` to automate publishing process.
+
+### Examples of usage
+
+**Perform a dry run to see what would happen for a patch release:**
+
+```bash
+uv run ./publish.py --bump patch --dry-run
+```
+
+_Expected Output:_
+
+```
+INFO: Checking prerequisites...
+SUCCESS: Prerequisites met.
+EXEC: uv version --bump patch
+INFO: Dry run mode: Assuming new version is '1.2.3'.
+EXEC: git tag v1.2.3
+EXEC: git push origin v1.2.3
+SUCCESS: Successfully tagged version v1.2.3.
+SUCCESS: Tag pushed to remote. The GitHub Action should now trigger the publish process.
+```
+
+**Bump the `minor` version and add a `beta` tag:**
+
+```bash
+./publish.py --bump minor --prerelease beta
+```
+
+_This will:_
+
+1. Run `uv version --bump minor --bump beta`.
+2. Find the new version (e.g., `1.4.0b1`).
+3. Run `git tag v1.4.0b1`.
+4. Run `git push origin v1.4.0b1`.
+
+**Set a specific version and create the tag, but don't push it yet:**
+
+```bash
+./publish.py --set-version 2.0.0 --no-push
+```
+
+_This will:_
+
+1. Run `uv version 2.0.0`.
+2. Run `git tag v2.0.0`.
+3. Stop without pushing, reminding you to do it manually.
+
+This script provides a robust and user-friendly way to manage your package releases directly from the command line, perfectly aligning with the workflow described in your `README`.
+
 ## Changing version
 
 The current version can be found in `pyproject.toml`
@@ -37,7 +95,7 @@ uv version --bump minor --bump beta
 # 1.3.0 => 1.4.0b1
 ```
 
-## GitHub Actions Approach (Recommended)
+## GitHub Actions Approach
 
 ### 1. Push new tag
 
