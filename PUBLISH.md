@@ -16,7 +16,7 @@ There is special script `publish.py` to automate publishing process.
 
 ### Examples of usage
 
-**Perform a dry run to see what would happen for a patch release:**
+**Example: Perform a dry run to see what would happen for a patch release:**
 
 ```bash
 uv run ./publish.py --bump patch --dry-run
@@ -24,7 +24,7 @@ uv run ./publish.py --bump patch --dry-run
 
 _Expected Output:_
 
-```
+```text
 INFO: Checking prerequisites...
 SUCCESS: Prerequisites met.
 EXEC: uv version --bump patch
@@ -35,7 +35,7 @@ SUCCESS: Successfully tagged version v1.2.3.
 SUCCESS: Tag pushed to remote. The GitHub Action should now trigger the publish process.
 ```
 
-**Bump the `minor` version and add a `beta` tag:**
+**Example: Bump the `minor` version and add a `beta` tag:**
 
 ```bash
 ./publish.py --bump minor --prerelease beta
@@ -45,10 +45,13 @@ _This will:_
 
 1. Run `uv version --bump minor --bump beta`.
 2. Find the new version (e.g., `1.4.0b1`).
-3. Run `git tag v1.4.0b1`.
-4. Run `git push origin v1.4.0b1`.
+3. Run `git add pyproject.toml uv.lock`.
+4. Run `git commit -m "Bump version to 1.4.0b1`.
+5. Run `git tag v1.4.0b1`.
+6. Run `git push`.
+7. Run `git push origin v1.4.0b1`.
 
-**Set a specific version and create the tag, but don't push it yet:**
+**Example: Set a specific version and create the tag, but don't push it yet:**
 
 ```bash
 ./publish.py --set-version 2.0.0 --no-push
