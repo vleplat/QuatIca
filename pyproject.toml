@@ -1,6 +1,6 @@
 [project]
 name = "quatica"
-version = "0.1.12"
+version = "0.1.13"
 description = "Numerical linear algebra for quaternions — fast, practical, and well‑tested"
 authors = [
     {name = "Valentin Leplat", email = "valentin.leplat@gmail.com"},
