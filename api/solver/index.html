@@ -1,0 +1,2929 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Fast, practical quaternion linear algebra for Python - matrix operations, decompositions, and real-world applications">
+      
+      
+      
+        <link rel="canonical" href="https://vleplat.github.io/QuatIca/api/solver/">
+      
+      
+        <link rel="prev" href="../utils/">
+      
+      
+        <link rel="next" href="../data_gen/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>Solver - QuatIca - Quaternion Linear Algebra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quaticasolver" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="QuatIca - Quaternion Linear Algebra" class="md-header__button md-logo" aria-label="QuatIca - Quaternion Linear Algebra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QuatIca - Quaternion Linear Algebra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Solver
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/vleplat/QuatIca" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vleplat/QuatIca
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../applications/image_deblurring/" class="md-tabs__link">
+          
+  
+  
+  Applications
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../utils/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="QuatIca - Quaternion Linear Algebra" class="md-nav__button md-logo" aria-label="QuatIca - Quaternion Linear Algebra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QuatIca - Quaternion Linear Algebra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/vleplat/QuatIca" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vleplat/QuatIca
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Applications
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Applications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/image_deblurring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Image Deblurring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/image_completion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Image Completion
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/lorenz_attractor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lorenz Attractor Filtering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Core Functions
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            Core Functions
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Solver
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Solver
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quatica.solver" class="md-nav__link">
+    <span class="md-ellipsis">
+      solver
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      CGNEQSolver
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CGNEQSolver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.DeepLinearNewtonSchulz" class="md-nav__link">
+    <span class="md-ellipsis">
+      DeepLinearNewtonSchulz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DeepLinearNewtonSchulz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.DeepLinearNewtonSchulz.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HigherOrderNewtonSchulzPseudoinverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      HigherOrderNewtonSchulzPseudoinverse
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz" class="md-nav__link">
+    <span class="md-ellipsis">
+      HybridRSPNewtonSchulz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HybridRSPNewtonSchulz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.NewtonSchulzPseudoinverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      NewtonSchulzPseudoinverse
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      QGMRESSolver
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QGMRESSolver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.__init__--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.solve" class="md-nav__link">
+    <span class="md-ellipsis">
+      solve
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.solve--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.solve--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      RandomizedSketchProjectPseudoinverse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RandomizedSketchProjectPseudoinverse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.__init__--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute_column_variant
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute_column_variant">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute_row_variant
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute_row_variant">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_gen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Generation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Visualization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Specialized
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            Specialized
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qslst/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    QSLST
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tensor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Decompositions
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            Decompositions
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/qsvd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Q-SVD
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/eigen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Eigendecomposition
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/LU/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    LU Decomposition
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/hessenberg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hessenberg
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/tridiagonalize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tridiagonalization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/schur/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Schur Decomposition
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quatica.solver" class="md-nav__link">
+    <span class="md-ellipsis">
+      solver
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      CGNEQSolver
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CGNEQSolver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.CGNEQSolver.compute--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.DeepLinearNewtonSchulz" class="md-nav__link">
+    <span class="md-ellipsis">
+      DeepLinearNewtonSchulz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DeepLinearNewtonSchulz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.DeepLinearNewtonSchulz.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HigherOrderNewtonSchulzPseudoinverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      HigherOrderNewtonSchulzPseudoinverse
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz" class="md-nav__link">
+    <span class="md-ellipsis">
+      HybridRSPNewtonSchulz
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HybridRSPNewtonSchulz">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.HybridRSPNewtonSchulz.compute--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.NewtonSchulzPseudoinverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      NewtonSchulzPseudoinverse
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      QGMRESSolver
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QGMRESSolver">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.__init__--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.solve" class="md-nav__link">
+    <span class="md-ellipsis">
+      solve
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="solve">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.solve--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.QGMRESSolver.solve--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse" class="md-nav__link">
+    <span class="md-ellipsis">
+      RandomizedSketchProjectPseudoinverse
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="RandomizedSketchProjectPseudoinverse">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="__init__">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.__init__--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute_column_variant
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute_column_variant">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      compute_row_variant
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="compute_row_variant">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quaticasolver">quatica.solver</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="quatica.solver" class="doc doc-heading">
+            <code>quatica.solver</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.CGNEQSolver" class="doc doc-heading">
+            <code>CGNEQSolver</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Conjugate Gradient on the Normal Equations (CGNE–Q) to solve XA = I_n in matrix form.</p>
+<p>Minimizes f(X) = 1/2 || X A - I_n ||_F^2 with quaternion-native operations.</p>
+<ul>
+<li>Column case (full column rank): A in H^{m x n} with m &gt;= n</li>
+<li>Iterates stay in span{A^H} when initialized with X0 = alpha * A^H</li>
+<li>Converges to A^† as ||I_n - X_k A||_F -&gt; 0</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.CGNEQSolver.compute" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute pseudoinverse using Conjugate Gradient on Normal Equations (CGNE–Q).</p>
+<p>Minimizes f(X) = 1/2 || X A - I_n ||_F^2 with quaternion-native operations.
+This method provides global convergence to the Moore-Penrose pseudoinverse
+by solving the normal equations via conjugate gradient.</p>
+<h6 id="quatica.solver.CGNEQSolver.compute--parameters">Parameters:</h6>
+<p>A : np.ndarray
+    Quaternion matrix of shape (m, n) with m &gt;= n (full column rank)</p>
+<h6 id="quatica.solver.CGNEQSolver.compute--returns">Returns:</h6>
+<p>tuple[np.ndarray, dict]
+    X : np.ndarray
+        Pseudoinverse of A, shape (n, m)
+    info : dict
+        Dictionary containing convergence information:
+        - 'iterations': Number of CG iterations performed
+        - 'residual_norms': List of relative residual norms per iteration
+        - 'iteration_times': List of CPU times per iteration
+        - 'total_time': Total computation time
+        - 'converged': Boolean indicating if convergence was achieved
+        - 'preconditioner_rank': Rank of preconditioner used (0 if none)</p>
+<h6 id="quatica.solver.CGNEQSolver.compute--notes">Notes:</h6>
+<ul>
+<li>Requires m &gt;= n (full column rank matrices)</li>
+<li>Initializes with X_0 = (1/||A||_F^2) * A^H to stay in span{A^H}</li>
+<li>Uses Fletcher-Reeves CG with exact line search</li>
+<li>Supports optional thin Nyström-type right preconditioning</li>
+<li>All operations are quaternion-native with no embeddings</li>
+<li>Converges to A^† as ||I_n - X_k A||_F -&gt; 0</li>
+<li>Per iteration: one A multiply and one A^H multiply</li>
+</ul>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.DeepLinearNewtonSchulz" class="doc doc-heading">
+            <code>DeepLinearNewtonSchulz</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Deep Linear Newton-Schulz solver for quaternion matrices.</p>
+<p>Implements the alternating gradient method for deep linear networks using
+proper Newton-Schulz updates for each layer individually.</p>
+<p>The method optimizes ||X * W_1 * ... * W_d - I||_F -&gt; min
+where each W_i is updated using the damped Newton-Schulz formula:
+W_i^(k+1) = W_i^(k) - γ * W_i^(k) * (hat_W * hat_X * W_i^(k) - I)</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.DeepLinearNewtonSchulz.compute" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">layers</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute deep linear decomposition using alternating Newton-Schulz updates.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>X</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Input quaternion matrix (n_samples x input_dim)</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>layers</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of layer dimensions [d0, d1, ..., dk]
+    where d0 = input_dim, dk = output_dim</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>weights</code></td>            <td>
+                  <code><span title="list">list</span>[<span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of optimized quaternion weight matrices</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>residuals</code></td>            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="list">list</span>[<span title="float">float</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dictionary of residual norms over iterations</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+<td><code>deviations</code></td>            <td>
+                  <code><span title="list">list</span>[<span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of total deviation norms over iterations</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.HigherOrderNewtonSchulzPseudoinverse" class="doc doc-heading">
+            <code>HigherOrderNewtonSchulzPseudoinverse</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Third-order Newton–Schulz pseudoinverse solver (no damping).</p>
+<p>Iteration (T := X_k):
+  X_{k+1} = 3 T - 3 T A T + T (A T)^2</p>
+
+
+<details class="initialization" open>
+  <summary>Initialization</summary>
+  <p>T_0 = A^H / ||A||_F^2</p>
+</details>
+
+<details class="residuals-tracked-per-iteration" open>
+  <summary>Residuals tracked per iteration</summary>
+  <p>E1 = ||A X A - A||_F
+E2 = ||X A X - X||_F
+E3 = ||(A X)^H - A X||_F
+E4 = ||(X A)^H - X A||_F</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.HybridRSPNewtonSchulz" class="doc doc-heading">
+            <code>HybridRSPNewtonSchulz</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Hybrid RSP-Q + NS (column variant): alternate T randomized sketch-and-project
+steps with one exact hyperpower (order p) step on the right residual.</p>
+<h5 id="quatica.solver.HybridRSPNewtonSchulz--parameters">Parameters</h5>
+<p>r : int
+    Sketch block size for RSP-Q phase
+p : int
+    Hyperpower order for NS step (e.g., 2, 4, 8)
+T : int
+    Number of RSP steps per cycle before one NS step
+tol : float
+    Stopping tolerance for proxy residual using test sketch Pi
+max_iter : int
+    Maximum total RSP steps (cycles*T bounded by this)
+verbose : bool
+    Verbose logging
+seed : int | None
+    RNG seed</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.HybridRSPNewtonSchulz.compute" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute pseudoinverse using hybrid RSP-Q + NS algorithm.</p>
+<p>Alternates T randomized sketch-and-project steps with one exact hyperpower
+(order p) step on the right residual. This combines the efficiency of
+randomized methods with the accuracy of exact Newton-Schulz iterations.</p>
+<h6 id="quatica.solver.HybridRSPNewtonSchulz.compute--parameters">Parameters:</h6>
+<p>A : np.ndarray
+    Quaternion matrix of shape (m, n) with m &gt;= n (full column rank)</p>
+<h6 id="quatica.solver.HybridRSPNewtonSchulz.compute--returns">Returns:</h6>
+<p>tuple[np.ndarray, dict]
+    X : np.ndarray
+        Pseudoinverse of A, shape (n, m)
+    info : dict
+        Dictionary containing convergence information:
+        - 'iterations_rsp': Number of RSP iterations performed
+        - 'residual_norms': List of residual norms after each cycle
+        - 'total_time': Total computation time
+        - 'converged': Boolean indicating if convergence was achieved
+        - 'r': Block size used for RSP steps
+        - 'p': Hyperpower order used for NS steps
+        - 'T': Number of RSP steps per cycle</p>
+<h6 id="quatica.solver.HybridRSPNewtonSchulz.compute--notes">Notes:</h6>
+<ul>
+<li>Currently supports only column variant (m &gt;= n)</li>
+<li>Initializes with X_0 = (1/||A||_F^2) * A^H</li>
+<li>Performs T RSP steps followed by one NS hyperpower step per cycle</li>
+<li>Monitors convergence using test sketch to avoid full residual computation</li>
+<li>Combines benefits of randomized efficiency and exact convergence</li>
+</ul>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.NewtonSchulzPseudoinverse" class="doc doc-heading">
+            <code>NewtonSchulzPseudoinverse</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Compute the Moore–Penrose pseudoinverse of quaternion matrices via damped Newton–Schulz.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.QGMRESSolver" class="doc doc-heading">
+            <code>QGMRESSolver</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Quaternion Generalized Minimal Residual (Q-GMRES) solver.</p>
+<p>Implements the Q-GMRES algorithm for solving quaternion linear systems
+A * x = b, where A is a quaternion matrix and b is a quaternion vector.</p>
+<p>Based on the implementation by Zhigang Jia and Michael K. Ng:
+"Structure Preserving Quaternion Generalized Minimal Residual Method", SIMAX, 2021</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.QGMRESSolver.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="mf">1e-06</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preconditioner</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Initialize Q-GMRES solver.</p>
+<h6 id="quatica.solver.QGMRESSolver.__init__--parameters">Parameters:</h6>
+<p>tol : float, optional
+    Tolerance for convergence (default: 1e-6)
+max_iter : int, optional
+    Maximum number of iterations (default: None, uses matrix dimension)
+verbose : bool, optional
+    Whether to print convergence information (default: False)</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.QGMRESSolver.solve" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Solve the quaternion linear system A * x = b using Q-GMRES.</p>
+<h6 id="quatica.solver.QGMRESSolver.solve--parameters">Parameters:</h6>
+<p>A : np.ndarray
+    Quaternion matrix (m x n)
+b : np.ndarray
+    Quaternion right-hand side vector (m x 1)</p>
+<h6 id="quatica.solver.QGMRESSolver.solve--returns">Returns:</h6>
+<p>x : np.ndarray
+    Solution vector (n x 1)
+info : dict
+    Information about the solution process including:
+    - 'iterations': Number of iterations performed
+    - 'residual': Final residual norm
+    - 'residual_history': List of residual norms
+    - 'converged': Whether the method converged</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.solver.RandomizedSketchProjectPseudoinverse" class="doc doc-heading">
+            <code>RandomizedSketchProjectPseudoinverse</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Randomized Sketch-and-Project (RSP-Q) for quaternion matrix pseudoinverse.</p>
+<p>Implements the randomized sketch-and-project method for computing the
+Moore-Penrose pseudoinverse of quaternion matrices. This method provides
+global linear convergence in expectation through cheap randomized projections
+onto sketched identity constraints.</p>
+<p>The method works by drawing random sketches and projecting onto the constraint
+set {X: X<em>Y_k = Omega_k} where Y_k = A</em>Omega_k and Omega_k is a random sketch.
+This provides a block Kaczmarz-style approach that converges globally.</p>
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.RandomizedSketchProjectPseudoinverse.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">block_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-06</span><span class="p">,</span> <span class="n">test_sketch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">column_solver</span><span class="o">=</span><span class="s1">&#39;qr&#39;</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Initialize the RSP-Q solver.</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.__init__--parameters">Parameters:</h6>
+<p>block_size : int, optional
+    Size of the random sketch block r (default: 16)
+max_iter : int, optional
+    Maximum number of iterations (default: 1000)
+tol : float, optional
+    Convergence tolerance (default: 1e-6)
+test_sketch_size : int, optional
+    Size of the test sketch for convergence check (default: 8)
+verbose : bool, optional
+    Whether to print convergence information (default: False)
+seed : int, optional
+    Random seed for reproducibility (default: None)</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute the Moore-Penrose pseudoinverse using RSP-Q.</p>
+<p>Automatically selects column or row variant based on matrix dimensions.
+This is the main entry point for RSP-Q pseudoinverse computation.</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute--parameters">Parameters:</h6>
+<p>A : np.ndarray
+    Quaternion matrix of shape (m, n)</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute--returns">Returns:</h6>
+<p>tuple[np.ndarray, dict]
+    X : np.ndarray
+        Moore-Penrose pseudoinverse of A, shape (n, m)
+    convergence_info : dict
+        Dictionary containing convergence information from the selected variant</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute--notes">Notes:</h6>
+<ul>
+<li>For m &gt;= n (tall/square matrices): uses column variant (compute_column_variant)</li>
+<li>For m &lt; n (wide matrices): uses row variant (compute_row_variant)</li>
+<li>Automatically clamps block_size to safe range [1, min(m, n)]</li>
+<li>Both variants provide global linear convergence in expectation</li>
+<li>The choice between variants is optimal for computational efficiency</li>
+</ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compute_column_variant</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Compute pseudoinverse using column variant RSP-Q for full column rank A.</p>
+<p>Solves XA = I_n by iterative sketch-and-project updates. This variant is
+designed for tall matrices (m &gt;= n) and uses randomized sketching to
+reduce computational complexity.</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--parameters">Parameters:</h6>
+<p>A : np.ndarray
+    Full column rank quaternion matrix of shape (m, n) with m &gt;= n</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--returns">Returns:</h6>
+<p>tuple[np.ndarray, dict]
+    X : np.ndarray
+        Pseudoinverse of A, shape (n, m)
+    convergence_info : dict
+        Dictionary containing convergence information:
+        - 'iterations': Number of iterations performed
+        - 'residual_norms': List of residual norms per iteration
+        - 'iteration_times': List of CPU times per iteration
+        - 'total_time': Total computation time
+        - 'converged': Boolean indicating if convergence was achieved</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_column_variant--notes">Notes:</h6>
+<ul>
+<li>Initializes with X_0 = (1/||A||_F^2) * A^H</li>
+<li>Uses random sketches of size block_size for each iteration</li>
+<li>Supports both QR and SPD update strategies via column_solver parameter</li>
+<li>Monitors convergence using a test sketch to avoid computing full residuals</li>
+<li>Global linear convergence in expectation for well-conditioned matrices</li>
+</ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">compute_row_variant</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>RSP-Q row variant: solve A X = I_m for full row rank A (m &lt;= n).</p>
+<p>This variant is designed for wide matrices (m &lt;= n) and uses left sketching
+to project onto sketched identity constraints. The update formula is:
+X &lt;- X + Z^H (Z Z<sup>H)</sup>{-1} (S^H - Z X), where Z = S^H A.</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--parameters">Parameters:</h6>
+<p>A : np.ndarray
+    Full row rank quaternion matrix of shape (m, n) with m &lt;= n</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--returns">Returns:</h6>
+<p>tuple[np.ndarray, dict]
+    X : np.ndarray
+        Pseudoinverse of A, shape (n, m)
+    info : dict
+        Dictionary containing convergence information:
+        - 'iterations': Number of iterations performed
+        - 'residual_norms': List of residual norms per iteration
+        - 'iteration_times': List of CPU times per iteration
+        - 'total_time': Total computation time
+        - 'converged': Boolean indicating if convergence was achieved</p>
+<h6 id="quatica.solver.RandomizedSketchProjectPseudoinverse.compute_row_variant--notes">Notes:</h6>
+<ul>
+<li>Initializes with X_0 = 0 (zero initialization is sufficient for RSP)</li>
+<li>Uses left sketches S of size block_size for each iteration</li>
+<li>Solves (Z Z^H) W = R using CG micro-solver with fallback to Newton-Schulz</li>
+<li>Monitors convergence using proxy residual with test sketch</li>
+<li>Applies tiny ridge regularization (1e-10) to Gram matrix for stability</li>
+<li>Global linear convergence in expectation for well-conditioned matrices</li>
+</ul>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/vleplat/QuatIca" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.expand", "navigation.sections", "navigation.top", "navigation.tabs", "content.code.copy", "content.code.annotate", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
