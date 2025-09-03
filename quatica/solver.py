@@ -1864,3 +1864,198 @@ class CGNEQSolver:
             'preconditioner_rank': self.preconditioner_rank,
         }
         return X, info
+
+
+# ------------------------------ MaxVol (Quaternion) ------------------------------
+def _invert_quat_small_ns(A: np.ndarray, iters: int = 16) -> np.ndarray:
+    """Small dense quaternion matrix inverse via Newton–Schulz (generic, no SPD req)."""
+    r = A.shape[0]
+    I = quat_eye(r)
+    alpha = 1.0 / max(quat_frobenius_norm(A) ** 2, 1e-30)
+    X = alpha * quat_hermitian(A)
+    for _ in range(iters):
+        AX = quat_matmat(A, X)
+        X = quat_matmat(X, (2.0 * I - AX))
+    return X
+
+
+def _pinv_quat_small(B: np.ndarray, rcond: float = 1e-12) -> np.ndarray:
+    """Robust small-matrix pseudoinverse using quaternion SVD (fallback to NS).
+
+    For square k×k cores, returns B^{-1} if well-conditioned, else B^\dagger.
+    Uses `classical_qsvd_full` (quaternion output) internally.
+    """
+    k = B.shape[0]
+    try:
+        try:
+            from .decomp.qsvd import classical_qsvd_full  # package context
+        except Exception:
+            from quatica.decomp.qsvd import classical_qsvd_full  # script context
+        U, s, V = classical_qsvd_full(B)
+        # s is length k
+        s = np.array(s, dtype=float)
+        if s.size == 0:
+            return np.zeros_like(B)
+        cutoff = rcond * float(s[0])
+        s_inv = np.array([1.0 / si if si > cutoff else 0.0 for si in s])
+        # Build Σ^+ as quaternion diagonal
+        Sigma_p = np.zeros((k, k), dtype=np.quaternion)
+        for i in range(k):
+            if i < len(s_inv) and s_inv[i] > 0:
+                Sigma_p[i, i] = quaternion.quaternion(s_inv[i], 0, 0, 0)
+        # B^+ = V Σ^+ U^H
+        V_Sig = quat_matmat(V[:, :k], Sigma_p)
+        return quat_matmat(V_Sig, quat_hermitian(U[:, :k]))
+    except Exception:
+        # Fallback: NS-based inverse (may be less robust)
+        return _invert_quat_small_ns(B, iters=64)
+
+
+def _is_quat_array(A) -> bool:
+    try:
+        return (
+            hasattr(A, "dtype")
+            and (A.dtype == np.quaternion or getattr(A.dtype, "type", None) is np.quaternion)
+        )
+    except Exception:
+        return False
+
+
+def maxvol_submatrix_quat(
+    A: np.ndarray,
+    k: int,
+    tol: float = 1e-6,
+    max_sweeps: int = 50,
+    track_history: bool = True,
+) -> tuple[list[int], list[int], np.ndarray, dict]:
+    """
+    Two-sided MaxVol for quaternion matrices: select k×k submatrix with large volume.
+
+    Parameters:
+    - A: quaternion ndarray of shape (m, n)
+    - k: target core size (k ≤ min(m, n))
+    - tol: stopping tolerance; phases stop when max coeff ≤ 1 + tol
+    - max_sweeps: maximum row/column alternating sweeps
+    - track_history: if True, records accepted core snapshots for external checks
+
+    Returns:
+    - I: list[int] of selected row indices (len k)
+    - J: list[int] of selected column indices (len k)
+    - B: quaternion ndarray (k×k) final core A[I, J]
+    - info: dict with keys {"row_swaps","col_swaps","iterations","B_history"}
+
+    Notes:
+    - Row phase uses C = A[:, J] @ B^{-1} (m×k)
+    - Column phase uses C' = B^{-1} @ A[I, :] (k×n)
+    - Rank-1 updates are done quaternion-natively; scalar divisions use right-multiplication by q^{-1}.
+    """
+    m, n = A.shape
+    if not _is_quat_array(A):
+        raise ValueError("A must be a dense numpy-quaternion array (dtype=np.quaternion)")
+    if k <= 0 or k > min(m, n):
+        raise ValueError("k must be in 1..min(m,n)")
+
+    # Helper: column/row norms via quaternion Frobenius norm on slices
+    def _col_norm(j: int) -> float:
+        return float(quat_frobenius_norm(A[:, j : j + 1]))
+
+    def _row_norm_on_J(i: int, J_idx: list[int]) -> float:
+        return float(quat_frobenius_norm(A[i : i + 1, J_idx]))
+
+    # Initial J: top-k column norms
+    col_norms = [(j, _col_norm(j)) for j in range(n)]
+    col_norms.sort(key=lambda t: t[1], reverse=True)
+    J = [t[0] for t in col_norms[:k]]
+
+    # Initial I: top-k row norms restricted to selected columns
+    row_norms = [(i, _row_norm_on_J(i, J)) for i in range(m)]
+    row_norms.sort(key=lambda t: t[1], reverse=True)
+    I = [t[0] for t in row_norms[:k]]
+
+    # Core and its inverse (robust pseudoinverse for tiny cores)
+    B = A[np.ix_(I, J)]
+    Binv = _pinv_quat_small(B)
+
+    row_swaps = 0
+    col_swaps = 0
+    sweeps = 0
+    B_history: list[np.ndarray] = []
+    if track_history:
+        B_history.append(B.copy())
+
+    for sweep in range(max_sweeps):
+        did_any = False
+
+        # Row phase: keep swapping until max |C| <= 1 + tol
+        while True:
+            A_J = A[:, J]
+            C = quat_matmat(A_J, Binv)  # (m×k)
+            I_set = set(I)
+            max_val = 0.0
+            best_p = -1
+            best_q = -1
+            for p in range(m):
+                if p in I_set:
+                    continue
+                row = C[p, :]
+                for q in range(k):
+                    c = row[q]
+                    val = float(np.sqrt(c.w * c.w + c.x * c.x + c.y * c.y + c.z * c.z))
+                    if val > max_val:
+                        max_val = val
+                        best_p = p
+                        best_q = q
+            if max_val <= 1.0 + tol or best_p < 0:
+                break
+            # Swap in best row
+            I[best_q] = best_p
+            B[best_q : best_q + 1, :] = A[best_p : best_p + 1, J]
+            Binv = _pinv_quat_small(B)
+            row_swaps += 1
+            did_any = True
+            if track_history:
+                B_history.append(B.copy())
+
+        # Column phase: keep swapping until max |C'| <= 1 + tol
+        while True:
+            A_I = A[I, :]
+            Cprime = quat_matmat(Binv, A_I)  # (k×n)
+            J_set = set(J)
+            max_val2 = 0.0
+            best_qp = -1
+            best_r = -1
+            for q in range(k):
+                row = Cprime[q, :]
+                for r in range(n):
+                    if r in J_set:
+                        continue
+                    c = row[r]
+                    val = float(np.sqrt(c.w * c.w + c.x * c.x + c.y * c.y + c.z * c.z))
+                    if val > max_val2:
+                        max_val2 = val
+                        best_qp = q
+                        best_r = r
+            if max_val2 <= 1.0 + tol or best_r < 0:
+                break
+            # Swap in best column
+            J[best_qp] = best_r
+            B[:, best_qp : best_qp + 1] = A[I, best_r : best_r + 1]
+            Binv = _pinv_quat_small(B)
+            col_swaps += 1
+            did_any = True
+            if track_history:
+                B_history.append(B.copy())
+
+        sweeps += 1
+        if not did_any:
+            break
+
+    info = {
+        "row_swaps": row_swaps,
+        "col_swaps": col_swaps,
+        "iterations": row_swaps + col_swaps,
+        "sweeps": sweeps,
+        "B_history": B_history if track_history else [],
+    }
+
+    return I, J, B, info

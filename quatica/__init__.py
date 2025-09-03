@@ -3,6 +3,7 @@ from .solver import (
     HigherOrderNewtonSchulzPseudoinverse,
     NewtonSchulzPseudoinverse,
     QGMRESSolver,
+    maxvol_submatrix_quat,
 )
 from .utils import *
 from .visualization import Visualizer
@@ -11,6 +12,7 @@ __all__ = [
     "NewtonSchulzPseudoinverse",
     "HigherOrderNewtonSchulzPseudoinverse",
     "QGMRESSolver",
+    "maxvol_submatrix_quat",
     "Visualizer",
     # Kernel/null space functions (exported via utils import *)
     "quat_null_space",
