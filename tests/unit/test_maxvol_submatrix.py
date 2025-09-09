@@ -49,3 +49,9 @@ def test_maxvol_core_consistency():
     assert diff <= 1e-10
 
 
+if __name__ == "__main__":
+    test_maxvol_monotone_volume_small()
+    test_maxvol_core_consistency()
+    print("All tests completed successfully!")
+
+

@@ -91,3 +91,8 @@ def test_maxvol_visualization_outputs():
     assert os.path.exists(summary_path)
 
 
+if __name__ == "__main__":
+    test_maxvol_visualization_outputs()
+    print("Visualization test completed successfully!")
+
+

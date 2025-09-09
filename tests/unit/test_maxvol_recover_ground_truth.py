@@ -120,3 +120,6 @@ def test_maxvol_recovers_ground_truth_from_convex_aug():
     plt.close(fig)
 
 
+if __name__ == "__main__":
+    test_maxvol_recovers_ground_truth_from_convex_aug()
+    print("Test completed successfully!")
