@@ -536,7 +536,10 @@ class QGMRESSolver:
         prec = self.preconditioner.lower()
         if prec == "left_lu":
             try:
-                from decomp import quaternion_lu
+                try:
+                    from .decomp import quaternion_lu  # package context
+                except Exception:
+                    from quatica.decomp import quaternion_lu  # script context
 
                 # Compute LU with permutation: P * A = L * U ⇒ A = P^T L U
                 Lq, Uq, Pq = quaternion_lu(A, return_p=True)
@@ -596,6 +599,7 @@ class QGMRESSolver:
         # Prepare info dictionary
         info = {
             "iterations": iter_count,
+            "residual_est": res,
             "residual": res,
             "residual_history": resv if resv is not None else [],
             "converged": res < self.tol,
@@ -606,18 +610,33 @@ class QGMRESSolver:
         }
 
         # Compute true residual with respect to original (un-preconditioned) system
+        info["residual_true_available"] = False
+        info["residual_true"] = None
         try:
-            r_true = quat_frobenius_norm(quat_matmat(A_orig, x) - b_orig)
+            # Use SparseQuaternionMatrix dense multiply when available (fast + robust)
+            Ax = A_orig.dense_multiply(x) if hasattr(A_orig, "dense_multiply") else quat_matmat(A_orig, x)
+            r_true = quat_frobenius_norm(Ax - b_orig)
             r_true /= quat_frobenius_norm(b_orig) + 1e-30
-            info["residual_true"] = r_true
-            # Replace primary residual with true residual for fair comparison across preconditioners
-            info["residual"] = r_true
+            info["residual_true"] = float(r_true)
+            info["residual_true_available"] = True
+            # Prefer true residual for comparisons across preconditioners
+            info["residual"] = float(r_true)
         except Exception:
-            # Fallback: keep preconditioned residual only
-            info["residual_true"] = info["residual"]
+            # Keep estimate if true residual couldn't be computed
+            info["residual_true"] = None
+            info["residual_true_available"] = False
+
+        # Ensure converged flag matches the chosen residual field
+        info["converged"] = bool(info["residual"] < self.tol)
 
         if self.verbose:
-            print(f"Q-GMRES converged in {iter_count} iterations with residual {res:.2e}")
+            if info["residual_true_available"]:
+                print(
+                    f"Q-GMRES iters={iter_count} residual_est={info['residual_est']:.2e} "
+                    f"residual_true={info['residual']:.2e}"
+                )
+            else:
+                print(f"Q-GMRES iters={iter_count} residual_est={info['residual_est']:.2e}")
 
         return x, info
 
@@ -676,6 +695,8 @@ class QGMRESSolver:
             H3 = np.zeros((m + 1, m))
 
             # Arnoldi iteration: for j=1:m
+            lucky_breakdown = False
+            m_lucky = None
             for j in range(m):
                 # Compute A * v_j
                 v_0, v_1, v_2, v_3 = timesQsparse(
@@ -698,16 +719,20 @@ class QGMRESSolver:
                     v_i_conj_3 = -V3[:, i : i + 1].T
 
                     # Compute inner product using timesQsparse: (1×N) * (N×1) = (1×1)
-                    H0[i, j], H1[i, j], H2[i, j], H3[i, j] = timesQsparse(
-                        v_i_conj_0, v_i_conj_1, v_i_conj_2, v_i_conj_3, v_0, v_1, v_2, v_3
+                    h0, h1, h2, h3 = timesQsparse(
+                        v_i_conj_0,
+                        v_i_conj_1,
+                        v_i_conj_2,
+                        v_i_conj_3,
+                        v_0,
+                        v_1,
+                        v_2,
+                        v_3,
                     )
-
-                    # The result should be a scalar (1x1 matrix), extract the scalar value
-                    if hasattr(H0[i, j], "shape") and H0[i, j].shape == (1, 1):
-                        H0[i, j] = H0[i, j][0, 0]
-                        H1[i, j] = H1[i, j][0, 0]
-                        H2[i, j] = H2[i, j][0, 0]
-                        H3[i, j] = H3[i, j][0, 0]
+                    # timesQsparse may return 1x1 arrays; extract scalars before assignment
+                    if hasattr(h0, "shape") and h0.shape == (1, 1):
+                        h0, h1, h2, h3 = h0[0, 0], h1[0, 0], h2[0, 0], h3[0, 0]
+                    H0[i, j], H1[i, j], H2[i, j], H3[i, j] = h0, h1, h2, h3
 
                     # Subtract projection: v = v - <v_i, A*v_j> * v_i
                     delta0, delta1, delta2, delta3 = timesQsparse(
@@ -736,7 +761,9 @@ class QGMRESSolver:
                     if abs(H0[j + 1, j]) + ninf == ninf:
                         if self.verbose:
                             print("Lucky breakdown occurred!")
-                        return x0_0, x0_1, x0_2, x0_3, 0, V0, V1, V2, V3, m, resv
+                        lucky_breakdown = True
+                        m_lucky = j + 1
+                        break
 
                     # Normalize next basis vector
                     if j < m - 1:
@@ -750,14 +777,30 @@ class QGMRESSolver:
                         v_2 = v_2 / H0[j + 1, j]
                         v_3 = v_3 / H0[j + 1, j]
 
-            # Construct full Krylov basis
-            if m < N:
-                Vm_0 = np.column_stack([V0, v_0])
-                Vm_1 = np.column_stack([V1, v_1])
-                Vm_2 = np.column_stack([V2, v_2])
-                Vm_3 = np.column_stack([V3, v_3])
+            # If Arnoldi ended early, shrink to the achieved Krylov dimension
+            m_used = int(m_lucky) if lucky_breakdown and m_lucky is not None else m
+
+            # Construct Krylov basis for projection (avoid appending v_{m+1} on breakdown)
+            if lucky_breakdown:
+                Vm_0, Vm_1, Vm_2, Vm_3 = (
+                    V0[:, :m_used],
+                    V1[:, :m_used],
+                    V2[:, :m_used],
+                    V3[:, :m_used],
+                )
             else:
-                Vm_0, Vm_1, Vm_2, Vm_3 = V0, V1, V2, V3
+                if m_used < N:
+                    Vm_0 = np.column_stack([V0[:, :m_used], v_0])
+                    Vm_1 = np.column_stack([V1[:, :m_used], v_1])
+                    Vm_2 = np.column_stack([V2[:, :m_used], v_2])
+                    Vm_3 = np.column_stack([V3[:, :m_used], v_3])
+                else:
+                    Vm_0, Vm_1, Vm_2, Vm_3 = (
+                        V0[:, :m_used],
+                        V1[:, :m_used],
+                        V2[:, :m_used],
+                        V3[:, :m_used],
+                    )
 
             # Compute projection of right-hand side onto Krylov subspace
             # Vm has shape (N, m+1) if m < N, or (N, m) if m == N
@@ -767,7 +810,11 @@ class QGMRESSolver:
             )
 
             # QR decomposition of Hessenberg matrix using Givens rotations
-            Hess = np.vstack([H0, H1, H2, H3])
+            H0u = H0[: m_used + 1, :m_used]
+            H1u = H1[: m_used + 1, :m_used]
+            H2u = H2[: m_used + 1, :m_used]
+            H3u = H3[: m_used + 1, :m_used]
+            Hess = np.vstack([H0u, H1u, H2u, H3u])
             U, R = Hess_QR_ggivens(Hess)
             U0, U1, U2, U3 = A2A0123(U)
             R0, R1, R2, R3 = A2A0123(R)
@@ -795,19 +842,26 @@ class QGMRESSolver:
 
             # Solve upper triangular system R * y = Q^T * b
             ym_0, ym_1, ym_2, ym_3 = UtriangleQsparse(
-                R0[:m, :m],
-                R1[:m, :m],
-                R2[:m, :m],
-                R3[:m, :m],
-                bm2_0[:m],
-                bm2_1[:m],
-                bm2_2[:m],
-                bm2_3[:m],
+                R0[:m_used, :m_used],
+                R1[:m_used, :m_used],
+                R2[:m_used, :m_used],
+                R3[:m_used, :m_used],
+                bm2_0[:m_used],
+                bm2_1[:m_used],
+                bm2_2[:m_used],
+                bm2_3[:m_used],
             )
 
             # Compute solution: x = x0 + V * y
             delta0, delta1, delta2, delta3 = timesQsparse(
-                V0, V1, V2, V3, ym_0, ym_1, ym_2, ym_3
+                V0[:, :m_used],
+                V1[:, :m_used],
+                V2[:, :m_used],
+                V3[:, :m_used],
+                ym_0,
+                ym_1,
+                ym_2,
+                ym_3,
             )
             xm_0 = delta0 + x0_0
             xm_1 = delta1 + x0_1
@@ -825,7 +879,7 @@ class QGMRESSolver:
 
             # Store residual history
             delta0, delta1, delta2, delta3 = timesQsparse(
-                H0, H1, H2, H3, ym_0, ym_1, ym_2, ym_3
+                H0u, H1u, H2u, H3u, ym_0, ym_1, ym_2, ym_3
             )
             res_ym = normQsparse(
                 bm_0 - delta0, bm_1 - delta1, bm_2 - delta2, bm_3 - delta3
@@ -833,13 +887,13 @@ class QGMRESSolver:
             resv.append([m, res_ym, res_xm])
 
             # Check convergence (MATLAB: if res<tol || m>maxit)
-            if res < tol or m > maxit:
-                iter = m
+            if res < tol or m_used > maxit:
+                iter = m_used
                 break
             else:
                 # Update initial guess for next iteration (restart)
                 x0_0, x0_1, x0_2, x0_3 = xm_0, xm_1, xm_2, xm_3
-                iter = m
+                iter = m_used
 
         return xm_0, xm_1, xm_2, xm_3, res, V0, V1, V2, V3, iter, resv
 
@@ -1882,7 +1936,7 @@ def _invert_quat_small_ns(A: np.ndarray, iters: int = 16) -> np.ndarray:
 def _pinv_quat_small(B: np.ndarray, rcond: float = 1e-12) -> np.ndarray:
     """Robust small-matrix pseudoinverse using quaternion SVD (fallback to NS).
 
-    For square k×k cores, returns B^{-1} if well-conditioned, else B^\dagger.
+    For square k×k cores, returns B^{-1} if well-conditioned, else B^\\dagger.
     Uses `classical_qsvd_full` (quaternion output) internally.
     """
     k = B.shape[0]

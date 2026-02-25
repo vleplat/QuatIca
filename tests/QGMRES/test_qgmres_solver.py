@@ -123,8 +123,8 @@ def test_qgmres_basic():
     print("✓ Q-GMRES basic test passed!")
 
 
-def test_qgmres_convergence():
-    """Test Q-GMRES convergence with different matrix sizes."""
+def _run_qgmres_convergence():
+    """Run Q-GMRES convergence sweep and return results (script use)."""
     print("\n" + "=" * 60)
     print("TESTING Q-GMRES CONVERGENCE")
     print("=" * 60)
@@ -190,6 +190,15 @@ def test_qgmres_convergence():
 
     print("\n✓ Q-GMRES convergence test passed!")
     return results
+
+
+def test_qgmres_convergence():
+    """Pytest entry: run convergence sweep and assert basic sanity."""
+    results = _run_qgmres_convergence()
+    assert isinstance(results, list)
+    assert len(results) > 0
+    for r in results:
+        assert "size" in r and "qgmres_iterations" in r
 
 
 def test_qgmres_sparse():
@@ -355,7 +364,7 @@ def main():
     try:
         # Run all tests
         test_qgmres_basic()
-        results = test_qgmres_convergence()
+        results = _run_qgmres_convergence()
         test_qgmres_sparse()
         test_qgmres_ill_conditioned()
 

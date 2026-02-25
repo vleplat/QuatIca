@@ -42,7 +42,7 @@ def create_large_test_system(n=200, cond_number=10.0, seed=42):
     return A, b
 
 
-def test_qgmres_large_scale():
+def _run_qgmres_large_scale():
     """Test Q-GMRES on large 200x200 system."""
     print("=" * 80)
     print("LARGE-SCALE Q-GMRES TEST (200x200)")
@@ -146,7 +146,7 @@ def test_qgmres_large_scale():
     }
 
 
-def test_qgmres_scalability():
+def _run_qgmres_scalability():
     """Test Q-GMRES scalability with different matrix sizes."""
     print("\n" + "=" * 80)
     print("Q-GMRES SCALABILITY TEST")
@@ -207,6 +207,23 @@ def test_qgmres_scalability():
     return results
 
 
+def test_qgmres_large_scale():
+    """Pytest entry: run large-scale Q-GMRES and assert basic sanity."""
+    result = _run_qgmres_large_scale()
+    assert isinstance(result, dict)
+    assert result["qgmres_iterations"] > 0
+    assert result["qgmres_residual"] >= 0
+
+
+def test_qgmres_scalability():
+    """Pytest entry: run scalability sweep and assert basic sanity."""
+    results = _run_qgmres_scalability()
+    assert isinstance(results, list)
+    assert len(results) > 0
+    for r in results:
+        assert "size" in r and "qgmres_iterations" in r
+
+
 def main():
     """Run large-scale Q-GMRES tests."""
     print("LARGE-SCALE Q-GMRES SOLVER TESTING")
@@ -214,10 +231,10 @@ def main():
 
     try:
         # Test large 200x200 system
-        large_result = test_qgmres_large_scale()
+        large_result = _run_qgmres_large_scale()
 
         # Test scalability
-        scalability_results = test_qgmres_scalability()
+        scalability_results = _run_qgmres_scalability()
 
         # Print summary
         print("\n" + "=" * 80)
