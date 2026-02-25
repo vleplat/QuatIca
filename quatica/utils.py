@@ -174,15 +174,9 @@ def induced_matrix_norm_1(A: np.ndarray) -> float:
     """
     if not isinstance(A, np.ndarray) or A.dtype != np.quaternion:
         raise ValueError("A must be a dense quaternion ndarray")
-    m, n = A.shape
-    max_col_sum = 0.0
-    for j in range(n):
-        col_sum = 0.0
-        for i in range(m):
-            col_sum += quat_abs_scalar(A[i, j])
-        if col_sum > max_col_sum:
-            max_col_sum = col_sum
-    return max_col_sum
+    comp = quaternion.as_float_array(A)  # (m,n,4) -> (w,x,y,z)
+    mod = np.sqrt(np.sum(comp * comp, axis=-1))  # (m,n) elementwise modulus
+    return float(np.max(np.sum(mod, axis=0))) if mod.size else 0.0
 
 
 def induced_matrix_norm_inf(A: np.ndarray) -> float:
@@ -194,15 +188,9 @@ def induced_matrix_norm_inf(A: np.ndarray) -> float:
     """
     if not isinstance(A, np.ndarray) or A.dtype != np.quaternion:
         raise ValueError("A must be a dense quaternion ndarray")
-    m, n = A.shape
-    max_row_sum = 0.0
-    for i in range(m):
-        row_sum = 0.0
-        for j in range(n):
-            row_sum += quat_abs_scalar(A[i, j])
-        if row_sum > max_row_sum:
-            max_row_sum = row_sum
-    return max_row_sum
+    comp = quaternion.as_float_array(A)  # (m,n,4)
+    mod = np.sqrt(np.sum(comp * comp, axis=-1))  # (m,n)
+    return float(np.max(np.sum(mod, axis=1))) if mod.size else 0.0
 
 
 def spectral_norm_2(A: np.ndarray) -> float:
@@ -279,25 +267,38 @@ def real_expand(Q):
      [Qy,  Qz,  Qw, -Qx],
      [Qz, -Qy,  Qx,  Qw]]
     """
-    if isinstance(Q, np.ndarray) and Q.dtype == np.quaternion:
-        m, n = Q.shape
-        Q_array = quaternion.as_float_array(Q)  # Shape: (m, n, 4)
-
-        # Create the real block matrix
-        R = np.zeros((4 * m, 4 * n))
-
-        for i in range(m):
-            for j in range(n):
-                w, x, y, z = Q_array[i, j]
-                # Block position
-                bi, bj = 4 * i, 4 * j
-                # Fill the 4x4 block
-                R[bi : bi + 4, bj : bj + 4] = np.array(
-                    [[w, -x, -y, -z], [x, w, -z, y], [y, z, w, -x], [z, -y, x, w]]
-                )
-        return R
-    else:
+    if not (isinstance(Q, np.ndarray) and Q.dtype == np.quaternion):
         raise ValueError("Input must be a quaternion array")
+
+    # NOTE: This implementation matches the existing per-entry 4×4 block layout:
+    # for each (i,j), the block at rows [4i:4i+4], cols [4j:4j+4] equals
+    # [[w,-x,-y,-z],[x,w,-z,y],[y,z,w,-x],[z,-y,x,w]].
+    m, n = Q.shape
+    A = quaternion.as_float_array(Q)  # shape (m, n, 4)
+    Qw, Qx, Qy, Qz = A[..., 0], A[..., 1], A[..., 2], A[..., 3]
+
+    blocks = np.empty((m, n, 4, 4), dtype=Qw.dtype)
+    blocks[..., 0, 0] = Qw
+    blocks[..., 0, 1] = -Qx
+    blocks[..., 0, 2] = -Qy
+    blocks[..., 0, 3] = -Qz
+
+    blocks[..., 1, 0] = Qx
+    blocks[..., 1, 1] = Qw
+    blocks[..., 1, 2] = -Qz
+    blocks[..., 1, 3] = Qy
+
+    blocks[..., 2, 0] = Qy
+    blocks[..., 2, 1] = Qz
+    blocks[..., 2, 2] = Qw
+    blocks[..., 2, 3] = -Qx
+
+    blocks[..., 3, 0] = Qz
+    blocks[..., 3, 1] = -Qy
+    blocks[..., 3, 2] = Qx
+    blocks[..., 3, 3] = Qw
+
+    return blocks.transpose(0, 2, 1, 3).reshape(4 * m, 4 * n)
 
 
 def real_contract(R, m, n):
@@ -307,20 +308,12 @@ def real_contract(R, m, n):
     """
     if R.shape != (4 * m, 4 * n):
         raise ValueError(f"Expected shape (4*{m}, 4*{n}), got {R.shape}")
-
-    Q_array = np.zeros((m, n, 4))
-
-    for i in range(m):
-        for j in range(n):
-            bi, bj = 4 * i, 4 * j
-            block = R[bi : bi + 4, bj : bj + 4]
-            # Extract quaternion components from the block
-            w = block[0, 0]
-            x = block[1, 0]
-            y = block[2, 0]
-            z = block[3, 0]
-            Q_array[i, j] = [w, x, y, z]
-
+    blocks = R.reshape(m, 4, n, 4).transpose(0, 2, 1, 3)  # (m, n, 4, 4)
+    Q_array = np.empty((m, n, 4), dtype=R.dtype)
+    Q_array[..., 0] = blocks[..., 0, 0]
+    Q_array[..., 1] = blocks[..., 1, 0]
+    Q_array[..., 2] = blocks[..., 2, 0]
+    Q_array[..., 3] = blocks[..., 3, 0]
     return quaternion.as_quat_array(Q_array)
 
 
