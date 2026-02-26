@@ -87,6 +87,12 @@ def main():
         print(
             "  pinv_bench      - Benchmark pseudoinverse methods (NS, HON, RSP-Q, Hybrid, CGNE–Q)"
         )
+        print(
+            "  optiq_known     - OptiQ known-optimum trace-bounded demo (saves diagnostics/figures)"
+        )
+        print(
+            "                    Usage: optiq_known [--n N] [--rank R] [--m_extra M] [--seed S]"
+        )
         return
 
     script_name = sys.argv[1]
@@ -113,6 +119,7 @@ def main():
         "schur_demo": "tests/schur_demo.py",  # Quaternion Schur decomposition demo
         "jupyter_test": "tests/test_jupyter_setup.py",  # Jupyter setup verification
         "pinv_bench": "tests/unit/benchmark_pseudoinverse_methods.py",  # Pseudoinverse benchmark
+        "optiq_known": "tests/optiQ/run_optiq_known_optimum.py",  # OptiQ known optimum demo
     }
 
     if script_name not in script_map:
@@ -168,6 +175,10 @@ def main():
             # Pass optional args to deblur benchmark script
             cmd.extend(sys.argv[2:])
             print(f"Additional arguments passed to deblur_benchmark: {sys.argv[2:]}")
+        elif script_name == "optiq_known" and len(sys.argv) > 2:
+            # Pass optional args to OptiQ known-optimum script.
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to optiq_known: {sys.argv[2:]}")
 
         subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "=" * 50)

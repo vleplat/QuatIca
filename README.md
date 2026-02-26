@@ -2,7 +2,6 @@
 
 <div align="center">
   <img src="Logo.jpg" alt="QuatIca Logo" width="250">
-  <br><small>Logo designed by <a href="https://digital-ignition.be">Digital Ignition - Marketing Solutions</a></small>
 </div>
 
 **Numerical linear algebra for quaternions — fast, practical, and well‑tested.**
@@ -120,6 +119,8 @@ QuatIca was inspired by the pioneering work in quaternion linear algebra, partic
 Recognizing the growing importance of Python in scientific computing and the need for robust quaternion tools in the Python ecosystem, we developed QuatIca to bring these capabilities to Python users. To achieve this vision, QuatIca builds upon the exceptional foundation provided by the Python scientific computing ecosystem. The library depends on the excellent **NumPy** (≥2.3.2), **SciPy**, and **Matplotlib** packages, which form the backbone of modern scientific computing in Python. In particular, QuatIca leverages the powerful **numpy-quaternion** package for fundamental quaternion arithmetic operations, providing robust and efficient quaternion data structures that enable all higher-level matrix and tensor operations in our library.
 
 We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspiration that drove us to create this library, and to the maintainers of NumPy, SciPy, Matplotlib, and numpy-quaternion for their foundational contributions to scientific computing. Our goal is to continue advancing the field of quaternion linear algebra while making these powerful tools accessible to the broader Python community, from researchers and engineers to students and practitioners across diverse domains.
+
+We also warmly thank <a href="https://digital-ignition.be">Digital Ignition - Marketing Solutions</a> for supporting the project by designing the QuatIca logo. 
 
 ## ⚠️ CRITICAL PERFORMANCE INFORMATION
 
@@ -252,6 +253,7 @@ python run_analysis.py <script_name>
 | `image_completion`   | **Image Completion Demo** - Fills missing pixels in real images                                    | **Practical application**                                 |
 | `image_deblurring`   | **Quaternion Image Deblurring** - QSLST (Algorithm 2) vs NS/HON with FFT specialization            | **Image restoration**                                     |
 | `deblur_benchmark`   | **🏆 Comprehensive Image Deblurring Benchmark** - Multi-size benchmark with LaTeX table generation | **Performance analysis** and publication results          |
+| `optiq_known`        | **📘 OptiQ SDP Demo** - Demonstrates the OptiQ module for solving quaternion Hermitian semidefinite programs (SDPs) with log-det barrier interior-point methods, using a known-optimum instance (`tests/optiQ/run_optiq_known_optimum.py`) | **OptiQ validation** and paper-ready figures              |
 | `synthetic`          | **Synthetic Image Completion** - Matrix completion on generated test images                        | Controlled experiments                                    |
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types              | Algorithm validation                                      |
 | `eigenvalue_test`    | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition             | **Matrix analysis** and eigenvalue computation            |
@@ -356,6 +358,8 @@ QuatIca/
 │   ├── utils.py            # Quaternion operations, utilities, and power iteration
 │   ├── data_gen.py         # Matrix generation functions
 │   ├── visualization.py    # Plotting and visualization tools
+│   ├── optiQ.py            # Optimization on quaternions (Hermitian SDP module)
+│   ├── optiq_visualization.py # Dedicated visualization tools for OptiQ outputs
 │   ├── tensor.py           # Quaternion tensor utilities (norms, |T|, unfold/fold)
 │   ├── qslst.py            # QSLST (Algorithm 2) + FFT specialization utilities
 │   └── decomp/             # Matrix decomposition algorithms
@@ -391,6 +395,7 @@ QuatIca/
 │   │   ├── test_tridiagonalize.py # Tridiagonalization unit tests
 │   │   ├── eigenvalue_demo.py # Demonstration of eigenvalue decomposition
 │   │   └── test_hessenberg.py  # Hessenberg reduction unit tests
+│   ├── optiQ/              # OptiQ demos/diagnostics; unit coverage in tests/unit/test_optiQ_*.py
 ├── applications/
 │   ├── image_completion/   # Image processing applications
 │   │   ├── script_real_image_completion.py       # Real image completion
@@ -1448,7 +1453,7 @@ A comprehensive paper describing QuatIca's algorithms and applications is curren
 ```bibtex
 @software{quatica2025,
   title   = {QuatIca: Quaternion Linear Algebra Library},
-  author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Beresnev, Dmitry and Ouerdane, Henni and Ng, Michael},
+  author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Ouerdane, Henni and Ng, Michael},
   year    = {2025},
   version = {v0.1.7},
   doi     = {10.5281/zenodo.16910158},

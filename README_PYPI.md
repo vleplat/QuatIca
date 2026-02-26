@@ -284,9 +284,9 @@ If you use QuatIca in your research, please cite:
 ```bibtex
 @software{quatica2025,
   title   = {QuatIca: Quaternion Linear Algebra Library},
-  author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Beresnev, Dmitry and Ouerdane, Henni and Ng, Michael},
+  author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Ouerdane, Henni and Ng, Michael},
   year    = {2025},
-  version = {v0.1.7},
+  version = {v0.1.16},
   doi     = {10.5281/zenodo.16910158},
   url     = {https://github.com/vleplat/QuatIca},
   note    = {Numerical linear algebra for quaternions}
