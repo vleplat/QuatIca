@@ -1,0 +1,3 @@
+# quatica.optiQ
+
+::: quatica.optiQ

@@ -82,6 +82,8 @@ nav:
       - Specialized:
           - QSLST: api/qslst.md
           - Tensor: api/tensor.md
+          - OptiQ: api/optiQ.md
+          - OptiQ Visualization: api/optiq_visualization.md
       - Decompositions:
           - Q-SVD: api/decomp/qsvd.md
           - Eigendecomposition: api/decomp/eigen.md
