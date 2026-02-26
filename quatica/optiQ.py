@@ -106,52 +106,108 @@ def inner_real(U: np.ndarray, V: np.ndarray) -> float:
 # Constraint basis conditioning
 # ------------------------------
 
-def _build_orthonormal_ops(H_list: list[np.ndarray], jitter: float = 1e-12):
-    """
-    Construct orthonormalized constraint closures via real Gram Cholesky.
+def _build_orthonormal_ops(H_list: list[np.ndarray],
+                          jitter: float = 1e-12,
+                          *,
+                          vectorized: bool = True) -> dict:
+    """Construct orthonormalized (hat-space) constraint closures via real Gram Cholesky.
 
-    Returns dict with A_hat(X), AT_hat(y), transform_b(b), A_unscaled(X), R.
+    Let <U,V>_R = Re tr(U^H V) on Hermitian quaternion matrices. Define the Gram matrix
+      G_ij = <H_i, H_j>_R.
+    With a Cholesky factorization G = R^T R (R upper-triangular), define hat operators:
+      A_hat(X)  = R^{-T} A(X)
+      AT_hat(y) = A^*(R^{-1} y)
+      transform_b(b) = R^{-T} b.
+
+    If constraints are independent, A_hat AT_hat = I_m.
+
+    Performance note
+    ----------------
+    During Newton steps, A_hat is called O(m) times per iteration (to assemble the Schur complement).
+    The default vectorized path precomputes the hat-basis matrices H_hat,i and evaluates A_hat(X) using
+    a broadcasted elementwise multiply + reduction, avoiding Python loops over i and repeated calls to
+    inner_real.
     """
-    H_list = [qherm(H) for H in H_list]   # <-- this is the right “make Hermitian”
+    if len(H_list) == 0:
+        raise ValueError("H_list must be non-empty.")
+    H_list = [qherm(H) for H in H_list]
     m = len(H_list)
+
+    # Gram matrix G (real)
     G = np.empty((m, m), dtype=float)
     for i, Hi in enumerate(H_list):
         for j, Hj in enumerate(H_list):
-            G[i, j] = inner_real(Hi, Hj)
+            G[i, j] = float(inner_real(Hi, Hj))
+
+    # Cholesky with adaptive jitter
     try:
-        R = np.linalg.cholesky(G).T  # G = R^T R, upper-tri
+        R = np.linalg.cholesky(G).T  # G = R^T R, upper-triangular R
     except np.linalg.LinAlgError:
-        R = np.linalg.cholesky(G + jitter * np.eye(m)).T
+        scale = float(np.linalg.norm(G, 1) + 1.0)
+        jj = max(float(jitter) * scale, 1e-15)
+        R = np.linalg.cholesky(G + jj * np.eye(m)).T
+
+    invR = np.linalg.solve(R, np.eye(m))
+
+    def transform_b(b: np.ndarray) -> np.ndarray:
+        # b_hat = R^{-T} b; solve R^T z = b
+        b = np.asarray(b, dtype=float).reshape(-1)
+        return np.linalg.solve(R.T, b)
+
+    # Vectorized hat-space constraints: H_hat,i = Σ_j (R^{-T})_{i j} H_j = Σ_j invR[j,i] H_j
+    if vectorized:
+        try:
+            n = int(H_list[0].shape[0])
+            H_hat_list = []
+            for i in range(m):
+                Hi = qzeros(n, n)
+                w = invR[:, i]
+                for j in range(m):
+                    if w[j] != 0.0:
+                        Hi = Hi + float(w[j]) * H_list[j]
+                H_hat_list.append(qherm(Hi))
+            H_hat_stack = np.stack(H_hat_list, axis=0)
+            H_hat_conj = np.conjugate(H_hat_stack)
+
+            def A_hat(X: np.ndarray) -> np.ndarray:
+                Xh = qherm(X)
+                # A_hat_i(X) = Re sum_{ab} conj(H_hat_i[ab]) * X[ab]
+                s = np.sum(H_hat_conj * Xh, axis=(1, 2))
+                return nq.as_float_array(s)[..., 0].astype(float)
+
+            def AT_hat(y: np.ndarray) -> np.ndarray:
+                y = np.asarray(y, dtype=float).reshape(-1)
+                Y = np.sum(H_hat_stack * y[:, None, None], axis=0)
+                return qherm(Y)
+
+            return dict(
+                A_hat=A_hat,
+                AT_hat=AT_hat,
+                transform_b=transform_b,
+                A_unscaled=None,
+                R=R,
+                H_hat_list=H_hat_list,
+            )
+        except Exception:
+            # Fall back to loop-based implementations below
+            pass
 
     def A_unscaled(X: np.ndarray) -> np.ndarray:
-        return np.array([inner_real(Hi, X) for Hi in H_list], dtype=float)
+        Xh = qherm(X)
+        return np.array([float(inner_real(Hi, Xh)) for Hi in H_list], dtype=float)
 
     def A_hat(X: np.ndarray) -> np.ndarray:
-        # A_hat = R^{-T} A_unscaled; solve R^T z = A_unscaled(X)
         rhs = A_unscaled(X)
         return np.linalg.solve(R.T, rhs)
 
-    # def AT_hat(y: np.ndarray) -> np.ndarray:
-    #     # A_hat^* = A_unscaled^* R^{-1}; solve R w = y
-    #     y_raw = np.linalg.solve(R, y)
-    #     n = H_list[0].shape[0]
-    #     Y = qzeros(n, n)
-    #     for yi, Hi in zip(y_raw, H_list):
-    #         if yi != 0.0:
-    #             Y = Y + yi * Hi
-    #     return Y
     def AT_hat(y: np.ndarray) -> np.ndarray:
-        y_raw = np.linalg.solve(R, y)
+        y_raw = np.linalg.solve(R, np.asarray(y, dtype=float).reshape(-1))
         n = H_list[0].shape[0]
         Y = qzeros(n, n)
         for yi, Hi in zip(y_raw, H_list):
             if yi != 0.0:
                 Y = Y + float(yi) * Hi
         return qherm(Y)
-
-    def transform_b(b: np.ndarray) -> np.ndarray:
-        # b_hat = R^{-T} b; solve R^T z = b
-        return np.linalg.solve(R.T, b)
 
     return dict(A_hat=A_hat, AT_hat=AT_hat, transform_b=transform_b, A_unscaled=A_unscaled, R=R)
 
@@ -224,6 +280,62 @@ def sqrtH(X: np.ndarray) -> np.ndarray:
     for i in range(n):
         Dh[i, i] = nq.quaternion(max(lam[i], 0.0) ** 0.5, 0, 0, 0)
     return qmm(qmm(V, Dh), qadj(V))
+
+
+# ------------------------------
+# Cached spectral factors for Hermitian PD matrices
+# ------------------------------
+
+@dataclass
+class _PDCache:
+    """Cache spectral information for a Hermitian positive definite quaternion matrix X.
+
+    This cache is designed to drastically reduce repeated expensive eigendecompositions within Newton iterations.
+
+    It provides:
+      - invX      = X^{-1}
+      - invsqrtX  = X^{-1/2}
+      - logdet    = log det(X)
+      - lam_min   = lambda_min(X)
+
+    Notes
+    -----
+    For X = V diag(lam) V^H with lam>0:
+      X^{-1}    = V diag(1/lam) V^H
+      X^{-1/2}  = V diag(1/sqrt(lam)) V^H
+      logdet(X) = sum log(lam)
+    """
+
+    lam: np.ndarray
+    V: np.ndarray
+    invX: np.ndarray
+    invsqrtX: np.ndarray
+    logdet: float
+    lam_min: float
+
+    @staticmethod
+    def from_X(X: np.ndarray, *, floor: float = 0.0) -> "_PDCache":
+        Xh = qherm(X)
+        lam, V = eighH(Xh)
+        lam = np.asarray(lam, dtype=float)
+        if floor > 0.0:
+            lam = np.maximum(lam, float(floor))
+        if np.any(lam <= 0.0):
+            raise ValueError("PDCache requires X ≻ 0 (all eigenvalues positive).")
+
+        n = V.shape[0]
+        Dinv = qzeros(n, n)
+        Dinvh = qzeros(n, n)
+        for i in range(n):
+            li = float(lam[i])
+            Dinv[i, i] = nq.quaternion(1.0 / li, 0.0, 0.0, 0.0)
+            Dinvh[i, i] = nq.quaternion(1.0 / math.sqrt(li), 0.0, 0.0, 0.0)
+
+        invX = qmm(qmm(V, Dinv), qadj(V))
+        invsqrtX = qmm(qmm(V, Dinvh), qadj(V))
+        logdet = float(np.sum(np.log(lam)))
+        lam_min = float(np.min(lam))
+        return _PDCache(lam=lam, V=V, invX=invX, invsqrtX=invsqrtX, logdet=logdet, lam_min=lam_min)
 
 
 # ------------------------------
@@ -391,13 +503,20 @@ def _assemble_residuals(op: QuaternionSDPOperator,
                         b: np.ndarray,
                         X: np.ndarray,
                         y: np.ndarray,
-                        mu: float) -> tuple[np.ndarray, np.ndarray]:
-    """Return primal and dual residuals (r_p, r_d)."""
+                        mu: float,
+                        *,
+                        invX: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Return primal and dual residuals (r_p, r_d).
+
+    Notes
+    -----
+    We allow passing a cached inverse invX = X^{-1} to avoid repeated eigen-decompositions.
+    """
     # Use r_p = b - A(X) to match A ΔX = r_p in Newton step
     r_p = b - op.A(X)
-    r_d = C + op.AT(y) - (mu * invH(X))
-    # r_d = C + op.AT(y) - (mu * invH(X))
-    # r_d = quat_hermitian(r_d)
+    if invX is None:
+        invX = invH(X)
+    r_d = C + op.AT(y) - (mu * invX)
     return r_p, r_d
 
 
@@ -408,37 +527,168 @@ def _min_eig(X: np.ndarray) -> float:
 def newton_step(op: QuaternionSDPOperator,
                 C: np.ndarray,
                 b: np.ndarray,
-                state: SolverState) -> tuple[np.ndarray, np.ndarray, int, float]:
+                state: SolverState,
+                *,
+                schur_solver: str = "dense",
+                schur_precond: str = "none",
+                cg_tol: float = 1e-10,
+                cg_maxit: int = 500,
+                precond_rank: int | None = None,
+                precond_ridge_scale: float = 1e-6,
+                precond_seed: int = 0) -> tuple[np.ndarray, np.ndarray, int, float]:
     X, mu = state.X, state.mu
     r_p, r_d = state.r_p, state.r_d
     m_dim = len(b)
 
-    # Dense Schur M = A H^{-1} A*
-    M = np.zeros((m_dim, m_dim), dtype=float)
-    for j in range(m_dim):
-        ej = np.zeros(m_dim, dtype=float); ej[j] = 1.0
-        Wj = op.AT(ej)
-        Kj = hess_inv_apply(X, mu, Wj)
-        M[:, j] = op.A(Kj)
-
-    # Correct RHS for r_p = b - A(X):  M dy = -r_p - A(H^{-1} r_d)
+    # Correct RHS for r_p = b - A(X):  (A H^{-1} A*) dy = -r_p - A(H^{-1} r_d)
     rhs = -r_p - op.A(hess_inv_apply(X, mu, r_d))
 
-    # Solve (adaptive jitter only if needed)
-    delta_used = 0.0
-    try:
-        dy = np.linalg.solve(M, rhs)
-    except np.linalg.LinAlgError:
-        delta_used = 1e-12 * (np.linalg.norm(M, 1) + 1.0)
-        dy = np.linalg.solve(M + delta_used * np.eye(m_dim), rhs)
+    def _schur_matvec(v: np.ndarray) -> np.ndarray:
+        # v in R^m  ->  A( H^{-1}[ A*(v) ] ) in R^m
+        return op.A(hess_inv_apply(X, mu, op.AT(v)))
 
-    denom = np.linalg.norm(rhs) + 1e-30
-    schur_res = np.linalg.norm((M + delta_used * np.eye(m_dim)) @ dy - rhs) / denom
+    def _pcg_solve(
+        matvec,
+        bvec: np.ndarray,
+        *,
+        M_inv=None,
+        tol: float = 1e-10,
+        maxit: int = 500,
+    ) -> tuple[np.ndarray, int, float]:
+        """Basic (preconditioned) CG for SPD systems in R^m."""
+        x = np.zeros_like(bvec)
+        r = bvec - matvec(x)
+        bnorm = float(np.linalg.norm(bvec)) + 1e-30
+        rnorm = float(np.linalg.norm(r))
+        if rnorm / bnorm <= tol:
+            return x, 0, rnorm / bnorm
+
+        z = M_inv(r) if M_inv is not None else r
+        p = z.copy()
+        rz = float(np.dot(r, z))
+
+        it = 0
+        for it in range(1, maxit + 1):
+            Ap = matvec(p)
+            denom = float(np.dot(p, Ap)) + 1e-30
+            alpha = rz / denom
+            x = x + alpha * p
+            r = r - alpha * Ap
+            rnorm = float(np.linalg.norm(r))
+            if rnorm / bnorm <= tol:
+                break
+            z = M_inv(r) if M_inv is not None else r
+            rz_new = float(np.dot(r, z))
+            beta = rz_new / (rz + 1e-30)
+            p = z + beta * p
+            rz = rz_new
+        return x, it, rnorm / bnorm
+
+    schur_solver_lc = (schur_solver or "dense").lower()
+    schur_precond_lc = (schur_precond or "none").lower()
+
+    if schur_solver_lc not in {"dense", "cg"}:
+        schur_solver_lc = "dense"
+    if schur_precond_lc not in {"none", "diag", "nystrom"}:
+        schur_precond_lc = "none"
+
+    if schur_solver_lc == "cg":
+        # Optional diagonal preconditioner: diag_j = (M e_j)_j
+        M_inv = None
+        if schur_precond_lc == "diag":
+            diag = np.empty(m_dim, dtype=float)
+            for j in range(m_dim):
+                ej = np.zeros(m_dim, dtype=float)
+                ej[j] = 1.0
+                col = _schur_matvec(ej)
+                dj = float(col[j])
+                # Ensure positive and non-degenerate
+                diag[j] = dj if dj > 1e-30 else max(abs(dj), 1e-12)
+            M_inv = lambda r: r / diag
+
+        elif schur_precond_lc == "nystrom":
+            # Nyström / sketch-based SPD preconditioner for the Schur operator.
+            # Build P^{-1} ≈ M^{-1} using r random probes (r << m) and a Woodbury solve.
+            r = int(precond_rank) if precond_rank is not None else min(20, m_dim)
+            r = max(1, min(r, m_dim))
+            rng = np.random.default_rng(int(precond_seed))
+
+            # Rademacher probe matrix Ω ∈ R^{m×r}
+            Omega = rng.choice([-1.0, 1.0], size=(m_dim, r)).astype(float)
+
+            # Y = M Ω  (matrix-free)
+            Y = np.column_stack([_schur_matvec(Omega[:, j]) for j in range(r)])
+
+            # B = Ω^T Y = Ω^T M Ω  (should be SPD)
+            B = Omega.T @ Y
+            B = 0.5 * (B + B.T)
+
+            # Scale ridge δ from the typical quadratic form magnitude
+            trB = float(np.trace(B))
+            delta = float(precond_ridge_scale) * (trB / max(r, 1)) if trB > 0 else float(precond_ridge_scale)
+            delta = max(delta, 1e-12)
+
+            # T = B + (1/δ) Y^T Y
+            G = Y.T @ Y
+            T = B + (1.0 / delta) * G
+            T = 0.5 * (T + T.T)
+
+            # Cholesky with jitter
+            try:
+                L = np.linalg.cholesky(T)
+            except np.linalg.LinAlgError:
+                jitter = 1e-12 * (np.linalg.norm(T, 1) + 1.0)
+                L = np.linalg.cholesky(T + jitter * np.eye(r))
+
+            def _solve_T(u: np.ndarray) -> np.ndarray:
+                w = np.linalg.solve(L, u)
+                w = np.linalg.solve(L.T, w)
+                return w
+
+            def M_inv(v: np.ndarray) -> np.ndarray:
+                # P^{-1} v = δ^{-1} v - δ^{-2} Y (T)^{-1} (Y^T v)
+                u = Y.T @ v
+                w = _solve_T(u)
+                return (v / delta) - (Y @ w) / (delta * delta)
+
+        dy, cg_iters, cg_res = _pcg_solve(
+            _schur_matvec,
+            rhs,
+            M_inv=M_inv,
+            tol=float(cg_tol),
+            maxit=int(cg_maxit),
+        )
+
+        # If CG failed to reach tolerance, fall back to dense solve for robustness.
+        if not np.isfinite(cg_res) or (cg_res > 10.0 * float(cg_tol)):
+            schur_solver_lc = "dense"
+        else:
+            schur_res = float(cg_res)
+    if schur_solver_lc == "dense":
+        # Dense Schur M = A H^{-1} A*
+        M = np.zeros((m_dim, m_dim), dtype=float)
+        for j in range(m_dim):
+            ej = np.zeros(m_dim, dtype=float)
+            ej[j] = 1.0
+            M[:, j] = _schur_matvec(ej)
+
+        # Solve (adaptive jitter only if needed)
+        delta_used = 0.0
+        try:
+            dy = np.linalg.solve(M, rhs)
+        except np.linalg.LinAlgError:
+            delta_used = 1e-12 * (np.linalg.norm(M, 1) + 1.0)
+            dy = np.linalg.solve(M + delta_used * np.eye(m_dim), rhs)
+
+        denom = np.linalg.norm(rhs) + 1e-30
+        schur_res = np.linalg.norm((M + delta_used * np.eye(m_dim)) @ dy - rhs) / denom
+        cg_iters = 0
+        cg_res = float(schur_res)
 
     # Back-substitute
     dX = -hess_inv_apply(X, mu, (r_d + op.AT(dy)))
     dX = qherm(dX)
-    return dX, dy, 0, float(schur_res)
+    return dX, dy, int(cg_iters), float(cg_res)
 
 def solve_barrier(A_list: list[np.ndarray],
                   b: np.ndarray,
@@ -508,20 +758,21 @@ def solve_barrier(A_list: list[np.ndarray],
 
         # Newton iterations at fixed mu
         for k in range(params.newton_maxit):
-            r_p, r_d = _assemble_residuals(op, C, b_hat, X, y, mu)
+            cache = _PDCache.from_X(X)
+            r_p, r_d = _assemble_residuals(op, C, b_hat, X, y, mu, invX=cache.invX)
             combo = math.sqrt(float(np.dot(r_p, r_p)) + float(quat_frobenius_norm(r_d) ** 2))
             if combo <= params.newton_tol:
                 break
 
             state = SolverState(X=X, y=y, r_p=r_p, r_d=r_d,
-                                obj=inner_real(C, X), logdet=logdetH(X), mu=mu, k_newton=k)
+                                obj=inner_real(C, X), logdet=cache.logdet, mu=mu, k_newton=k)
 
             dX, dy, cg_iters, cg_res = newton_step(op, C, b_hat, state)
             dX = qherm(dX)
 
             # Fraction-to-the-boundary cap for X
             try:
-                Xmh = invH(sqrtH(X))
+                Xmh = cache.invsqrtX
                 B = qherm(qmm(qmm(Xmh, dX), Xmh))
                 lam_min = float(np.min(eigvalsH(B)))
                 alpha_max = 1.0 if lam_min >= 0 else min(1.0, 0.99 / (-lam_min))
@@ -560,9 +811,10 @@ def solve_barrier(A_list: list[np.ndarray],
     X = qherm(X + AThat(b_hat - Ahat(X)))
     X = _ensure_spd(X, floor=params.posdef_eps)
 
-    r_p, r_d = _assemble_residuals(op, C, b_hat, X, y, mu)
+    cache = _PDCache.from_X(X)
+    r_p, r_d = _assemble_residuals(op, C, b_hat, X, y, mu, invX=cache.invX)
     return SolverState(X=X, y=y, r_p=r_p, r_d=r_d,
-                       obj=inner_real(C, X), logdet=logdetH(X), mu=mu)
+                       obj=inner_real(C, X), logdet=cache.logdet, mu=mu)
 
 def solve_pd_mehrotra(H_list: list[np.ndarray],
                       b: np.ndarray,
@@ -581,6 +833,11 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
                       verbose: bool = True,
                       fixed_mu: bool = False,
                       *,
+                      schur_solver: str = "dense",
+                      schur_precond: str = "none",
+                      schur_precond_rank: int | None = None,
+                      schur_precond_ridge_scale: float = 1e-6,
+                      schur_precond_seed: int = 0,
                       ops: dict | None = None,
                       assume_hat: bool = False,
                       return_ops: bool = False) -> dict:
@@ -604,7 +861,7 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
     Ahat, AThat, transform_b, b_hat = _resolve_ops(H_list, b, ops=ops, assume_hat=assume_hat)
 
     n = C.shape[0]
-    # C = quat_hermitian(C)
+    # C = quat_hermitian(C)
     C = qherm(C)
 
     # Hat operator wrapper compatible with newton_step()
@@ -623,7 +880,7 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
     op = _HatOperator(Ahat, AThat, H_list)
 
     # Initialize X, y
-    # X = quat_hermitian(X0) if X0 is not None else qeye(n)
+    # X = quat_hermitian(X0) if X0 is not None else qeye(n)
     X = qherm(X0) if X0 is not None else qeye(n)
     X = _ensure_spd(X, floor=1e-12)
 
@@ -634,14 +891,14 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
     mu_target = float(mu_init) if fixed_mu else float(eps_gap)
 
     # Ensure initial equality (cheap snap)
-    # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
+    # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
     X = qherm(X + AThat(b_hat - Ahat(X)))
-    X = _ensure_spd(X, floor=1e-12)
 
     # Optional one-shot warm start for y
     if y0 is None:
         try:
-            y = Ahat(mu * invH(X) - C)
+            cache0 = _PDCache.from_X(X)
+            y = Ahat(mu * cache0.invX - C)
         except Exception:
             pass
 
@@ -649,20 +906,21 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
     it_global = 0
     stage = 0
 
-    # Outer μ-continuation loop 
+    # Outer μ-continuation loop
     while True:
         stage_converged = False
 
         # Inner Newton loop at fixed μ
         while it_global < max_iter:
-            r_p, r_d = _assemble_residuals(op, C, b_hat, X, y, mu)
+            cache = _PDCache.from_X(X)
+            r_p, r_d = _assemble_residuals(op, C, b_hat, X, y, mu, invX=cache.invX)
             rp = float(np.linalg.norm(r_p))
             rd = float(quat_frobenius_norm(r_d))
             combo = math.sqrt(rp * rp + rd * rd)
 
             if combo <= max(eps_p, eps_d):
                 stage_converged = True
-                lam_min_X = float(_min_eig(X))
+                lam_min_X = float(cache.lam_min)
                 history.append(dict(
                     it=it_global, stage=stage, mu=float(mu),
                     rp=rp, rd=rd, gap=float(mu), t=0.0,
@@ -679,39 +937,57 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
             state = SolverState(
                 X=X, y=y, r_p=r_p, r_d=r_d,
                 obj=inner_real(C, X),
-                logdet=logdetH(X),
+                logdet=cache.logdet,
                 mu=mu,
                 k_newton=it_global
             )
-            dX, dy, cg_iters, cg_res = newton_step(op, C, b_hat, state)
-            # dX = qherm(dX)
+            dX, dy, cg_iters, cg_res = newton_step(
+                op, C, b_hat, state,
+                schur_solver=schur_solver,
+                schur_precond=schur_precond,
+                cg_tol=cg_tol,
+                cg_maxit=cg_maxit,
+                precond_rank=schur_precond_rank,
+                precond_ridge_scale=schur_precond_ridge_scale,
+                precond_seed=schur_precond_seed,
+            )
+            # dX = qherm(dX)
             dX = qherm(dX)
 
             # Fraction-to-the-boundary cap for X
+            # Use the Hermitian matrix B = X^{-1/2} dX X^{-1/2}. If λ_min(B) is known,
+            # then X + t dX ≻ 0 is guaranteed whenever 1 + t λ_min(B) > 0.
+            lam_min_B = None
             try:
-                Xmh = invH(sqrtH(X))
-                B = qmm(qmm(Xmh, dX), Xmh)
-                # B = quat_hermitian(B)
-                B = qherm(B)
-                lam_min = float(np.min(eigvalsH(B)))
-                alpha_max = 1.0 if lam_min >= 0 else min(1.0, 0.99 / (-lam_min))
+                Xmh = cache.invsqrtX
+                B = qherm(qmm(qmm(Xmh, dX), Xmh))
+                lam_min_B = float(np.min(eigvalsH(B)))
+                alpha_max = 1.0 if lam_min_B >= 0 else min(1.0, 0.99 / (-lam_min_B))
             except Exception:
                 alpha_max = 1.0
             t0 = min(0.99 * alpha_max, 1.0)
 
             # Backtracking line search (Armijo on combined residual norm)
-            # IMPORTANT: do NOT equality-snap inside the line-search trial point.
+            # Note: we check Armijo on the unsnapped trial point, but require the snapped point to remain PD before accepting.
             backtrack_beta = 0.5
             backtrack_sigma = 1e-4
             posdef_eps = 1e-12
             t = t0
 
             for _ls in range(60):
-                # Xcand = quat_hermitian(X + t * dX)
+                # Xcand = quat_hermitian(X + t * dX)
                 Xcand = qherm(X + t * dX)
-                if _min_eig(Xcand) <= posdef_eps:
-                    t *= backtrack_beta
-                    continue
+                # Fast PD check (avoid expensive eigendecomposition on Xcand):
+                # If λ_min(B) is available for B = X^{-1/2} dX X^{-1/2}, then
+                # X + t dX ≻ 0 whenever 1 + t λ_min(B) > 0.
+                if lam_min_B is not None:
+                    if 1.0 + t * lam_min_B <= posdef_eps:
+                        t *= backtrack_beta
+                        continue
+                else:
+                    if _min_eig(Xcand) <= posdef_eps:
+                        t *= backtrack_beta
+                        continue
 
                 ycand = y + t * dy
 
@@ -725,20 +1001,21 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
                     continue
 
                 if combo_c <= (1.0 - backtrack_sigma * t) * combo:
-                    break
+                    # Ensure the *snapped* candidate remains positive definite.
+                    # (A post-snap SPD shift would generally break equality feasibility, e.g. under a trace constraint.)
+                    Xsnap = qherm(Xcand + AThat(b_hat - Ahat(Xcand)))
+                    if _min_eig(Xsnap) > posdef_eps:
+                        Xcand = Xsnap
+                        break
+                    t *= backtrack_beta
+                    continue
                 t *= backtrack_beta
 
-            # Accept step
-            # X = quat_hermitian(X + t * dX)
-            X = qherm(X + t * dX)
-            y = y + t * dy
+            # Accept step (Xcand is already snapped and PD)
+            X = Xcand
+            y = ycand
 
-            # Snap once AFTER acceptance (keeps feasibility without destroying line-search model)
-            # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
-            X = qherm(X + AThat(b_hat - Ahat(X)))
-            X = _ensure_spd(X, floor=1e-12)
-
-            lam_min_X = float(_min_eig(X))
+            lam_min_X = float(cache.lam_min)
 
             history.append(dict(
                 it=it_global, stage=stage, mu=float(mu),
@@ -780,20 +1057,20 @@ def solve_pd_mehrotra(H_list: list[np.ndarray],
         stage += 1
 
         # Re-snap (cheap) and refresh y for the new μ (important for continuation)
-        # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
+        # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
         X = qherm(X + AThat(b_hat - Ahat(X)))
-        X = _ensure_spd(X, floor=1e-12)
         try:
-            y = Ahat(mu * invH(X) - C)
+            cache0 = _PDCache.from_X(X)
+            y = Ahat(mu * cache0.invX - C)
         except Exception:
             pass
 
     # Final snap + dual slack from barrier relation
-    # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
+    # X = quat_hermitian(X + AThat(b_hat - Ahat(X)))
     X = qherm(X + AThat(b_hat - Ahat(X)))
-    X = _ensure_spd(X, floor=1e-12)
-    # S = quat_hermitian(mu * invH(X))
-    S = qherm(mu * invH(X))
+    # S = quat_hermitian(mu * invH(X))
+    cache_final = _PDCache.from_X(X)
+    S = qherm(mu * cache_final.invX)
 
     out = dict(
         X=X,
@@ -824,6 +1101,13 @@ def solve_logdet_barrier_newton(
     max_iter: int = 50,
     eps: float = 1e-8,
     verbose: bool = True,
+    schur_solver: str = "dense",
+    schur_precond: str = "none",
+    schur_precond_rank: int | None = None,
+    schur_precond_ridge_scale: float = 1e-6,
+    schur_precond_seed: int = 0,
+    cg_tol: float = 1e-10,
+    cg_maxit: int = 500,
     ops: dict | None = None,
     assume_hat: bool = False,
     return_ops: bool = False,
@@ -835,8 +1119,15 @@ def solve_logdet_barrier_newton(
         mu_init=float(mu),
         max_iter=int(max_iter),
         eps_p=float(eps), eps_d=float(eps), eps_gap=float(eps),
+        cg_tol=float(cg_tol),
+        cg_maxit=int(cg_maxit),
         fixed_mu=True,
         verbose=bool(verbose),
+        schur_solver=schur_solver,
+        schur_precond=schur_precond,
+        schur_precond_rank=schur_precond_rank,
+        schur_precond_ridge_scale=schur_precond_ridge_scale,
+        schur_precond_seed=schur_precond_seed,
         ops=ops, assume_hat=assume_hat, return_ops=return_ops,
     )
 
@@ -854,6 +1145,13 @@ def solve_logdet_barrier_path(
     max_iter: int = 200,
     eps: float = 1e-8,
     verbose: bool = True,
+    schur_solver: str = "dense",
+    schur_precond: str = "none",
+    schur_precond_rank: int | None = None,
+    schur_precond_ridge_scale: float = 1e-6,
+    schur_precond_seed: int = 0,
+    cg_tol: float = 1e-10,
+    cg_maxit: int = 500,
     ops: dict | None = None,
     assume_hat: bool = False,
     return_ops: bool = False,
@@ -866,8 +1164,15 @@ def solve_logdet_barrier_path(
         beta_mu=float(beta_mu),
         eps_p=float(eps), eps_d=float(eps), eps_gap=float(mu_min),
         max_iter=int(max_iter),
+        cg_tol=float(cg_tol),
+        cg_maxit=int(cg_maxit),
         fixed_mu=False,
         verbose=bool(verbose),
+        schur_solver=schur_solver,
+        schur_precond=schur_precond,
+        schur_precond_rank=schur_precond_rank,
+        schur_precond_ridge_scale=schur_precond_ridge_scale,
+        schur_precond_seed=schur_precond_seed,
         ops=ops, assume_hat=assume_hat, return_ops=return_ops,
     )
 
@@ -1266,7 +1571,7 @@ def random_hermitian(n: int, seed: int | None = None) -> np.ndarray:
     rng = np.random.default_rng(seed)
     a = rng.standard_normal((n, n, 4))
     A = nq.as_quat_array(a)
-    # return quat_hermitian(A)
+    # return quat_hermitian(A)
     return qherm(A)
 
 
@@ -1430,7 +1735,7 @@ def build_central_mu_instance(n: int = 3,
         H_list = [B[i] for i in idx]
         b = np.array([inner_real(H, X_star) for H in H_list], dtype=float)
     else:
-        # H_raw = [random_hermitian(n, seed=rng.integers(1 << 31)) for _ in range(m)]
+        # H_raw = [random_hermitian(n, seed=rng.integers(1 << 31)) for _ in range(m)]
         H_raw = [qherm(random_hermitian(n, seed=rng.integers(1 << 31))) for _ in range(m)]
         # Orthonormalize and transform b consistently using triangular solves
         G = np.empty((m, m), dtype=float)
