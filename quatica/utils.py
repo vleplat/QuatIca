@@ -7,48 +7,79 @@ from scipy import sparse
 # Optimized quaternion matrix operations
 
 
-def quat_matmat(A, B):
-    """
-    Multiply two quaternion matrices (supports dense × dense, sparse × dense, dense × sparse, sparse × sparse).
+# def quat_matmat(A, B):
+#     """
+#     Multiply two quaternion matrices (supports dense × dense, sparse × dense, dense × sparse, sparse × sparse).
 
-    Performs quaternion matrix multiplication using optimized algorithms based on the
-    input types. Handles mixed sparse/dense operations efficiently.
+#     Performs quaternion matrix multiplication using optimized algorithms based on the
+#     input types. Handles mixed sparse/dense operations efficiently.
 
-    Parameters:
-    -----------
-    A : np.ndarray or SparseQuaternionMatrix
-        First quaternion matrix
-    B : np.ndarray or SparseQuaternionMatrix
-        Second quaternion matrix
+#     Parameters:
+#     -----------
+#     A : np.ndarray or SparseQuaternionMatrix
+#         First quaternion matrix
+#     B : np.ndarray or SparseQuaternionMatrix
+#         Second quaternion matrix
 
-    Returns:
-    --------
-    np.ndarray or SparseQuaternionMatrix
-        Result of quaternion matrix multiplication A @ B
+#     Returns:
+#     --------
+#     np.ndarray or SparseQuaternionMatrix
+#         Result of quaternion matrix multiplication A @ B
 
-    Notes:
-    ------
-    The function automatically selects the appropriate multiplication algorithm:
-    - Dense × Dense: Component-wise quaternion multiplication
-    - Sparse × Dense/Sparse: Uses sparse matrix multiplication routines
-    - Dense × Sparse: Uses left multiplication method
-    """
+#     Notes:
+#     ------
+#     The function automatically selects the appropriate multiplication algorithm:
+#     - Dense × Dense: Component-wise quaternion multiplication
+#     - Sparse × Dense/Sparse: Uses sparse matrix multiplication routines
+#     - Dense × Sparse: Uses left multiplication method
+#     """
+#     if isinstance(A, SparseQuaternionMatrix):
+#         return A @ B
+#     elif isinstance(B, SparseQuaternionMatrix):
+#         # For dense @ sparse, use left_multiply
+#         return B.left_multiply(A)
+#     else:
+#         # Both dense
+#         A_comp = quaternion.as_float_array(A)
+#         B_comp = quaternion.as_float_array(B)
+#         Aw, Ax, Ay, Az = A_comp[..., 0], A_comp[..., 1], A_comp[..., 2], A_comp[..., 3]
+#         Bw, Bx, By, Bz = B_comp[..., 0], B_comp[..., 1], B_comp[..., 2], B_comp[..., 3]
+#         Cw = Aw @ Bw - Ax @ Bx - Ay @ By - Az @ Bz
+#         Cx = Aw @ Bx + Ax @ Bw + Ay @ Bz - Az @ By
+#         Cy = Aw @ By - Ax @ Bz + Ay @ Bw + Az @ Bx
+#         Cz = Aw @ Bz + Ax @ By - Ay @ Bx + Az @ Bw
+#         C = np.stack([Cw, Cx, Cy, Cz], axis=-1)
+#         return quaternion.as_quat_array(C)
+def quat_matmat(A, B, *, A_comp=None, B_comp=None, ensure_contiguous=False):
     if isinstance(A, SparseQuaternionMatrix):
         return A @ B
     elif isinstance(B, SparseQuaternionMatrix):
-        # For dense @ sparse, use left_multiply
         return B.left_multiply(A)
     else:
-        # Both dense
-        A_comp = quaternion.as_float_array(A)
-        B_comp = quaternion.as_float_array(B)
+        if A_comp is None:
+            A_comp = quaternion.as_float_array(A)
+        if B_comp is None:
+            B_comp = quaternion.as_float_array(B)
+
         Aw, Ax, Ay, Az = A_comp[..., 0], A_comp[..., 1], A_comp[..., 2], A_comp[..., 3]
         Bw, Bx, By, Bz = B_comp[..., 0], B_comp[..., 1], B_comp[..., 2], B_comp[..., 3]
+
+        if ensure_contiguous:
+            Aw = np.ascontiguousarray(Aw); Ax = np.ascontiguousarray(Ax)
+            Ay = np.ascontiguousarray(Ay); Az = np.ascontiguousarray(Az)
+            Bw = np.ascontiguousarray(Bw); Bx = np.ascontiguousarray(Bx)
+            By = np.ascontiguousarray(By); Bz = np.ascontiguousarray(Bz)
+
         Cw = Aw @ Bw - Ax @ Bx - Ay @ By - Az @ Bz
         Cx = Aw @ Bx + Ax @ Bw + Ay @ Bz - Az @ By
         Cy = Aw @ By - Ax @ Bz + Ay @ Bw + Az @ Bx
         Cz = Aw @ Bz + Ax @ By - Ay @ Bx + Az @ Bw
-        C = np.stack([Cw, Cx, Cy, Cz], axis=-1)
+
+        C = np.empty(Cw.shape + (4,), dtype=Cw.dtype)
+        C[..., 0] = Cw
+        C[..., 1] = Cx
+        C[..., 2] = Cy
+        C[..., 3] = Cz
         return quaternion.as_quat_array(C)
 
 

@@ -81,6 +81,7 @@ def save_png_and_pdf(fig, png_path: str, dpi: int = 200) -> None:
     root, ext = os.path.splitext(png_path)
     if ext.lower() != ".png":
         raise ValueError(f"Expected a .png path, got: {png_path}")
+    os.makedirs(os.path.dirname(png_path), exist_ok=True)
     fig.savefig(png_path, dpi=dpi)
     fig.savefig(root + ".pdf")
 
