@@ -75,11 +75,11 @@ def main():
             "  ns_compare      - Compare NS vs Higher-Order NS (saves plots to output_figures)"
         )
         print(
-            "  schur_demo      - Quaternion Schur decomposition demo with comprehensive comparison"
+            "  schur_demo      - Quaternion Schur decomposition demo (stable variants: rayleigh/implicit)"
         )
         print("                    Usage: schur_demo [matrix_size] (default: 10)")
         print(
-            "                    Examples: schur_demo 10 (fast), schur_demo 25 (comprehensive)"
+            "                    Examples: schur_demo 10 (fast), schur_demo 25 (bigger)"
         )
         print(
             "  jupyter_test    - Test Jupyter notebook setup and verify environment configuration"

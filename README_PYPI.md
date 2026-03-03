@@ -43,6 +43,7 @@
 | Demo | Description | Link |
 |------|-------------|------|
 | **Lorenz Attractor Benchmark** | Q-GMRES vs Newton–Schulz comparison on quaternion linear systems from the Lorenz attractor, with runtime, iterations, and residual accuracy analysis. | [Open in Colab](https://colab.research.google.com/drive/1T_vMBDgRK3LT0uemIuqRUNURV_uHWYuz?usp=sharing) |
+| **OptiQ Known-Optimum SDP (Trace-Bounded)** | End-to-end OptiQ validation on a synthetic quaternion Hermitian SDP instance with a **certified known optimum** and explicit dual certificate, solved via the log-det barrier path (μ-continuation). Includes hat-space whitening and optional benchmarking of Schur-complement solvers (dense vs CG/PCG). | [Open in Colab](https://colab.research.google.com/drive/1RX6PkJfCdvOJ03wFi8sWEIMfybh5Ul8q?usp=sharing) |
 
 
 ## ⚡ Quick Start (2 minutes)
@@ -111,7 +112,7 @@ python run_analysis.py qgmres
 QuatIca brings modern numerical linear algebra to quaternion matrices and tensors:
 
 - **Matrix Operations**: Multiplication, norms, basic operations optimized for quaternions
-- **Factorizations**: QR, LU, SVD, eigendecomposition, Hessenberg, tridiagonal
+- **Factorizations**: QR, LU, SVD, eigendecomposition, Hessenberg, tridiagonal, **Cholesky**, **Schur**
 - **Pseudoinverse**: Newton–Schulz method with higher-order variants
 - **Linear Solvers**: Q-GMRES with LU preconditioning
 - **Applications**: Image processing, signal processing, computer vision
@@ -181,23 +182,35 @@ from quatica.decomp.qsvd import rand_qsvd
 from quatica.utils import power_iteration_nonhermitian
 from quatica.decomp.schur import quaternion_schur_unified
 
-# Randomized SVD
-U_rand, s_rand, V_rand = rand_qsvd(A, rank=10, n_iter=2)
+# Build a square test matrix for the advanced routines
+from quatica.data_gen import create_test_matrix
 
-# Power iteration for dominant eigenvector
-eigenval, eigenvec = power_iteration_nonhermitian(A, max_iter=100)
+A = create_test_matrix(12, 12)
 
-# Schur decomposition
-Q, T = quaternion_schur_unified(A, variant='rayleigh')
+# Randomized SVD (rank-R approximation)
+U_rand, s_rand, V_rand = rand_qsvd(A, R=10, oversample=10, n_iter=2)
+
+# Power iteration for a dominant eigenpair (non-Hermitian, experimental)
+q_vec, lambda_complex, residuals = power_iteration_nonhermitian(
+    A,
+    max_iterations=100,
+    eig_tol=1e-12,
+    res_tol=1e-10,
+    seed=0,
+    return_vector=True,
+)
+
+# Schur decomposition (stable variants: 'rayleigh' or 'implicit')
+Q, T = quaternion_schur_unified(A, variant="rayleigh")
 ```
 
 ## 🏗️ Applications
 
 QuatIca excels in various real-world applications. Explore comprehensive examples and demos:
 
-### 🚀 **Interactive Demos (Coming Soon!)**
-- **🔬 Colab Demos for Applications** - Interactive notebooks for image processing, signal analysis, and more
-- **📊 Live Examples** - Run applications directly in your browser without installation
+### 🚀 **Interactive Demos**
+
+See the **Colab demo links** at the top of this page to run QuatIca directly in your browser.
 
 ### 📂 **GitHub Repository Examples**
 

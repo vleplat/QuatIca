@@ -100,7 +100,14 @@ def quaternion_schur(
     - A: square quaternion matrix (n x n)
     - max_iter: maximum number of QR iterations
     - tol: deflation tolerance for subdiagonal entries
-    - shift: 'rayleigh' | 'wilkinson' | 'double' (Francis two-shift surrogate)
+    - shift: 'rayleigh' | 'wilkinson' | 'double'
+
+      Notes on shifts:
+      - This routine currently uses *real scalar* shifts (the real part of a trailing
+        diagonal entry). This is reliable and commutes with quaternion arithmetic.
+      - 'wilkinson' and 'double' are kept for backward compatibility, but currently
+        fall back to the same real Rayleigh shift. A true quaternion Francis
+        double-shift step is not implemented here.
     - verbose: print progress
 
     Returns:
@@ -132,6 +139,9 @@ def quaternion_schur(
     # mapping indices: 0->0, 4->1, 1->2, 5->3, 2->4, 6->5, 3->6, 7->7
     for src, dst in [(0, 0), (4, 1), (1, 2), (5, 3), (2, 4), (6, 5), (3, 6), (7, 7)]:
         P8[dst, src] = 1.0
+    # Permutation indices for similarity P8^T G P8 without matmul
+    _p8_src = np.array([0, 4, 1, 5, 2, 6, 3, 7], dtype=int)  # dst -> src
+    _p8_inv = np.argsort(_p8_src)  # src -> dst
 
     # Diagnostics container
     diag = {
@@ -151,11 +161,29 @@ def quaternion_schur(
         """
         HRs = HR_in - sigma_val * eye4n
         Qk = np.eye(4 * n)
-        # Read components from the shifted matrix (avoid cancelling the shift)
-        H_curr = real_contract(HRs, n, n)
+
+        def _real_get_quat_entry(HRmat: np.ndarray, i: int, j: int) -> quaternion.quaternion:
+            """Extract quaternion entry (i,j) from a real-expanded 4n×4n matrix.
+
+            Uses the per-entry 4×4 block layout from `real_expand`. For a 4×4 block
+            B = real_expand(q) corresponding to a scalar quaternion q, we have:
+              q.w = B[0,0], q.x = B[1,0], q.y = B[2,0], q.z = B[3,0].
+            """
+            Bi = slice(4 * i, 4 * i + 4)
+            Bj = slice(4 * j, 4 * j + 4)
+            B = HRmat[Bi, Bj]
+            return quaternion.quaternion(
+                float(B[0, 0]),
+                float(B[1, 0]),
+                float(B[2, 0]),
+                float(B[3, 0]),
+            )
+
         for s in range(0, m_sz - 1):
-            h11 = H_curr[s, s]
-            h21 = H_curr[s + 1, s]
+            # IMPORTANT: HRs is updated each step, so rotations must be computed
+            # from the *current* shifted matrix, not a stale contracted copy.
+            h11 = _real_get_quat_entry(HRs, s, s)
+            h21 = _real_get_quat_entry(HRs, s + 1, s)
             x1 = np.array([h11.w, h11.x, h11.y, h11.z])
             x2 = np.array([h21.w, h21.x, h21.y, h21.z])
             G = ggivens(x1, x2)
@@ -163,11 +191,21 @@ def quaternion_schur(
             r1 = 4 * (s + 1)
             row_idx = list(range(r0, r0 + 4)) + list(range(r1, r1 + 4))
             col_idx = row_idx
-            Gc_left = P8.T @ G.T @ P8
-            Gc_right = P8.T @ G @ P8
-            HRs[row_idx, :] = Gc_left @ HRs[row_idx, :]
-            HRs[:, col_idx] = HRs[:, col_idx] @ Gc_right
-            Qk[:, col_idx] = Qk[:, col_idx] @ Gc_right
+            # Apply permutation similarity via indexing (avoids extra matmul warnings)
+            Gc_left = G.T[np.ix_(_p8_inv, _p8_inv)]
+            Gc_right = G[np.ix_(_p8_inv, _p8_inv)]
+            # These are small 8×8 and (4n×8)/(8×4n) multiplies; NumPy may emit
+            # RuntimeWarnings on some BLAS backends even when the final result is
+            # finite. We silence those warnings locally but still fail-fast if
+            # non-finite values are produced.
+            with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+                HRs[row_idx, :] = Gc_left @ HRs[row_idx, :]
+                HRs[:, col_idx] = HRs[:, col_idx] @ Gc_right
+                Qk[:, col_idx] = Qk[:, col_idx] @ Gc_right
+            if not (np.isfinite(HRs[row_idx, :]).all() and np.isfinite(HRs[:, col_idx]).all()):
+                raise FloatingPointError("Non-finite values encountered during Schur bulge chase.")
+            if not np.isfinite(Qk[:, col_idx]).all():
+                raise FloatingPointError("Non-finite values encountered while accumulating Schur Q.")
         # Add back the shift
         HR_out = HRs + sigma_val * eye4n
         return HR_out, Qk
@@ -182,20 +220,20 @@ def quaternion_schur(
         H = real_contract(HR, n, n)
 
         # Strong deflation: zero tiny subdiagonals within active window
+        def _scaled_deflate_ok(i: int) -> bool:
+            h_sub = H[i, i - 1]
+            denom = _quat_scalar_abs(H[i - 1, i - 1]) + _quat_scalar_abs(H[i, i]) + _quat_scalar_abs(h_sub)
+            return _quat_scalar_abs(h_sub) <= tol * max(1.0, denom)
+
         deflated_idx = []
         for i in range(1, m_active):
-            h_sub = H[i, i - 1]
-            denom = (
-                _quat_scalar_abs(H[i - 1, i - 1])
-                + _quat_scalar_abs(H[i, i])
-                + _quat_scalar_abs(h_sub)
-            )
-            if _quat_scalar_abs(h_sub) <= tol * max(1.0, denom):
+            if _scaled_deflate_ok(i):
                 H[i, i - 1] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
                 deflated_idx.append(int(i))
 
         # Shrink active window from the bottom if deflated
-        while m_active > 1 and _quat_scalar_abs(H[m_active - 1, m_active - 2]) <= tol:
+        while m_active > 1 and _scaled_deflate_ok(m_active - 1):
+            H[m_active - 1, m_active - 2] = quaternion.quaternion(0.0, 0.0, 0.0, 0.0)
             m_active -= 1
 
         # Re-expand after deflation
@@ -241,35 +279,21 @@ def quaternion_schur(
         prev_max_sub = subdiag_norm
 
         current_shift_mode = shift
-        # If stagnating, switch strategy (toggle between wilkinson and rayleigh)
-        if stagnation_count >= 50:
-            current_shift_mode = "rayleigh" if shift == "wilkinson" else "wilkinson"
-            stagnation_count = 0
-        # If still stagnating for long, try a double-shift step
-        if stagnation_count >= 20 and m_active >= 2:
+        # Stagnation logic (ordered): prefer escalating to double shift after long stagnation,
+        # otherwise toggle between two single-shift modes.
+        if stagnation_count >= 50 and m_active >= 2:
             current_shift_mode = "double"
-            stagnation_count = 0
+        elif stagnation_count >= 20:
+            current_shift_mode = "rayleigh" if shift == "wilkinson" else "wilkinson"
 
-        # Choose shift(s) from trailing block of active window
-        if current_shift_mode in ("wilkinson", "double") and m_active >= 2:
-            w11 = float(H[m_active - 2, m_active - 2].w)
-            w12 = float(H[m_active - 2, m_active - 1].w)
-            w21 = float(H[m_active - 1, m_active - 2].w)
-            w22 = float(H[m_active - 1, m_active - 1].w)
-            B = np.array([[w11, w12], [w21, w22]], dtype=float)
-            evals = np.linalg.eigvals(B)
-            evals_real = np.real(evals)
-            # Prefer a true double-shift when a 2x2 is available
-            if evals_real.shape[0] >= 2:
-                mu, nu = float(evals_real[0]), float(evals_real[1])
-                sigma_list = [mu, nu]
-            else:
-                idx = np.argmin(np.abs(evals_real - w22))
-                sigma = float(evals_real[idx])
-                sigma_list = [sigma]
-        else:
-            sigma = float(H[m_active - 1, m_active - 1].w)
-            sigma_list = [sigma]
+        # Choose shift(s) from trailing element of active window.
+        # Use real scalar Rayleigh shift for robustness on general quaternion inputs.
+        sigma = float(H[m_active - 1, m_active - 1].w)
+        sigma_list = [sigma]
+
+        # If we changed shift mode due to stagnation, reset the counter now.
+        if current_shift_mode != shift:
+            stagnation_count = 0
 
         # Record iteration diagnostics (pre-sweep)
         diag_entry = {
@@ -296,8 +320,12 @@ def quaternion_schur(
         Qk_real_total = np.eye(4 * n)
         for sigma in sigma_list:
             HR, Qk_part = _apply_single_shift(HR, sigma, m_active)
-            Qk_real_total = Qk_real_total @ Qk_part
-        Q_real = Q_real @ Qk_real_total
+            with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+                Qk_real_total = Qk_real_total @ Qk_part
+        with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+            Q_real = Q_real @ Qk_real_total
+        if not np.isfinite(Q_real).all():
+            raise FloatingPointError("Non-finite values encountered in accumulated Schur Q.")
 
         # Re-enforce Hessenberg structure and apply strong deflation sweep
         H_tmp = real_contract(HR, n, n)
@@ -819,6 +847,8 @@ def quaternion_schur_experimental(
     for k in range(max_iter):
         if hi <= lo:
             break
+
+        start = lo  # default (used for verbose output even if we deflate)
 
         # Deflation scan (bottom-up) in trailing region
         i = hi

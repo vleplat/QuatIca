@@ -811,6 +811,7 @@ def ggivens(x1, x2):
     """
     # Compute norm of the combined vector
     t = np.linalg.norm(np.concatenate([x1, x2]))
+    eps = np.finfo(float).eps
 
     if t <= np.finfo(float).eps:
         # If norm is too small, return identity matrix
@@ -827,18 +828,36 @@ def ggivens(x1, x2):
         # Compute norms of q1 and q2
         t_norms = np.array([np.linalg.norm(q1), np.linalg.norm(q2)])
 
-        if t_norms[0] < t_norms[1]:
+        # Guard against tiny denominators that can create NaNs/Infs.
+        if t_norms[0] <= eps and t_norms[1] <= eps:
+            q1 = np.array([1, 0, 0, 0])
+            q2 = np.array([0, 0, 0, 0])
+            q3 = np.array([0, 0, 0, 0])
+            q4 = np.array([1, 0, 0, 0])
+        elif t_norms[0] < t_norms[1]:
             # q3 = [t(2); 0; 0; 0]
             q3 = np.array([t_norms[1], 0, 0, 0])
             # q4 = Realp(q2(1),q2(2),q2(3),q2(4))*[q1(1);-q1(2);-q1(3);-q1(4)]/(-t(2))
             q1_conj = np.array([q1[0], -q1[1], -q1[2], -q1[3]])
-            q4 = Realp(q2[0], q2[1], q2[2], q2[3]) @ q1_conj / (-t_norms[1])
+            if t_norms[1] <= eps:
+                q1 = np.array([1, 0, 0, 0])
+                q2 = np.array([0, 0, 0, 0])
+                q3 = np.array([0, 0, 0, 0])
+                q4 = np.array([1, 0, 0, 0])
+            else:
+                q4 = Realp(q2[0], q2[1], q2[2], q2[3]) @ q1_conj / (-t_norms[1])
         else:
             # q4 = [t(1); 0; 0; 0]
             q4 = np.array([t_norms[0], 0, 0, 0])
             # q3 = Realp(q1(1),q1(2),q1(3),q1(4))*[q2(1);-q2(2);-q2(3);-q2(4)]/(-t(1))
             q2_conj = np.array([q2[0], -q2[1], -q2[2], -q2[3]])
-            q3 = Realp(q1[0], q1[1], q1[2], q1[3]) @ q2_conj / (-t_norms[0])
+            if t_norms[0] <= eps:
+                q1 = np.array([1, 0, 0, 0])
+                q2 = np.array([0, 0, 0, 0])
+                q3 = np.array([0, 0, 0, 0])
+                q4 = np.array([1, 0, 0, 0])
+            else:
+                q3 = Realp(q1[0], q1[1], q1[2], q1[3]) @ q2_conj / (-t_norms[0])
 
     # G = Realp([q1(1),q3(1);q2(1),q4(1)],[q1(2),q3(2);q2(2),q4(2)],[q1(3),q3(3);q2(3),q4(3)],[q1(4),q3(4);q2(4),q4(4)])
     # Create 2x2 quaternion matrices for each component
@@ -850,6 +869,9 @@ def ggivens(x1, x2):
     # Apply Realp to get the 8x8 real matrix
     G = Realp(q1_mat, q2_mat, q3_mat, q4_mat)
 
+    # Last line of defense: ensure rotation is finite.
+    if not np.isfinite(G).all():
+        return np.eye(8)
     return G
 
 
@@ -1785,3 +1807,182 @@ def quat_kernel(A: np.ndarray, side: str = "right", rtol: float = 1e-10) -> np.n
         Kernel matrix such that A @ N ≈ 0 (right) or N^H @ A ≈ 0 (left)
     """
     return quat_null_space(A, side=side, rtol=rtol)
+
+
+# =============================================================================
+# Complex embedding utilities (symplectic / adjoint representation)
+# =============================================================================
+
+def complex_expand(Q: np.ndarray) -> np.ndarray:
+    r"""Expand a dense quaternion matrix into its complex adjoint embedding.
+
+    For a (possibly rectangular) quaternion matrix \(Q \\in \\mathbb{H}^{m\\times n}\),
+    write
+
+    \[
+      Q = W + X\\,\\mathbf{i} + Y\\,\\mathbf{j} + Z\\,\\mathbf{k},
+    \]
+
+    with real matrices \(W,X,Y,Z \\in \\mathbb{R}^{m\\times n}\). Define the complex
+    blocks
+
+    \[
+      C = W + iX, \\qquad D = Y + iZ,
+    \]
+
+    and return the complex matrix \(\\chi(Q) \\in \\mathbb{C}^{2m\\times 2n}\):
+
+    \[
+      \\chi(Q)=\\begin{bmatrix}
+      C & D \\\\
+      -\\overline{D} & \\overline{C}
+      \\end{bmatrix}.
+    \]
+
+    This embedding is the standard “symplectic/adjoint” representation used to
+    reduce quaternion linear algebra to complex linear algebra (e.g., sparse
+    Cholesky with CHOLMOD).
+
+    Args:
+        Q: Dense quaternion ndarray of shape (m, n) with dtype `np.quaternion`.
+
+    Returns:
+        Complex ndarray of shape (2m, 2n) with dtype `complex128`.
+
+    Raises:
+        ValueError: If `Q` is not a 2D dense quaternion array.
+    """
+    if not (isinstance(Q, np.ndarray) and Q.dtype == np.quaternion and Q.ndim == 2):
+        raise ValueError("Q must be a 2D dense quaternion ndarray")
+    m, n = Q.shape
+    Af = quaternion.as_float_array(Q)  # (m,n,4) -> (w,x,y,z)
+    W, X, Y, Z = Af[..., 0], Af[..., 1], Af[..., 2], Af[..., 3]
+    C = W + 1j * X
+    D = Y + 1j * Z
+
+    M = np.empty((2 * m, 2 * n), dtype=np.complex128)
+    M[:m, :n] = C
+    M[:m, n:] = D
+    M[m:, :n] = -np.conjugate(D)
+    M[m:, n:] = np.conjugate(C)
+    return M
+
+
+def complex_contract(
+    M: np.ndarray,
+    m: int,
+    n: int,
+    *,
+    check_structure: bool = True,
+    tol: float = 1e-10,
+) -> np.ndarray:
+    r"""Contract a complex adjoint embedding back to a quaternion matrix.
+
+    This is the inverse of `complex_expand`. Given a complex matrix
+    \(M \\in \\mathbb{C}^{2m\\times 2n}\) with block structure
+
+    \[
+      M = \\begin{bmatrix}
+      C & D \\\\
+      -\\overline{D} & \\overline{C}
+      \\end{bmatrix},
+    \]
+
+    reconstruct the quaternion matrix \(Q \\in \\mathbb{H}^{m\\times n}\) via
+
+    \[
+      W=\\Re(C),\\quad X=\\Im(C),\\quad Y=\\Re(D),\\quad Z=\\Im(D),
+    \]
+    and \(Q = W + X\\,\\mathbf{i} + Y\\,\\mathbf{j} + Z\\,\\mathbf{k}\).
+
+    Args:
+        M: Complex matrix of shape (2m, 2n) following the adjoint block pattern.
+        m: Number of quaternion rows.
+        n: Number of quaternion columns.
+        check_structure: If True, verify the two consistency identities:
+            - `M[m:,:n] ≈ -conj(M[:m,n:])`
+            - `M[m:,n:] ≈  conj(M[:m,:n])`
+        tol: Tolerance used when `check_structure=True`.
+
+    Returns:
+        Dense quaternion ndarray of shape (m, n) with dtype `np.quaternion`.
+
+    Raises:
+        ValueError: If shapes mismatch or the block structure check fails.
+    """
+    M = np.asarray(M)
+    if M.shape != (2 * m, 2 * n):
+        raise ValueError(f"Expected shape {(2*m, 2*n)}, got {M.shape}")
+    if not np.iscomplexobj(M):
+        M = M.astype(np.complex128, copy=False)
+
+    C = M[:m, :n]
+    D = M[:m, n:]
+
+    if check_structure:
+        err1 = np.max(np.abs(M[m:, :n] - (-np.conjugate(D))))
+        err2 = np.max(np.abs(M[m:, n:] - np.conjugate(C)))
+        if not (np.isfinite(err1) and np.isfinite(err2)) or max(err1, err2) > tol:
+            raise ValueError(
+                f"complex_contract: M does not satisfy symplectic block structure "
+                f"(max_err={max(err1, err2):.3e} > tol={tol:.3e})."
+            )
+
+    Qf = np.empty((m, n, 4), dtype=float)
+    Qf[..., 0] = np.real(C)
+    Qf[..., 1] = np.imag(C)
+    Qf[..., 2] = np.real(D)
+    Qf[..., 3] = np.imag(D)
+    return quaternion.as_quat_array(Qf)
+
+
+def complex_expand_sparse(Aq: "SparseQuaternionMatrix") -> "sparse.csc_matrix":
+    r"""Expand a sparse quaternion matrix into its complex adjoint embedding.
+
+    Given a sparse quaternion matrix \(A \\in \\mathbb{H}^{m\\times n}\) stored as
+    real sparse components `(real, i, j, k)`, build the complex sparse blocks:
+
+    \[
+      X = A_w + i A_x, \\qquad Y = A_y + i A_z,
+    \]
+
+    and return the CSC matrix \(\\chi(A) \\in \\mathbb{C}^{2m\\times 2n}\):
+
+    \[
+      \\chi(A)=\\begin{bmatrix}
+      X & Y \\\\
+      -\\overline{Y} & \\overline{X}
+      \\end{bmatrix}.
+    \]
+
+    The returned format is CSC to match CHOLMOD/`scikit-sparse` expectations.
+
+    Args:
+        Aq: A `SparseQuaternionMatrix` with shape (m, n).
+
+    Returns:
+        `scipy.sparse.csc_matrix` of shape (2m, 2n) with complex dtype.
+
+    Raises:
+        ValueError: If `Aq` is not a `SparseQuaternionMatrix`.
+    """
+    if not isinstance(Aq, SparseQuaternionMatrix):
+        raise ValueError("Aq must be a SparseQuaternionMatrix")
+    m, n = Aq.shape
+
+    R = Aq.real.astype(np.complex128)
+    I = Aq.i.astype(np.complex128)
+    J = Aq.j.astype(np.complex128)
+    K = Aq.k.astype(np.complex128)
+
+    X = R + 1j * I
+    Y = J + 1j * K
+
+    chi = sparse.bmat(
+        [[X, Y], [-Y.conjugate(), X.conjugate()]],
+        format="csc",
+        dtype=np.complex128,
+    )
+    # Ensure exact shape (2m,2n)
+    chi = chi[: 2 * m, : 2 * n].tocsc()
+    return chi

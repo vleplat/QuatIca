@@ -60,7 +60,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(U, s, V)` (approximate, rank-R)
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **6. Pass-Efficient Q-SVD**
+### **7. Pass-Efficient Q-SVD**
 
 - **Function**: `pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2)`
 - **Input Matrix**: **General quaternion matrix** (any m×n)
@@ -68,7 +68,7 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(U, s, V)` (approximate, rank-R)
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### **7. Hessenberg Reduction (Upper Hessenberg Form)**
+### **8. Hessenberg Reduction (Upper Hessenberg Form)**
 
 - **Function**: `hessenbergize(A_quat)`
 - **Input Matrix**: **General quaternion matrix** (square n×n)
@@ -76,31 +76,61 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Output**: `(P, H)` where `H = P * A * P^H` is upper Hessenberg and `P` is unitary
 - **Status**: ✅ **FULLY IMPLEMENTED AND TESTED**
 
-### Schur Decomposition (Under Development)
+### **9. Cholesky Decomposition (Hermitian Positive Definite)**
 
-- Note: A prototype quaternion Schur routine exists (`quatica/decomp/schur.py`), but it is under active development. It is not yet production-ready and should not be relied upon for general inputs.
-- Hermitian validation: For Hermitian quaternion matrices (A = A^H), the Schur pipeline empirically converges to a diagonal T (as predicted by theory), providing a strong validation signal.
-- Synthetic-unitary similarity validation: For matrices with a known Schur form constructed as `A = P S P^H` where `P` is unitary (complex subfield embedding) and `S` is diagonal or upper-triangular in the x-axis complex subfield, our Schur QR variants (rayleigh, implicit) successfully recover an (almost) upper-triangular `T` with low similarity and unitarity residuals.
+- **Functions**:
+  - `chol_quat_dense(A, tol=..., hermitianize=False, jitter=0.0)`
+  - `solve_chol_quat_dense(L, b)`
+  - `chol_quat_sparse(Aq, ...)` *(optional backend; requires CHOLMOD via `scikit-sparse`)*
+- **Input Matrix**:
+  - Dense: **Hermitian positive definite** quaternion matrix (n×n, `A = A^H`, `A ≻ 0`)
+  - Sparse: **Hermitian positive definite** sparse quaternion matrix (`SparseQuaternionMatrix`)
+- **Algorithms**:
+  - Dense: native quaternion Cholesky (left-looking), returns lower-triangular `L` with **real positive diagonal** such that `A = L L^H`
+  - Sparse: complex adjoint embedding `χ(A)` (2n×2n) + CHOLMOD factorization + quaternion RHS pack/unpack
+- **Output**:
+  - Dense: `L`
+  - Sparse: a factor object with `.solve(b)` (and optional `.logdet()`)
+- **Status**:
+  - Dense: ✅ **FULLY IMPLEMENTED AND UNIT TESTED**
+  - Sparse: ✅ **IMPLEMENTED** (unit test is optional/auto-skipped if `sksparse.cholmod` is not installed)
 
-  - See unit test `tests/unit/test_schur_synthetic.py` (saves |T| heatmaps to `validation_output/`).
-  - Demo notebook cells “12d” (Schur synthetic) show |T| and metrics for a reproducible case.
+### **10. Schur Decomposition (Stable Variants + Experimental Extensions)**
 
-- Reproducible validation (visual and numeric):
-  - Run the comparison/visualization script to compare stable variants and view Schur form plots (after activating the venv):
-    - Random matrices:
-      ```bash
-      python tests/validation/compare_schur_variants.py --sizes 50 --iters 1500 --tol 1e-10 --tag rand
-      ```
-    - Hermitian matrices (A = B^H @ B):
-      ```bash
-      python tests/validation/compare_schur_variants.py --sizes 50 --iters 1000 --tol 1e-10 --hermitian --tag herm50
-      ```
-  - The script saves convergence plots and Schur T visualizations (real component) into `validation_output/`:
-    - `schur_lead2_variants_<tag>_n<size>.png`
-    - `schur_T_<tag>_n<size>_<variant>_real.png`
-  - Observed behavior:
-    - Hermitian: both Rayleigh-shift and implicit+AED variants converge to diagonal T quickly; implicit+AED is markedly faster, Rayleigh is slightly more accurate (lower similarity residual).
-    - Random: Rayleigh achieves stronger deflation with sufficient iterations but is slower; implicit+AED offers speed with higher residual.
+- **Where**: `quatica/decomp/schur.py`
+- **Recommended API**: `quaternion_schur_unified(A, variant=...)`
+- **Stable variants (unit-tested)**:
+  - `variant="rayleigh"`: pure quaternion QR iteration with a **real scalar Rayleigh shift** (default)
+  - `variant="implicit"`: pure quaternion implicit QR (bulge-chase style) with a **real scalar Rayleigh shift**
+- **Legacy API**: `quaternion_schur(A, shift=...)` performs **real-embedded** implicit QR (Hessenberg + Givens in the real embedding). For robustness on general quaternion inputs it currently uses a **real Rayleigh shift** internally.
+- **Experimental/advanced variants**: `variant="aed"`, `variant="ds"`, and `quaternion_schur_experimental(...)` exist for research and may be less robust. They are not recommended as the default demo/release path.
+
+**Validation and diagnostics**
+
+All stable variants are validated with:
+
+- **Similarity residual**: \( \|A - Q T Q^H\|_F / \|A\|_F \) (or equivalently \( \|Q^H A Q - T\|_F / \|A\|_F \))
+- **Unitarity residual**: \( \|Q^H Q - I\|_F \)
+
+**Reproducible demo**
+
+- Run the stable demo (saves figures to `validation_output/schur_demo/`):
+
+```bash
+python tests/schur_demo.py 10 --variant rayleigh --no-display
+```
+
+Or via the launcher:
+
+```bash
+python run_analysis.py schur_demo 10 --variant rayleigh --no-display
+```
+
+**Relevant tests**
+
+- `tests/unit/test_schur_synthetic.py` (synthetic diagonalizable / upper-triangularizable constructions)
+- `tests/unit/test_schur_diagnostics.py` (explicit similarity + unitarity residual checks)
+- `tests/unit/test_schur_real_embedding_conventions.py` (real-embedding conventions + Hessenberg similarity convention)
 
 ---
 
@@ -116,6 +146,8 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 | **Randomized Q-SVD**     | General         | m×n       | None           |
 | **Pass-Efficient Q-SVD** | General         | m×n       | None           |
 | **Hessenberg Reduction** | General         | n×n       | None           |
+| **Cholesky**             | Hermitian PD    | n×n       | A = A^H, A ≻ 0  |
+| **Schur (stable variants)** | General      | n×n       | Convergence depends on matrix class |
 
 ---
 
@@ -246,6 +278,14 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - **Example**: `P, H = hessenbergize(A_quat)`
 - **Best for**: Eigenvalue computations and Schur decomposition pipelines
 
+#### **Cholesky Decomposition**
+
+- **When to use**: Solving linear systems with Hermitian positive definite quaternion matrices; log-det computations (sparse backend optional)
+- **Examples**:
+  - Dense: `L = chol_quat_dense(A)` then `x = solve_chol_quat_dense(L, b)`
+  - Sparse (optional): `F = chol_quat_sparse(Aq)` then `x = F.solve(b)`
+- **Best for**: SPD problems where Cholesky is more stable/faster than LU/QR
+
 ### **For Hermitian Matrices:**
 
 #### **Eigenvalue Decomposition**
@@ -273,6 +313,8 @@ QuatIca provides a complete suite of matrix decomposition algorithms for quatern
 - Randomized Q-SVD (`rand_qsvd`)
 - Pass-Efficient Q-SVD (`pass_eff_qsvd`) - **NEW: MATLAB validated, unit tested, performance benchmarked**
 - Hessenberg Reduction (`hessenbergize`) - **NEW**
+- Cholesky Decomposition (`chol_quat_dense`, `solve_chol_quat_dense`) - **NEW**
+- Schur Decomposition (stable variants via `quaternion_schur_unified`: `rayleigh`, `implicit`) - **NEW**
 
 **Note**: All methods have been thoroughly tested and validated for production use.
 

@@ -28,6 +28,7 @@ from .schur import (
     quaternion_schur_unified,
 )
 from .tridiagonalize import tridiagonalize
+from .chol import chol_quat_dense, solve_chol_quat_dense, chol_quat_sparse
 
 __all__ = [
     "classical_qsvd",
@@ -47,4 +48,7 @@ __all__ = [
     "quaternion_schur_pure",
     "quaternion_schur_pure_implicit",
     "quaternion_schur_unified",
+    "chol_quat_dense",
+    "solve_chol_quat_dense",
+    "chol_quat_sparse",
 ]

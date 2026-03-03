@@ -93,7 +93,7 @@ This guided notebook showcases the core QuatIca APIs and verifies results with c
 
 QuatIca brings modern numerical linear algebra to quaternion matrices and tensors:
 
-- Matrix ops, norms, factorizations (QR, LU, SVD, eigen, Hessenberg, tridiagonal)
+- Matrix ops, norms, factorizations (QR, LU, SVD, eigen, Hessenberg, tridiagonal, Cholesky, Schur)
 - Pseudoinverse via Newton–Schulz (incl. higher-order)
 - Q-GMRES solver (with LU preconditioning)
 - Practical applications (image deblurring, completion; signal processing)
@@ -101,7 +101,7 @@ QuatIca brings modern numerical linear algebra to quaternion matrices and tensor
 ### Highlights
 
 - Fast quaternion algebra (numpy>=2.3.2)
-- Clean APIs, strong unit tests (194 passing)
+- Clean APIs, extensive unit tests (150+)
 - Real working examples with saved outputs
 
 ### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
@@ -257,7 +257,7 @@ python run_analysis.py <script_name>
 | `synthetic`          | **Synthetic Image Completion** - Matrix completion on generated test images                        | Controlled experiments                                    |
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types              | Algorithm validation                                      |
 | `eigenvalue_test`    | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition             | **Matrix analysis** and eigenvalue computation            |
-| `schur_demo`         | **🎯 Quaternion Schur Decomposition Demo** - Comprehensive comparison of rayleigh vs aed variants  | **Matrix decomposition** and algorithm comparison         |
+| `schur_demo`         | **🎯 Quaternion Schur Decomposition Demo** - Stable Schur demo (`rayleigh`/`implicit`) with residual checks and saved figures | **Matrix decomposition** and validation                   |
 | `pinv_bench`         | **Pseudoinverse Benchmark** - NS (γ=1), HON (3rd), RSP-Q (col), Hybrid RSP+NS, CGNE–Q              | **Pseudoinverse** runtime/accuracy comparison             |
 
 #### **🎯 Quick Examples:**
@@ -307,6 +307,10 @@ python run_analysis.py schur_demo
 
 # Test Schur decomposition with custom matrix size
 python run_analysis.py schur_demo 15
+
+# Stable variants (explicit)
+python run_analysis.py schur_demo 15 --variant rayleigh --no-display
+python run_analysis.py schur_demo 15 --variant implicit --no-display
 
 # Compare Newton–Schulz variants (saves plots to output_figures)
 python run_analysis.py ns_compare
@@ -367,12 +371,13 @@ QuatIca/
 │       ├── qsvd.py         # QR and Q-SVD implementations
 │       ├── eigen.py         # Eigenvalue decomposition for Hermitian matrices
 │       ├── LU.py           # LU decomposition with partial pivoting
+│       ├── chol.py         # Cholesky for Hermitian PD (dense + optional sparse via complex embedding)
 │       ├── tridiagonalize.py # Tridiagonalization using Householder transformations
 │       ├── hessenberg.py    # Upper Hessenberg reduction using Householder similarity
-│       └── schur.py        # Schur decomposition (experimental)
+│       └── schur.py        # Schur decomposition (stable: rayleigh/implicit; others experimental)
 ├── tests/
 │   ├── tutorial_quaternion_basics.py  # 🎓 Interactive tutorial with visualizations
-│   ├── schur_demo.py       # 🎯 Comprehensive Schur decomposition demo with algorithm comparison
+│   ├── schur_demo.py       # 🎯 Stable Schur demo (rayleigh/implicit) with residual checks + saved figures
 │   ├── test_jupyter_setup.py          # 🔧 Jupyter environment verification script
 │   ├── unit/               # Unit tests for core functionality
 │   │   ├── test_tensor_quaternion_basics.py       # Quaternion tensor basics (norms, |T|, unfold/fold)
@@ -426,6 +431,7 @@ QuatIca/
 │   │       ├── eigen.md   # Eigenvalue API documentation
 │   │       ├── LU.md      # LU decomposition API docs
 │   │       ├── hessenberg.md # Hessenberg API docs
+│   │       ├── chol.md     # Cholesky API docs
 │   │       └── tridiagonalize.md # Tridiagonalization API docs
 │   └── applications/      # Application-specific guides
 │       └── image_deblurring.md # Image deblurring tutorial
@@ -738,32 +744,28 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 
 ### **🎯 `schur_demo` - Comprehensive Schur Decomposition Analysis**
 
-- **What it is**: Educational demo comparing rayleigh vs aed variants for quaternion Schur decomposition
-- **Perfect for**: Understanding algorithm behavior and performance differences
-- **Duration**: ~2-5 minutes (depends on matrix size)
-- **Input**: Configurable matrix size (default: 10, can specify up to 25+)
-- **Output**: Comprehensive analysis and comparison tables:
-  - Convergence results for both rayleigh and aed variants
-  - Performance comparison across different matrix types
-  - Educational insights about algorithm selection
-  - Detailed eigenvalue analysis and structure verification
+- **What it is**: Stable, release-ready demo for quaternion Schur decomposition using the **unit-tested** variants.
+- **Perfect for**: Validating Schur outputs and understanding expected behavior on well-posed cases.
+- **Duration**: ~1–3 minutes (depends on `n` and variant)
+- **Input**: Matrix size (default `10`) and a stable variant:
+  - `--variant rayleigh` *(default)*
+  - `--variant implicit`
+- **Output**: Saved figures under `validation_output/schur_demo/`:
+  - `|T|` heatmaps for each case
+  - `|A - Q T Q^H|` reconstruction heatmaps (should be ~0)
 - **Covers**:
-  - **Hermitian matrices**: Guaranteed diagonal Schur form
-  - **Random matrices**: Gaussian, skew-symmetric, ill-conditioned, pure imaginary
-  - **Synthetic construction**: Upper triangular and diagonal test cases
-  - **Algorithm comparison**: rayleigh vs aed variant performance
-  - **Educational insights**: When to use which algorithm
+  - **Hermitian HPD case** (should produce nearly diagonal Schur form)
+  - **Synthetic diagonalizable case** (x-axis complex subfield construction)
+  - Prints **similarity** and **unitarity** residuals
 - **Usage**:
 
   ```bash
-  # Default size (10x10) - fast testing
+  # Default (n=10) using stable Rayleigh variant
   python run_analysis.py schur_demo
 
-  # Custom size - comprehensive analysis
-  python run_analysis.py schur_demo 15
-
-  # Large size - full performance analysis
-  python run_analysis.py schur_demo 25
+  # Explicit stable variants + headless plotting (recommended for servers/CI)
+  python run_analysis.py schur_demo 15 --variant rayleigh --no-display
+  python run_analysis.py schur_demo 15 --variant implicit --no-display
   ```
 
 ## 🔬 Core Functionality
@@ -1123,6 +1125,40 @@ L_perm, U_perm = quaternion_lu(A_quat, return_p=False)
 - ✅ **Production-ready** with comprehensive test suite
 - ✅ **Based on MATLAB QTFM**
 - ✅ **Handles rectangular matrices** - works for m×n matrices
+
+### **Cholesky Decomposition (Hermitian Positive Definite)**
+
+```python
+import numpy as np
+import quaternion  # from numpy-quaternion
+
+from quatica.decomp import chol_quat_dense, solve_chol_quat_dense
+from quatica.utils import quat_eye, quat_frobenius_norm, quat_hermitian, quat_matmat
+
+rng = np.random.default_rng(0)
+n = 8
+
+# Build a Hermitian positive definite quaternion matrix A = B^H B + alpha I
+B = quaternion.as_quat_array(rng.standard_normal((n, n, 4)))
+A = quat_matmat(quat_hermitian(B), B) + 1.0 * quat_eye(n)
+
+# Factorize: A = L L^H, with real positive diagonal in L
+L = chol_quat_dense(A, tol=1e-12, hermitianize=True)
+
+# Check reconstruction error
+A_rec = quat_matmat(L, quat_hermitian(L))
+rel_rec = quat_frobenius_norm(A - A_rec) / (quat_frobenius_norm(A) + 1e-30)
+print("relative ||A - L L^H||_F / ||A||_F =", float(rel_rec))
+
+# Solve Ax = b using forward/back substitution on L
+b = quaternion.as_quat_array(rng.standard_normal((n, 4)))  # vector (n,)
+x = solve_chol_quat_dense(L, b)
+
+res = quat_frobenius_norm(quat_matmat(A, x.reshape(n, 1)).reshape(n) - b) / (
+    quat_frobenius_norm(b) + 1e-30
+)
+print("relative ||Ax - b||_F / ||b||_F =", float(res))
+```
 
 ### **Tridiagonalization (Householder Transformations)**
 

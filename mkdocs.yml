@@ -88,6 +88,7 @@ nav:
           - Q-SVD: api/decomp/qsvd.md
           - Eigendecomposition: api/decomp/eigen.md
           - LU Decomposition: api/decomp/LU.md
+          - Cholesky: api/decomp/chol.md
           - Hessenberg: api/decomp/hessenberg.md
           - Tridiagonalization: api/decomp/tridiagonalize.md
           - Schur Decomposition: api/decomp/schur.md
