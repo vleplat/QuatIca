@@ -15,6 +15,16 @@ from solver import NewtonSchulzPseudoinverse
 from utils import quat_matmat
 
 
+def save_png_and_pdf(fig, png_path: str, *, dpi: int = 300) -> None:
+    """Save the same figure as PNG and PDF using the same basename."""
+    root, ext = os.path.splitext(png_path)
+    if ext.lower() != ".png":
+        raise ValueError(f"Expected a .png path, got: {png_path}")
+    os.makedirs(os.path.dirname(png_path), exist_ok=True)
+    fig.savefig(png_path, dpi=dpi, bbox_inches="tight", facecolor="white")
+    fig.savefig(root + ".pdf", bbox_inches="tight", facecolor="white")
+
+
 def rgb_to_quaternion(img):
     r, g, b = img[..., 0], img[..., 1], img[..., 2]
     h, w = r.shape
@@ -64,9 +74,10 @@ def psnr(img1, img2):
 
 
 if __name__ == "__main__":
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     # Load image and convert to quaternion
     # img_path = os.path.join('../.../../data/images', 'sample_image.jpg')
-    img_path = os.path.join("../../data/images", "kodim16.png")
+    img_path = os.path.join(script_dir, "..", "..", "data", "images", "kodim16.png")
     img = Image.open(img_path).convert("RGB")
     img = img.resize((256, 256))  # Optional: resize for speed
     img_np = np.array(img)
@@ -89,6 +100,18 @@ if __name__ == "__main__":
 
     # Start timing
     start_time = time.time()
+
+    # Paper-friendly default styling
+    plt.rcParams.update(
+        {
+            "font.size": 14,
+            "axes.titlesize": 16,
+            "axes.labelsize": 14,
+            "xtick.labelsize": 12,
+            "ytick.labelsize": 12,
+            "legend.fontsize": 12,
+        }
+    )
 
     plt.ion()
     for i in range(n_iter):
@@ -190,7 +213,7 @@ if __name__ == "__main__":
     plt.tight_layout()
 
     # Save high-resolution figure
-    output_dir = "../../output_figures"
+    output_dir = os.path.join(script_dir, "..", "..", "output_figures")
     os.makedirs(output_dir, exist_ok=True)
 
     # Generate filename with parameters
@@ -199,7 +222,8 @@ if __name__ == "__main__":
     save_path = os.path.join(output_dir, filename)
 
     # Save in high resolution (300 DPI)
-    plt.savefig(save_path, dpi=300, bbox_inches="tight", facecolor="white")
+    save_png_and_pdf(fig, save_path, dpi=300)
     print(f"High-resolution figure saved to: {save_path}")
+    print(f"PDF figure saved to: {os.path.splitext(save_path)[0] + '.pdf'}")
 
     plt.show()

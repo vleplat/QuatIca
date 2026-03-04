@@ -81,6 +81,7 @@ nav:
           - Visualization: api/visualization.md
       - Specialized:
           - QSLST: api/qslst.md
+          - qtraj: api/qtraj.md
           - Tensor: api/tensor.md
           - OptiQ: api/optiQ.md
           - OptiQ Visualization: api/optiq_visualization.md

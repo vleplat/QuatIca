@@ -82,6 +82,12 @@ def main():
             "                    Examples: schur_demo 10 (fast), schur_demo 25 (bigger)"
         )
         print(
+            "  qtraj_demo      - Quaternion rotation interpolation demo (SLERP vs SQUAD vs log–exp spline) with angular-velocity and S^2 trajectory diagnostics"
+        )
+        print(
+            "                    Usage: qtraj_demo [--seed S] [--K K] [--samples-per-seg N] [--no-display]"
+        )
+        print(
             "  jupyter_test    - Test Jupyter notebook setup and verify environment configuration"
         )
         print(
@@ -117,6 +123,7 @@ def main():
         "eigenvalue_test": "tests/decomp/eigenvalue_demo.py",  # Eigenvalue decomposition test
         "ns_compare": "tests/unit/test_ns_vs_higher_order_compare.py",  # NS vs Higher-Order NS comparison
         "schur_demo": "tests/schur_demo.py",  # Quaternion Schur decomposition demo
+        "qtraj_demo": "applications/quaternion_geodesic_interpolation/script_quaternion_rotation_interpolation.py",  # Quaternion rotation interpolation demo
         "jupyter_test": "tests/test_jupyter_setup.py",  # Jupyter setup verification
         "pinv_bench": "tests/unit/benchmark_pseudoinverse_methods.py",  # Pseudoinverse benchmark
         "optiq_known": "tests/optiQ/run_optiq_known_optimum.py",  # OptiQ known optimum demo
@@ -179,6 +186,10 @@ def main():
             # Pass optional args to OptiQ known-optimum script.
             cmd.extend(sys.argv[2:])
             print(f"Additional arguments passed to optiq_known: {sys.argv[2:]}")
+        elif script_name == "qtraj_demo" and len(sys.argv) > 2:
+            # Pass optional args to quaternion trajectory demo script.
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to qtraj_demo: {sys.argv[2:]}")
 
         subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "=" * 50)

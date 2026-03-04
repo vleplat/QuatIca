@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -365,3 +365,191 @@ class Visualizer:
             print(f"Saved: {save_path}")
 
         plt.show()
+
+    @staticmethod
+    def set_axes_equal_3d(ax) -> None:
+        """
+        Set equal scaling on a 3D axis.
+
+        Matplotlib's 3D axes do not enforce equal aspect ratio by default, which
+        can make spheres look like ellipsoids. This helper adjusts limits so
+        x/y/z ranges match.
+        """
+        x_limits = ax.get_xlim3d()
+        y_limits = ax.get_ylim3d()
+        z_limits = ax.get_zlim3d()
+
+        x_range = abs(x_limits[1] - x_limits[0])
+        y_range = abs(y_limits[1] - y_limits[0])
+        z_range = abs(z_limits[1] - z_limits[0])
+
+        x_middle = np.mean(x_limits)
+        y_middle = np.mean(y_limits)
+        z_middle = np.mean(z_limits)
+
+        plot_radius = 0.5 * max([x_range, y_range, z_range])
+
+        ax.set_xlim3d([x_middle - plot_radius, x_middle + plot_radius])
+        ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
+        ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
+
+    @staticmethod
+    def quaternion_path_on_s2(
+        q_path: Sequence[quaternion.quaternion],
+        v0: Tuple[float, float, float] = (1.0, 0.0, 0.0),
+    ) -> np.ndarray:
+        r"""
+        Map a quaternion trajectory to a curve on the unit sphere S^2.
+
+        We rotate a fixed unit vector `v0` by each quaternion in `q_path`; the
+        rotated vector lives on the unit sphere \(S^2\subset\mathbb{R}^3\).
+
+        Parameters
+        ----------
+        q_path:
+            Sequence of unit quaternions.
+        v0:
+            Reference 3D vector to rotate (default: e1).
+
+        Returns
+        -------
+        np.ndarray:
+            Array of shape `(len(q_path), 3)` with unit-norm vectors.
+        """
+        # Local import to avoid a hard dependency / circular import at module load time.
+        from .qtraj import rotate_vector
+
+        pts = np.array([rotate_vector(q, v0) for q in q_path], dtype=float)
+        nrm = np.linalg.norm(pts, axis=1, keepdims=True)
+        nrm = np.maximum(nrm, 1e-15)
+        return pts / nrm
+
+    @staticmethod
+    def plot_quaternion_trajectories_on_s2(
+        paths: dict[str, Sequence[quaternion.quaternion]],
+        *,
+        keyframes: Optional[Sequence[quaternion.quaternion]] = None,
+        v0: Tuple[float, float, float] = (1.0, 0.0, 0.0),
+        sphere_alpha: float = 0.08,
+        title: str = r"Trajectory of rotated unit vector on $S^2$",
+        figsize: Tuple[float, float] = (8.5, 6.5),
+        save_path: Optional[str] = None,
+        dpi: int = 300,
+        show: bool = True,
+    ) -> None:
+        """
+        Plot one or more quaternion trajectories as curves on S^2.
+
+        Parameters
+        ----------
+        paths:
+            Mapping `{label: q_path}` where each `q_path` is a sequence of unit quaternions.
+        keyframes:
+            Optional keyframe quaternions to show as markers (rotating the same `v0`).
+        v0:
+            Reference vector used for the S^2 embedding.
+        sphere_alpha:
+            Transparency of the unit sphere surface.
+        title:
+            Plot title.
+        figsize:
+            Figure size.
+        save_path:
+            If provided, save the figure to this path.
+        dpi:
+            Save DPI.
+        show:
+            Whether to display the figure.
+        """
+        from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+
+        # Sphere mesh
+        u = np.linspace(0, 2 * np.pi, 60)
+        v = np.linspace(0, np.pi, 30)
+        X = np.outer(np.cos(u), np.sin(v))
+        Y = np.outer(np.sin(u), np.sin(v))
+        Z = np.outer(np.ones_like(u), np.cos(v))
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111, projection="3d")
+        ax.plot_surface(X, Y, Z, alpha=sphere_alpha, linewidth=0)
+
+        # Curves
+        for label, q_path in paths.items():
+            P = Visualizer.quaternion_path_on_s2(q_path, v0=v0)
+            ax.plot(P[:, 0], P[:, 1], P[:, 2], label=label)
+
+        # Keyframes
+        if keyframes is not None:
+            kp = Visualizer.quaternion_path_on_s2(keyframes, v0=v0)
+            ax.scatter(kp[:, 0], kp[:, 1], kp[:, 2], s=60, marker="o", label="keyframes")
+            for i, (x, y, z) in enumerate(kp):
+                ax.text(x, y, z, f" {i}", fontsize=10)
+
+        ax.set_title(title)
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+        ax.legend()
+        Visualizer.set_axes_equal_3d(ax)
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path, dpi=dpi, bbox_inches="tight", facecolor="white")
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
+
+    @staticmethod
+    def plot_angular_speed(
+        t_path: np.ndarray,
+        q_path: Sequence[quaternion.quaternion],
+        *,
+        label: str = "",
+        ax=None,
+    ) -> None:
+        r"""
+        Plot \(\|\omega(t)\|\) from a sampled quaternion trajectory.
+
+        Uses `quatica.qtraj.estimate_omega` for the discrete log-map estimate.
+        """
+        from .qtraj import estimate_omega
+
+        t_om, om = estimate_omega(q_path, t_path)
+        sp = np.linalg.norm(om, axis=1)
+        if ax is None:
+            ax = plt.gca()
+        ax.plot(t_om, sp, label=label)
+        ax.set_xlabel("t")
+        ax.set_ylabel(r"$\|\omega(t)\|$")
+
+    @staticmethod
+    def plot_angular_accel(
+        t_path: np.ndarray,
+        q_path: Sequence[quaternion.quaternion],
+        *,
+        label: str = "",
+        ax=None,
+    ) -> None:
+        r"""
+        Plot a simple discrete angular acceleration magnitude estimate.
+
+        If `omega_k` is estimated at midpoints, this plots
+        \(\|\Delta\omega/\Delta t\|\) on the corresponding grid.
+        """
+        from .qtraj import estimate_omega
+
+        t_om, om = estimate_omega(q_path, t_path)
+        if len(om) < 2:
+            return
+        dt = np.diff(t_om)
+        dom = np.diff(om, axis=0)
+        acc = dom / dt[:, None]
+        t_acc = 0.5 * (t_om[:-1] + t_om[1:])
+        mag = np.linalg.norm(acc, axis=1)
+        if ax is None:
+            ax = plt.gca()
+        ax.plot(t_acc, mag, label=label)
+        ax.set_xlabel("t")
+        ax.set_ylabel(r"$\|\dot\omega(t)\|$ (discrete)")

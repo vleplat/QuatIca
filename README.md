@@ -258,6 +258,7 @@ python run_analysis.py <script_name>
 | `synthetic_matrices` | **Synthetic Matrix Pseudoinverse Test** - Tests pseudoinverse on various matrix types              | Algorithm validation                                      |
 | `eigenvalue_test`    | **🔬 Eigenvalue Decomposition Test** - Tests tridiagonalization and eigendecomposition             | **Matrix analysis** and eigenvalue computation            |
 | `schur_demo`         | **🎯 Quaternion Schur Decomposition Demo** - Stable Schur demo (`rayleigh`/`implicit`) with residual checks and saved figures | **Matrix decomposition** and validation                   |
+| `qtraj_demo`         | **🧭 Quaternion Rotation Interpolation Demo** - Piecewise SLERP, SQUAD, and log–exp spline on \(S^3\), with angular-velocity and \(S^2\) trajectory diagnostics | **Trajectory smoothness** and orientation keyframes       |
 | `pinv_bench`         | **Pseudoinverse Benchmark** - NS (γ=1), HON (3rd), RSP-Q (col), Hybrid RSP+NS, CGNE–Q              | **Pseudoinverse** runtime/accuracy comparison             |
 
 #### **🎯 Quick Examples:**
@@ -312,6 +313,9 @@ python run_analysis.py schur_demo 15
 python run_analysis.py schur_demo 15 --variant rayleigh --no-display
 python run_analysis.py schur_demo 15 --variant implicit --no-display
 
+# Quaternion rotation interpolation (SLERP vs SQUAD vs log–exp spline)
+python run_analysis.py qtraj_demo --no-display
+
 # Compare Newton–Schulz variants (saves plots to output_figures)
 python run_analysis.py ns_compare
 
@@ -362,6 +366,7 @@ QuatIca/
 │   ├── utils.py            # Quaternion operations, utilities, and power iteration
 │   ├── data_gen.py         # Matrix generation functions
 │   ├── visualization.py    # Plotting and visualization tools
+│   ├── qtraj.py            # Quaternion trajectories on S^3 (SLERP/SQUAD/log–exp spline + angular-velocity diagnostics)
 │   ├── optiQ.py            # Optimization on quaternions (Hermitian SDP module)
 │   ├── optiq_visualization.py # Dedicated visualization tools for OptiQ outputs
 │   ├── tensor.py           # Quaternion tensor utilities (norms, |T|, unfold/fold)
@@ -411,6 +416,8 @@ QuatIca/
 │   │   ├── run_deblur_benchmark.py
 │   │   ├── optimize_lambda.py
 │   │   └── visualize_results.py
+│   ├── quaternion_geodesic_interpolation/  # Orientation trajectory interpolation demos
+│   │   └── script_quaternion_rotation_interpolation.py  # SLERP vs SQUAD vs log–exp spline demo (paper-ready figures)
 │   └── signal_processing/  # Signal processing applications
 │       ├── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
 │       └── benchmark_lorenz_methods.py   # Q-GMRES vs Newton-Schulz benchmark
