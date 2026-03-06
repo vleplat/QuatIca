@@ -16,15 +16,14 @@ References:
 - Algorithm 3.2.1, section 3.2.6, modified along the lines of section 3.2.11
 """
 
-import os
-import sys
-
 import numpy as np
 import quaternion
 
-# Add core module to path for imports
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from utils import quat_frobenius_norm, quat_matmat
+# Support both package and script import contexts for quatica.utils
+try:
+    from ..utils import quat_frobenius_norm, quat_matmat
+except Exception:  # pragma: no cover
+    from utils import quat_frobenius_norm, quat_matmat
 
 
 def quaternion_modulus(A):

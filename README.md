@@ -246,7 +246,7 @@ python run_analysis.py <script_name>
 | `qgmres`             | **Q-GMRES Solver Test** - Tests the iterative Krylov subspace solver                               | **Linear system solving** with quaternions                |
 | `qgmres_bench`       | **🚀 Q-GMRES Performance Benchmark** - Comprehensive preconditioner benchmarking                   | **Algorithm performance** and LU preconditioning analysis |
 | `lorenz_signal`      | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES                         | **Signal processing** applications                        |
-| `lorenz_benchmark`   | **🏆 Method Comparison Benchmark** - Q-GMRES vs Newton-Schulz performance comparison               | **Algorithm selection** and performance analysis          |
+| `lorenz_benchmark`   | **🏆 Method Comparison Benchmark** - Compare **Q-GMRES**, **NS--Q**, and **LU (direct)** on the Lorenz-attractor quaternion system | **Algorithm selection** and performance analysis          |
 | `ns_compare`         | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots              | **Pseudoinverse** benchmarking                            |
 | `pseudoinverse`      | **Single Image Analysis** - Analyzes one image (kodim16.png)                                       | Understanding pseudoinverse structure                     |
 | `multiple_images`    | **Multi-Image Analysis** - Compares multiple small images                                          | Pattern comparison across images                          |
@@ -281,6 +281,9 @@ python run_analysis.py lorenz_signal --num_points 100
 
 # Compare Q-GMRES vs Newton-Schulz methods
 python run_analysis.py lorenz_benchmark
+
+# Large-N benchmark (skip slow Q-GMRES; LU + NS--Q only)
+python run_analysis.py lorenz_benchmark --no_show --methods newton,lu --points 500,1000 --skip_trajectory
 
 
 # See image completion in action
@@ -420,7 +423,7 @@ QuatIca/
 │   │   └── script_quaternion_rotation_interpolation.py  # SLERP vs SQUAD vs log–exp spline demo (paper-ready figures)
 │   └── signal_processing/  # Signal processing applications
 │       ├── lorenz_attractor_qgmres.py    # Lorenz attractor Q-GMRES application
-│       └── benchmark_lorenz_methods.py   # Q-GMRES vs Newton-Schulz benchmark
+│       └── benchmark_lorenz_methods.py   # Lorenz benchmark: Q-GMRES vs NS--Q vs LU (direct)
 ├── docs/                   # 📚 MkDocs documentation source
 │   ├── index.md           # Documentation homepage
 │   ├── getting-started.md # Installation and setup guide
@@ -570,16 +573,21 @@ The script simulates the Lorenz attractor for **10 seconds** by default. To modi
 
 ### **🏆 `lorenz_benchmark` - Method Comparison Benchmark**
 
-- **What it is**: Comprehensive performance comparison between Q-GMRES and Newton-Schulz methods
+- **What it is**: Performance comparison on the Lorenz-attractor quaternion system between:
+  - **Q-GMRES** (iterative solve),
+  - **NS--Q** (Newton–Schulz pseudoinverse-based solve),
+  - **LU (direct)** (quaternion LU with partial pivoting + triangular solves).
 - **Perfect for**: Understanding method trade-offs and choosing the right algorithm
-- **Duration**: ~5-10 minutes (comprehensive testing)
-- **Output**: 2 high-quality analysis files in `output_figures/`:
+- **Duration**: Depends on selected methods and `N` range (Q-GMRES can be slow for large dense systems)
+- **Output**: High-quality analysis files in `output_figures/`:
   - `lorenz_benchmark_performance.png` - Performance comparison plots (4 subplots)
   - `lorenz_trajectory_comparison.png` - 3D trajectory reconstruction comparison
+  - `lorenz_trajectory_comparison_publication.png` - Publication-style 3D comparison
+  - `lorenz_1d_signals_publication.png` - 1D component curves vs time
 
 #### **📊 Benchmark Results:**
 
-The benchmark tests both methods across different problem sizes (50-200 points) and provides:
+The benchmark tests the selected methods across problem sizes and provides:
 
 **Performance Metrics:**
 
@@ -594,18 +602,17 @@ The benchmark tests both methods across different problem sizes (50-200 points) 
 - Clean signal vs reconstructed signal comparison
 - Method performance across different problem sizes
 
-#### **🎯 Key Findings:**
-
-- **Newton-Schulz is ~100x faster** than Q-GMRES on average
-- **Newton-Schulz is ~270x more accurate** than Q-GMRES on average
-- **Newton-Schulz scales better** with problem size
-- **Q-GMRES shows inconsistent accuracy** across different problem sizes
-
 **Usage:**
 
 ```bash
 # Run the complete benchmark
 python run_analysis.py lorenz_benchmark
+
+# Headless run (save figures without displaying)
+python run_analysis.py lorenz_benchmark --no_show
+
+# Large-N run (skip Q-GMRES; LU + NS--Q only)
+python run_analysis.py lorenz_benchmark --no_show --methods newton,lu --points 500,1000 --skip_trajectory
 ```
 
 <!-- ### **🎯 `cifar10` - Most Comprehensive Analysis**

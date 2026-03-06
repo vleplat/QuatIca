@@ -170,6 +170,10 @@ def main():
             # Pass all remaining arguments to the Lorenz script
             cmd.extend(sys.argv[2:])
             print(f"Additional arguments passed to Lorenz script: {sys.argv[2:]}")
+        elif script_name == "lorenz_benchmark" and len(sys.argv) > 2:
+            # Pass optional args to Lorenz benchmark script (e.g., --no_show)
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to lorenz_benchmark: {sys.argv[2:]}")
         elif script_name == "schur_demo" and len(sys.argv) > 2:
             # Pass matrix size argument to the Schur demo script
             cmd.extend(sys.argv[2:])
