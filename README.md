@@ -1550,7 +1550,7 @@ This project is licensed under the **CC0 1.0 Universal** license - a public doma
 ## 📧 Support and Contact
 
 For questions, bug reports, or contributions, please contact:
-**v dot leplat [at] innopolis dot ru**
+**valentin dot leplat [at] gmail dot com**
 
 We welcome feedback, collaboration opportunities, and contributions to the QuatIca project.
 
