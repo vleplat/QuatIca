@@ -1505,7 +1505,7 @@ A comprehensive paper describing QuatIca's algorithms and applications is curren
   title   = {QuatIca: Quaternion Linear Algebra Library},
   author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Ouerdane, Henni and Ng, Michael},
   year    = {2025},
-  version = {v0.1.7},
+  version = {v1.0.0},
   doi     = {10.5281/zenodo.16910158},
   url     = {https://github.com/vleplat/QuatIca},
   note    = {Numerical linear algebra for quaternions}
@@ -1531,21 +1531,19 @@ This library is designed to be a comprehensive framework for quaternion linear a
 - New applications and examples
 - Documentation improvements
 
-## 📄 License
+## License
 
-This project is licensed under the **CC0 1.0 Universal** license - a public domain dedication that allows you to use, modify, and distribute this software freely for any purpose, including commercial use, without any restrictions.
+QuatIca is licensed under the **MIT License**.
 
-**Key Points:**
+This means you are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, including for commercial purposes, provided that the copyright notice and license notice are preserved in substantial portions of the software.
 
-- ✅ **Public Domain**: You can use this software for any purpose
-- ✅ **No Attribution Required**: You don't need to credit the original authors
-- ✅ **Commercial Use**: You can use it in commercial projects
-- ✅ **Modification**: You can modify and distribute your changes
-- ✅ **No Warranty**: The software is provided "as-is" without any warranties
+The software is provided **“as is”**, without warranty of any kind.
 
-**Full License Text:** See [`LICENSE.txt`](LICENSE.txt) for the complete license terms.
+**License transition notice:**  
+As of version 1.0.0, QuatIca is distributed under the MIT License.  
+Earlier versions of this project were released under **CC0 1.0 Universal** and remain available under those terms.
 
-**Why CC0?** This license promotes the ideal of a free culture and encourages the further production of creative, cultural, and scientific works by allowing maximum freedom of use and redistribution.
+**Full license text:** See [`LICENSE`](LICENSE) for the complete license terms.
 
 ## 📧 Support and Contact
 

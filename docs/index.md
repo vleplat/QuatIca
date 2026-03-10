@@ -144,8 +144,8 @@ QuatIca supports cutting-edge research in:
 
 - **Documentation**: Complete guides and API reference on this site
 - **Community**: GitHub Issues for questions and bug reports
-- **Contact**: v dot leplat [at] innopolis dot ru
-- **License**: CC0 1.0 Universal (public domain)
+- **Contact**: valentin dot leplat [at] gmail dot com
+- **License**: MIT License (as of v1.0.0; earlier versions were CC0 1.0 Universal)
 
 ---
 

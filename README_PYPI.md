@@ -299,7 +299,7 @@ If you use QuatIca in your research, please cite:
   title   = {QuatIca: Quaternion Linear Algebra Library},
   author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Ouerdane, Henni and Ng, Michael},
   year    = {2025},
-  version = {v0.1.16},
+  version = {v1.0.0},
   doi     = {10.5281/zenodo.16910158},
   url     = {https://github.com/vleplat/QuatIca},
   note    = {Numerical linear algebra for quaternions}
@@ -317,7 +317,11 @@ Contributions are welcome! Please see our [GitHub repository](https://github.com
 
 ## 📜 License
 
-CC0 1.0 Universal (Public Domain) - see [LICENSE](https://github.com/vleplat/QuatIca/blob/main/LICENSE.txt) for details.
+QuatIca is licensed under the **MIT License** (as of v1.0.0).
+
+Earlier versions were released under **CC0 1.0 Universal** and remain available under those terms.
+
+See [LICENSE](https://github.com/vleplat/QuatIca/blob/main/LICENSE) for details.
 
 ## 🔗 Links
 
