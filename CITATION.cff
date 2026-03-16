@@ -8,12 +8,11 @@ authors:
     given-names: Junjun
   - family-names: Ahmadi-Asl
     given-names: Salman
-  - family-names: Beresnev
-    given-names: Dmitry
   - family-names: Ouerdane
     given-names: Henni
   - family-names: Ng
     given-names: Michael
+
 preferred-citation:
   type: software
   title: "QuatIca"
@@ -24,12 +23,10 @@ preferred-citation:
       given-names: Junjun
     - family-names: Ahmadi-Asl
       given-names: Salman
-    - family-names: Beresnev
-      given-names: Dmitry
     - family-names: Ouerdane
       given-names: Henni
     - family-names: Ng
       given-names: Michael
   year: 2025
-  doi: https://doi.org/10.5281/zenodo.16910158
+  doi: 10.5281/zenodo.16910158
   url: "https://github.com/vleplat/QuatIca"
