@@ -248,6 +248,7 @@ python run_analysis.py <script_name>
 | `lorenz_signal`      | **Lorenz Attractor Signal Processing** - 3D signal processing with Q-GMRES                         | **Signal processing** applications                        |
 | `lorenz_benchmark`   | **🏆 Method Comparison Benchmark** - Compare **Q-GMRES**, **NS--Q**, and **LU (direct)** on the Lorenz-attractor quaternion system | **Algorithm selection** and performance analysis          |
 | `ns_compare`         | **NS vs Higher-Order NS** - Compares pseudoinverse solvers, saves residual/time plots              | **Pseudoinverse** benchmarking                            |
+| `qsvd_bench`         | **📐 Q-SVD Paper Benchmark** - Compare **Truncated Q-SVD**, **Randomized Q-SVD**, and **Pass-efficient Q-SVD** (rank-10 sanity check, error vs rank, runtime vs size; saves CSV + dashboard + PDF panels) | **Q-SVD** benchmarking for paper figures                  |
 | `pseudoinverse`      | **Single Image Analysis** - Analyzes one image (kodim16.png)                                       | Understanding pseudoinverse structure                     |
 | `multiple_images`    | **Multi-Image Analysis** - Compares multiple small images                                          | Pattern comparison across images                          |
 | `image_completion`   | **Image Completion Demo** - Fills missing pixels in real images                                    | **Practical application**                                 |
@@ -284,6 +285,15 @@ python run_analysis.py lorenz_benchmark
 
 # Large-N benchmark (skip slow Q-GMRES; LU + NS--Q only)
 python run_analysis.py lorenz_benchmark --no_show --methods newton,lu --points 500,1000 --skip_trajectory
+
+# Q-SVD paper benchmark (saves CSV + dashboard + PDF panels under validation_output/)
+python run_analysis.py qsvd_bench
+
+# Faster run (1 seed)
+python run_analysis.py qsvd_bench --seeds 0 --out-dir validation_output/qsvd_benchmark_fast
+
+# Higher-accuracy runtime panel (more passes/oversampling for Part C only)
+python run_analysis.py qsvd_bench --seeds 0,1,2 --out-dir validation_output/qsvd_benchmark_paper --runtime-n-passes 4 --runtime-oversample 20
 
 
 # See image completion in action
@@ -407,6 +417,8 @@ QuatIca/
 │   │   ├── test_LU.py      # LU decomposition unit tests
 │   │   ├── test_tridiagonalize.py # Tridiagonalization unit tests
 │   │   ├── eigenvalue_demo.py # Demonstration of eigenvalue decomposition
+│   │   ├── benchmark_qsvd_paper.py # Paper-ready Q-SVD benchmark (CSV + dashboard + PDF panels)
+│   │   ├── audit_pass_eff_qsvd.py # Targeted pass-efficient Q-SVD audit (CSV + summary figures)
 │   │   └── test_hessenberg.py  # Hessenberg reduction unit tests
 │   ├── optiQ/              # OptiQ demos/diagnostics; unit coverage in tests/unit/test_optiQ_*.py
 ├── applications/

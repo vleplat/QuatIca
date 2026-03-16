@@ -202,6 +202,31 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--oversample", type=int, default=10, help="Oversampling parameter.")
     p.add_argument("--n-iter", type=int, default=2, help="Power iterations for rand_qsvd.")
     p.add_argument("--n-passes", type=int, default=2, help="Pass budget for pass_eff_qsvd.")
+    # Optional: bump accuracy specifically for Part C (runtime plot) without changing A/B.
+    p.add_argument(
+        "--runtime-oversample",
+        type=int,
+        default=None,
+        help="Override --oversample for Part C only (runtime plot).",
+    )
+    p.add_argument(
+        "--runtime-n-iter",
+        type=int,
+        default=None,
+        help="Override --n-iter for Part C only (runtime plot).",
+    )
+    p.add_argument(
+        "--runtime-n-passes",
+        type=int,
+        default=None,
+        help="Override --n-passes for Part C only (runtime plot).",
+    )
+    p.add_argument(
+        "--runtime-rank",
+        type=int,
+        default=20,
+        help="Target rank R for Part C only (runtime plot).",
+    )
     args = p.parse_args(argv)
 
     root = Path(_find_repo_root(os.path.dirname(__file__)))
@@ -214,6 +239,9 @@ def main(argv: list[str] | None = None) -> None:
     oversample = int(args.oversample)
     n_iter = int(args.n_iter)
     n_passes = int(args.n_passes)
+    runtime_oversample = oversample if args.runtime_oversample is None else int(args.runtime_oversample)
+    runtime_n_iter = n_iter if args.runtime_n_iter is None else int(args.runtime_n_iter)
+    runtime_n_passes = n_passes if args.runtime_n_passes is None else int(args.runtime_n_passes)
 
     rows: list[dict[str, Any]] = []
 
@@ -286,28 +314,67 @@ def main(argv: list[str] | None = None) -> None:
     # Part C: runtime vs size
     # -------------------------
     runtime_sizes = [(100, 80), (200, 150), (300, 200), (400, 300), (800, 600), (1200, 900)]
-    runtime_rank = 20
+    runtime_rank = int(args.runtime_rank)
 
     for (m, n) in runtime_sizes:
         for seed in seeds:
             np.random.seed(seed)
             X = _random_quat(m, n)
 
+            # Baseline: classical truncated Q-SVD gives the best rank-R approximation
+            Uc, sc, Vc, dtc = _safe_run(
+                lambda: _run_method(
+                    X,
+                    "classical",
+                    runtime_rank,
+                    oversample=runtime_oversample,
+                    n_iter=runtime_n_iter,
+                    n_passes=runtime_n_passes,
+                )
+            )
+            if Uc is None:
+                err_c = float("nan")
+            else:
+                err_c = _rel_err(X, Uc, sc, Vc)
+
+            # Record classical row first
+            rows.append(
+                {
+                    "experiment": "runtime_vs_size",
+                    "method_key": "classical",
+                    "method": METHODS["classical"],
+                    "seed": seed,
+                    "m": m,
+                    "n": n,
+                    "size_label": f"{m}×{n}",
+                    "R": runtime_rank,
+                    "oversample": runtime_oversample,
+                    "n_iter": runtime_n_iter,
+                    "n_passes": runtime_n_passes,
+                    "time_s": dtc,
+                    "rel_err": err_c,
+                    "rel_err_ratio_to_classical": 1.0,
+                }
+            )
+
             for method_key, method_label in METHODS.items():
+                if method_key == "classical":
+                    continue
                 U, s, V, dt = _safe_run(
                     lambda mk=method_key: _run_method(
                         X,
                         mk,
                         runtime_rank,
-                        oversample=oversample,
-                        n_iter=n_iter,
-                        n_passes=n_passes,
+                        oversample=runtime_oversample,
+                        n_iter=runtime_n_iter,
+                        n_passes=runtime_n_passes,
                     )
                 )
                 if U is None:
                     err = float("nan")
                 else:
                     err = _rel_err(X, U, s, V)
+                ratio = float(err / err_c) if np.isfinite(err) and np.isfinite(err_c) and err_c > 0 else float("nan")
 
                 rows.append(
                     {
@@ -319,11 +386,12 @@ def main(argv: list[str] | None = None) -> None:
                         "n": n,
                         "size_label": f"{m}×{n}",
                         "R": runtime_rank,
-                        "oversample": oversample,
-                        "n_iter": n_iter,
-                        "n_passes": n_passes,
+                        "oversample": runtime_oversample,
+                        "n_iter": runtime_n_iter,
+                        "n_passes": runtime_n_passes,
                         "time_s": dt,
                         "rel_err": err,
+                        "rel_err_ratio_to_classical": ratio,
                     }
                 )
 
@@ -334,6 +402,20 @@ def main(argv: list[str] | None = None) -> None:
 
     df = pd.DataFrame(rows)
     df.to_csv(out_dir / "qsvd_benchmark_metrics.csv", index=False)
+
+    # Console sanity check for the runtime-vs-size experiment: accuracy vs classical baseline.
+    try:
+        rt = df[df["experiment"] == "runtime_vs_size"].copy()
+        if not rt.empty and "rel_err_ratio_to_classical" in rt.columns:
+            ratios = (
+                rt[rt["method_key"].isin(["rand", "pass_eff"])]
+                .groupby(["size_label", "method_key"], observed=True)["rel_err_ratio_to_classical"]
+                .mean()
+            )
+            worst = float(np.nanmax(ratios.values)) if len(ratios) else float("nan")
+            print(f"[qsvd_bench] Runtime-vs-size: worst mean error ratio to classical = {worst:.3f}×")
+    except Exception:
+        pass
 
     # -------------------------
     # Build dashboard (3 panels)

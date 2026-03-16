@@ -75,6 +75,9 @@ def main():
             "  ns_compare      - Compare NS vs Higher-Order NS (saves plots to output_figures)"
         )
         print(
+            "  qsvd_bench      - Paper-ready Q-SVD benchmark (Truncated vs Randomized vs Pass-efficient) with CSV + dashboard + PDF panels"
+        )
+        print(
             "  schur_demo      - Quaternion Schur decomposition demo (stable variants: rayleigh/implicit)"
         )
         print("                    Usage: schur_demo [matrix_size] (default: 10)")
@@ -122,6 +125,7 @@ def main():
         "synthetic_matrices": "tests/pseudoinverse/script_synthetic_matrices.py",  # Pseudoinverse test on synthetic matrices
         "eigenvalue_test": "tests/decomp/eigenvalue_demo.py",  # Eigenvalue decomposition test
         "ns_compare": "tests/unit/test_ns_vs_higher_order_compare.py",  # NS vs Higher-Order NS comparison
+        "qsvd_bench": "tests/decomp/benchmark_qsvd_paper.py",  # Paper-ready Q-SVD benchmark
         "schur_demo": "tests/schur_demo.py",  # Quaternion Schur decomposition demo
         "qtraj_demo": "applications/quaternion_geodesic_interpolation/script_quaternion_rotation_interpolation.py",  # Quaternion rotation interpolation demo
         "jupyter_test": "tests/test_jupyter_setup.py",  # Jupyter setup verification
@@ -194,6 +198,10 @@ def main():
             # Pass optional args to quaternion trajectory demo script.
             cmd.extend(sys.argv[2:])
             print(f"Additional arguments passed to qtraj_demo: {sys.argv[2:]}")
+        elif script_name == "qsvd_bench" and len(sys.argv) > 2:
+            # Pass optional args to the Q-SVD benchmark script.
+            cmd.extend(sys.argv[2:])
+            print(f"Additional arguments passed to qsvd_bench: {sys.argv[2:]}")
 
         subprocess.run(cmd, cwd=script_dir, check=True)
         print("\n" + "=" * 50)
