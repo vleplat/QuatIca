@@ -313,37 +313,62 @@ def pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2):
     Notes:
     ------
     Advantage: fewer large passes over X, good cache behavior.
+
+    Sketching choice:
+    - This implementation follows the *experimental protocol* in the reference paper:
+      the initial sketch is a real Gaussian matrix embedded into quaternions
+      (i.e., nonzero real part, zero i/j/k parts). This is a deliberate simplification
+      compared to the most general quaternion-Gaussian sketch described in theory.
     """
     m, n = X_quat.shape
     P, v = oversample, n_passes
 
+    # --- Priority A: input validation (low-risk, paper-safety) ---
+    if not (hasattr(X_quat, "dtype") and (X_quat.dtype == np.quaternion)):
+        raise TypeError("pass_eff_qsvd expects a 2D numpy-quaternion array (dtype=np.quaternion).")
+    if X_quat.ndim != 2:
+        raise ValueError(f"pass_eff_qsvd expects a 2D matrix; got shape {getattr(X_quat, 'shape', None)}.")
+    if not (isinstance(R, int) and R > 0):
+        raise ValueError("pass_eff_qsvd requires R to be a positive integer.")
+    if not (isinstance(P, int) and P >= 0):
+        raise ValueError("pass_eff_qsvd requires oversample to be a nonnegative integer.")
+    if not (isinstance(v, int) and v >= 2):
+        raise ValueError("pass_eff_qsvd requires n_passes >= 2.")
+    if R > min(m, n):
+        raise ValueError(f"pass_eff_qsvd requires R <= min(m,n); got R={R}, m={m}, n={n}.")
+
+    # Effective sketch dimension l = min(n, R+P). Clipping keeps backward compatibility
+    # with existing calls that oversample beyond n, while preserving the intended "thin"
+    # sketch dimension assumption (l <= n).
+    l = min(n, R + P)
+
     # 1) Initial random matrix (dense real) - same as MATLAB
-    Q1 = np.random.randn(n, R + P)
+    Q_right = np.random.randn(n, l)
 
     # 2) Alternating passes - matching MATLAB logic
     for i in range(1, v + 1):  # MATLAB: for i=1:v
         if i % 2 == 1:  # MATLAB: if rem(i,2)~=0
-            # [Q_2,R_2]=qr_qua(X*Q_1)
+            # [Q_left,R_left]=qr_qua(X*Q_right)
             # Convert real matrix to quaternion matrix properly
-            if isinstance(Q1, np.ndarray) and Q1.dtype != np.quaternion:
-                Q1_components = np.zeros((n, R + P, 4))
-                Q1_components[..., 0] = Q1  # Real part
-                Q1_quat = quaternion.as_quat_array(Q1_components)
+            if isinstance(Q_right, np.ndarray) and Q_right.dtype != np.quaternion:
+                Qr_components = np.zeros((n, l, 4))
+                Qr_components[..., 0] = Q_right  # Real part
+                Q_right_quat = quaternion.as_quat_array(Qr_components)
             else:
-                Q1_quat = Q1  # Already quaternion
-            Q2, R2 = qr_qua(quat_matmat(X_quat, Q1_quat))
+                Q_right_quat = Q_right  # Already quaternion
+            Q_left, R_left = qr_qua(quat_matmat(X_quat, Q_right_quat))
         else:
-            # [Q_1,R_1]=qr_qua(X'*Q_2)
-            Q1, R1 = qr_qua(quat_matmat(quat_hermitian(X_quat), Q2))
+            # [Q_right,R_right]=qr_qua(X'*Q_left)
+            Q_right, R_right = qr_qua(quat_matmat(quat_hermitian(X_quat), Q_left))
 
     # 3) Final SVD - matching MATLAB logic
     if v % 2 == 0:  # MATLAB: if rem(v,2)==0
-        # [V_,S,U_]=svd(R_1)
-        R_real = real_expand(R1)
+        # [V_,S,U_]=svd(R_right)
+        R_real = real_expand(R_right)
         V_, S, U_ = np.linalg.svd(R_real, full_matrices=False)
     else:
-        # [U_,S,V_]=svd(R_2)
-        R_real = real_expand(R2)
+        # [U_,S,V_]=svd(R_left)
+        R_real = real_expand(R_left)
         U_, S, V_ = np.linalg.svd(R_real, full_matrices=False)
 
     # 4) Lift back - matching MATLAB: V=Q_1*V_; U=Q_2*U_
@@ -352,15 +377,15 @@ def pass_eff_qsvd(X_quat, R, oversample=10, n_passes=2):
 
     if v % 2 == 0:
         # V=Q_1*V_; U=Q_2*U_
-        V_small = real_contract(V_[:, : 4 * R], Q1.shape[1], R)
-        U_small = real_contract(U_[: 4 * R, :].T, Q2.shape[1], R)
-        V_quat = quat_matmat(Q1, V_small)
-        U_quat = quat_matmat(Q2, U_small)
+        V_small = real_contract(V_[:, : 4 * R], Q_right.shape[1], R)
+        U_small = real_contract(U_[: 4 * R, :].T, Q_left.shape[1], R)
+        V_quat = quat_matmat(Q_right, V_small)
+        U_quat = quat_matmat(Q_left, U_small)
     else:
         # U=Q_2*U_; V=Q_1*V_
-        U_small = real_contract(U_[:, : 4 * R], Q2.shape[1], R)
-        V_small = real_contract(V_[: 4 * R, :].T, Q1.shape[1], R)
-        U_quat = quat_matmat(Q2, U_small)
-        V_quat = quat_matmat(Q1, V_small)
+        U_small = real_contract(U_[:, : 4 * R], Q_left.shape[1], R)
+        V_small = real_contract(V_[: 4 * R, :].T, Q_right.shape[1], R)
+        U_quat = quat_matmat(Q_left, U_small)
+        V_quat = quat_matmat(Q_right, V_small)
 
     return U_quat, s, V_quat

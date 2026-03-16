@@ -29,7 +29,6 @@ def test_pass_eff_qsvd_basic():
 
     # Test with different parameters
     test_cases = [
-        (1, 5),  # n_passes=1, oversample=5
         (2, 5),  # n_passes=2, oversample=5
         (3, 5),  # n_passes=3, oversample=5
         (2, 10),  # n_passes=2, oversample=10
@@ -59,6 +58,20 @@ def test_pass_eff_qsvd_basic():
             return False
 
     return True
+
+
+def test_pass_eff_qsvd_rejects_one_pass():
+    """pass_eff_qsvd should reject n_passes=1 (paper algorithm assumes v>=2)."""
+    m, n = 8, 6
+    R = 3
+    X = create_test_matrix(m, n)
+    try:
+        _U, _s, _V = pass_eff_qsvd(X, R, oversample=5, n_passes=1)
+    except ValueError:
+        return True
+    except Exception:
+        return False
+    return False
 
 
 def test_pass_eff_qsvd_vs_rand_qsvd():
@@ -158,7 +171,7 @@ def test_pass_eff_qsvd_convergence():
     print(f"Full Q-SVD singular values (first {R}): {s_full}")
 
     # Test different numbers of passes
-    n_passes_list = [1, 2, 3, 4]
+    n_passes_list = [2, 3, 4]
 
     for n_passes in n_passes_list:
         print(f"\nTesting pass_eff_qsvd with {n_passes} passes:")
