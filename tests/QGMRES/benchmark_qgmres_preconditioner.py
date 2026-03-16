@@ -49,6 +49,11 @@ plt.rcParams.update(
     {
         "figure.facecolor": "white",
         "axes.facecolor": "white",
+        # Typography: LaTeX-like without requiring a LaTeX install
+        "font.family": "serif",
+        "font.serif": ["STIX Two Text", "STIXGeneral", "Times New Roman", "DejaVu Serif"],
+        "mathtext.fontset": "stix",
+        "text.usetex": False,
         "font.size": 14,
         "axes.titlesize": 18,
         "axes.labelsize": 16,
@@ -56,9 +61,56 @@ plt.rcParams.update(
         "ytick.labelsize": 14,
         "legend.fontsize": 14,
         "figure.titlesize": 22,
-        "font.family": "sans-serif",
+        # Paper-friendly exports
+        "lines.linewidth": 2.5,
+        "axes.linewidth": 1.2,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "grid.alpha": 0.25,
+        "savefig.dpi": 300,
+        "pdf.fonttype": 42,  # TrueType fonts in PDF
+        "ps.fonttype": 42,
     }
 )
+
+
+def _save_axis_as_pdf(fig: plt.Figure, ax: plt.Axes, path_pdf: Path, *, pad: float = 0.02) -> None:
+    """
+    Save a single axis as a cropped PDF.
+
+    This avoids re-plotting: we crop from the full dashboard figure.
+    """
+    path_pdf.parent.mkdir(parents=True, exist_ok=True)
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    bbox = ax.get_tightbbox(renderer).expanded(1.0 + pad, 1.0 + pad)
+    bbox_inches = bbox.transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(path_pdf, bbox_inches=bbox_inches, facecolor="white")
+
+
+def _export_dashboard_and_panels(
+    fig: plt.Figure,
+    axes: dict[str, plt.Axes],
+    output_dir: Path,
+    *,
+    dashboard_name: str = "qgmres_final_performance_report",
+) -> None:
+    """Save the full dashboard PNG + separate PDF panels."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Full dashboard (PNG)
+    fig.savefig(
+        output_dir / f"{dashboard_name}.png",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+        pad_inches=0.5,
+    )
+
+    # Individual panels (PDF)
+    panels_dir = output_dir / f"{dashboard_name}_panels"
+    for key, ax in axes.items():
+        _save_axis_as_pdf(fig, ax, panels_dir / f"{dashboard_name}__{key}.pdf", pad=0.03)
 
 
 @dataclass
@@ -83,9 +135,30 @@ def create_robust_test_scenarios(
     np.random.seed(seed)
     scenarios = {}
 
+    def _real_to_quat(A: np.ndarray) -> np.ndarray:
+        """Lift a real matrix into a quaternion matrix with zero imaginary parts."""
+        A = np.asarray(A, dtype=float)
+        Z = np.zeros_like(A)
+        return quaternion.as_quat_array(np.stack([A, Z, Z, Z], axis=-1))
+
     # 1. Symmetric Positive Definite (well-conditioned)
-    B = create_test_matrix(n, n)
-    A_spd = quat_matmat(quat_hermitian(B), B) + 0.01 * quat_eye(n)
+    # Build SPD with controlled spectrum to avoid occasional large forward errors.
+    # (Residual-based convergence can still allow ~1e-2 relative solution error if κ(A) is large.)
+    try:
+        from data_gen import generate_random_unitary_matrix  # type: ignore
+    except Exception:
+        # Fallback: real orthogonal lift (still SPD, but purely real quaternions)
+        generate_random_unitary_matrix = None
+
+    if generate_random_unitary_matrix is not None:
+        Q = generate_random_unitary_matrix(n)
+    else:
+        Q_real, _ = np.linalg.qr(np.random.randn(n, n))
+        Q = _real_to_quat(Q_real)
+
+    spd_eigs = np.logspace(0, -1, n)  # cond ~ 10 (well-conditioned)
+    D_spd = _real_to_quat(np.diag(spd_eigs))
+    A_spd = quat_matmat(quat_matmat(Q, D_spd), quat_hermitian(Q))
     x_true_spd = create_test_matrix(n, 1)
     b_spd = quat_matmat(A_spd, x_true_spd)
     scenarios["SPD"] = (A_spd, b_spd, x_true_spd)
@@ -100,16 +173,18 @@ def create_robust_test_scenarios(
     scenarios["DENSE"] = (A_dense, b_dense, x_true_dense)
 
     # 3. Moderately ill-conditioned
-    U = create_test_matrix(n, n)
-    U_real = quaternion.as_float_array(U).reshape(-1, 4)
-    U_orth, _ = np.linalg.qr(U_real)
-    U = quaternion.as_quat_array(U_orth).reshape(n, n)
+    # NOTE:
+    # We build a *real* orthogonal U (then lift to quaternions) so that the intended
+    # condition number is actually controlled in floating point. The previous approach
+    # attempted to "orthogonalize" stacked quaternion components, which can create
+    # unintentionally extreme conditioning and lead to small residuals but large
+    # forward errors (||x-x*||/||x*||).
+    U_real, _ = np.linalg.qr(np.random.randn(n, n))
+    U = _real_to_quat(U_real)
 
     # Create diagonal with moderate condition number
     eigenvals = np.logspace(0, -2, n)  # Condition number ~100
-    D = np.zeros((n, n), dtype=np.quaternion)
-    for i in range(n):
-        D[i, i] = quaternion.quaternion(eigenvals[i], 0, 0, 0)
+    D = _real_to_quat(np.diag(eigenvals))
 
     A_ill = quat_matmat(quat_matmat(U, D), quat_hermitian(U))
     x_true_ill = create_test_matrix(n, 1)
@@ -171,10 +246,9 @@ def run_robust_benchmark(
                         )
 
                         # Check success
-                        success = (
-                            info["iterations"] < max_iter
-                            and info.get("residual", float("inf")) < 1e-6
-                        )
+                        # Use the solver's own convergence flag so "success" means
+                        # it actually met the requested tolerance (and not a looser threshold).
+                        success = bool(info.get("converged", False)) and info["iterations"] <= max_iter
 
                         result = PerformanceResult(
                             method=method,
@@ -188,8 +262,11 @@ def run_robust_benchmark(
                         )
                         results.append(result)
 
+                        status = "✅" if success else "⚠️"
                         print(
-                            f" ✅ {info['iterations']:3d}it {solve_time:.3f}s acc={sol_error:.2e}"
+                            f" {status} {info['iterations']:3d}it {solve_time:.3f}s "
+                            f"res={info.get('residual', float('inf')):.2e} "
+                            f"rel_err={sol_error:.2e}"
                         )
 
                     except Exception:
@@ -315,10 +392,10 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
                 fontsize=10,
             )
 
-    ax1.set_xlabel("Matrix Scenario", fontweight="bold")
-    ax1.set_ylabel("Average Iterations to Convergence", fontweight="bold")
+    ax1.set_xlabel("Matrix scenario")
+    ax1.set_ylabel("Mean iterations to convergence")
     ax1.set_title(
-        "Iteration Count Performance by Matrix Type\n(Lower is Better)",
+        "Iterations by matrix type (lower is better)",
         fontsize=14,
         fontweight="bold",
     )
@@ -351,10 +428,10 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
             markeredgewidth=3,
         )
 
-    ax2.set_xlabel("Matrix Size (n)", fontweight="bold")
-    ax2.set_ylabel("Average Solve Time (seconds)", fontweight="bold")
+    ax2.set_xlabel(r"Matrix size $n$")
+    ax2.set_ylabel(r"Mean solve time (s)")
     ax2.set_title(
-        "Scalability Analysis\n(Time vs Matrix Size)", fontsize=14, fontweight="bold"
+        "Scalability: solve time vs. size", fontsize=14, fontweight="bold"
     )
     ax2.set_yscale("log")
     ax2.legend()
@@ -426,13 +503,15 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
     ax3.set_xticks(range(len(scenarios)))
     ax3.set_xticklabels(scenarios, rotation=45, ha="right")
     ax3.set_yticks(range(len(sizes)))
-    ax3.set_yticklabels([f"n={s}" for s in sizes])
+    ax3.set_yticklabels([rf"$n={s}$" for s in sizes])
     ax3.set_title(
-        "Speedup Factor\n(Baseline/Preconditioned)", fontsize=12, fontweight="bold"
+        r"Speedup factor $t_{\mathrm{baseline}}/t_{\mathrm{prec}}$",
+        fontsize=12,
+        fontweight="bold",
     )
 
     cbar = plt.colorbar(im, ax=ax3, shrink=0.8)
-    cbar.set_label("Speedup Factor", fontweight="bold")
+    cbar.set_label("Speedup factor")
 
     # 4. Solution Accuracy Comparison (middle-right)
     ax4 = fig.add_subplot(gs[1, 2])
@@ -452,7 +531,7 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
         patch.set_alpha(0.7)
 
     ax4.set_yscale("log")
-    ax4.set_ylabel("Solution Error ||x - x*|| / ||x*||", fontweight="bold")
+    ax4.set_ylabel(r"Relative solution error $\|x-\hat{x}\|_F/\|x\|_F$")
     ax4.set_title("Solution Accuracy\nDistribution", fontsize=12, fontweight="bold")
     ax4.grid(True, alpha=0.3, axis="y")
 
@@ -492,9 +571,9 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
             fontsize=12,
         )
 
-    ax5.set_ylabel("Success Rate (%)", fontweight="bold")
+    ax5.set_ylabel(r"Success rate (\%)")
     ax5.set_title(
-        "Robustness Analysis\n(Convergence Success Rate)", fontsize=12, fontweight="bold"
+        "Robustness: convergence success rate", fontsize=12, fontweight="bold"
     )
     ax5.set_ylim(0, 105)
     ax5.grid(True, alpha=0.3, axis="y")
@@ -540,33 +619,33 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
     )
 
     stats_text = [
-        "📊 COMPREHENSIVE PERFORMANCE ANALYSIS SUMMARY",
+        "COMPREHENSIVE PERFORMANCE ANALYSIS SUMMARY",
         "━" * 85,
         "",
-        "🎯 KEY PERFORMANCE METRICS:",
+        "KEY PERFORMANCE METRICS:",
         f"   • Average iteration reduction: {iter_improvement:+6.1f}%",
         f"   • Average time reduction:     {time_improvement:+6.1f}%",
         f"   • Solution accuracy change:   {error_improvement:+6.1f}%",
         f"   • Maximum speedup achieved:   {max_speedup:6.1f}×",
         "",
-        "📈 STATISTICAL SUMMARY:",
+        "STATISTICAL SUMMARY:",
         f"   • Total test cases:           {len(results):6d}",
         f"   • Matrix sizes tested:        {min(sizes)} - {max(sizes)}",
         f"   • Scenarios evaluated:        {len(scenarios):6d}",
         f"   • Seeds per configuration:    {len([r for r in results if r.size == sizes[0] and r.scenario == scenarios[0] and r.method == 'none']):6d}",
         "",
-        "🏆 ROBUSTNESS ANALYSIS:",
+        "ROBUSTNESS ANALYSIS:",
         f"   • Baseline success rate:      {none_success:6.1f}%",
         f"   • Preconditioned success rate:{lu_success:6.1f}%",
         f"   • Robustness improvement:     {lu_success - none_success:+6.1f}%",
         "",
-        "💡 KEY INSIGHTS:",
+        "KEY INSIGHTS:",
         "   • LU preconditioning consistently improves performance",
         "   • Benefits increase with matrix size and conditioning",
         "   • Solution accuracy is preserved or improved",
         "   • Computational overhead is quickly amortized",
         "",
-        "✅ RECOMMENDATION:",
+        "RECOMMENDATION:",
         "   LU preconditioning is recommended for Q-GMRES in production use.",
     ]
 
@@ -585,25 +664,28 @@ def create_final_performance_report(results: List[PerformanceResult], output_dir
 
     # Overall title
     fig.suptitle(
-        "Q-GMRES with LU Preconditioning: Final Performance Analysis Report",
+        r"Q-GMRES with LU preconditioning: performance summary",
         fontsize=18,
         fontweight="bold",
         y=0.98,
     )
 
-    # Display the plot first, then save
+    # Layout
     plt.tight_layout()
-    plt.show()
-
-    # Save the report
-    plt.savefig(
-        output_dir / "qgmres_final_performance_report.png",
-        dpi=300,
-        bbox_inches="tight",
-        facecolor="white",
-        pad_inches=0.5,
+    _export_dashboard_and_panels(
+        fig,
+        axes={
+            "iterations_by_scenario": ax1,
+            "scalability_time_vs_size": ax2,
+            "speedup_heatmap": ax3,
+            "accuracy_boxplot": ax4,
+            "success_rate": ax5,
+            "summary_table": ax6,
+        },
+        output_dir=output_dir,
+        dashboard_name="qgmres_final_performance_report",
     )
-    plt.close()
+    plt.close(fig)
 
     print("📊 Performance improvements summary:")
     print(f"   • Iteration reduction: {iter_improvement:+.1f}%")
@@ -659,5 +741,5 @@ def test_qgmres_final_analysis(test_config):
 
 if __name__ == "__main__":
     # Run the final analysis
-    test_config = {"sizes": [20, 30, 40, 50], "seeds": [0, 1, 2]}
+    test_config = {"sizes": [20, 30, 40, 50, 100], "seeds": [0, 1, 2]}
     test_qgmres_final_analysis(test_config)
