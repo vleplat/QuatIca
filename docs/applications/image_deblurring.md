@@ -7,9 +7,9 @@ Comprehensive guide to quaternion-based image deblurring using QSLST and Newton-
 QuatIca provides state-of-the-art quaternion methods for image deblurring, comparing:
 
 - **QSLST-FFT**: Fast FFT-based Tikhonov regularization
-- **QSLST-Matrix**: Matrix-based Tikhonov implementation
-- **Newton-Schulz (NS)**: Iterative pseudoinverse method
-- **Higher-Order NS (HON)**: Cubic convergence variant
+- **Newton-Schulz (NS)**: Iterative baselines (FFT inverse-iteration on \(T=|\hat h|^2+\lambda\), augmented system, or explicit blur-matrix pseudoinverse)
+- **QSLST-Matrix** *(optional)*: Explicit matrix-based Tikhonov reference for small sizes
+- **Higher-Order NS (HON)** *(optional)*: Higher-order pseudoinverse baseline (only in some modes)
 
 ## 🚀 Quick Start
 
@@ -19,7 +19,7 @@ QuatIca provides state-of-the-art quaternion methods for image deblurring, compa
 python run_analysis.py image_deblurring
 
 # High quality (64×64, recommended)
-python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 ```
 
 ### Parameter Options
@@ -34,20 +34,30 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode 
 --lam 1e-1         # Stronger regularization
 --lam 1e-5         # Lighter regularization
 
-# Noise level
+# Noise level (optional; omit --snr for a blur-only observation)
 --snr 30           # 30 dB signal-to-noise ratio
---snr 40           # 40 dB SNR (default)
+--snr 40           # 40 dB SNR
 --snr 50           # 50 dB SNR (less noise)
+
+# Blur kernel (Gaussian PSF)
+--psf_radius 4      # radius r (kernel size = (2r+1)×(2r+1); default 4 → 9×9)
+--psf_sigma 1.0     # sigma (increase for stronger blur; default 1.0)
 
 # Newton-Schulz options
 --ns_mode fftT     # FFT-based (recommended)
 --ns_mode dense    # Dense matrix method
 --ns_mode sparse   # Sparse matrix method
+--ns_mode tikhonov_aug  # Augmented Tikhonov system (exact but slow for dense)
 
 # FFT solver settings
 --fftT_order 2     # Quadratic convergence (Newton-Schulz)
 --fftT_order 3     # Cubic convergence (Higher-Order NS)
 --ns_iters 12      # Number of iterations
+
+# Validation / reproducibility (direct script)
+--run_qslst_matrix  # compute explicit matrix QSLST reference (slower)
+--validate_bccb     # check BCCB matrix vs FFT blur convention
+--metrics_json PATH # write machine-readable metrics (for wrappers)
 ```
 
 ## 🔬 Algorithm Details
@@ -161,16 +171,21 @@ python run_analysis.py image_deblurring --lam 1e-1  # More smoothing
 
 ### Generated Files (in `output_figures/`)
 
-1. **`image_deblurring_comparison.png`**: Side-by-side results
-2. **`image_deblurring_metrics.png`**: PSNR/SSIM comparison
-3. **`image_deblurring_timing.png`**: Performance analysis
+For a single run (e.g. `python run_analysis.py image_deblurring ...`), outputs include:
+
+1. **`deblur_input_clean_<image>_<N>.png`**: clean resized RGB input
+2. **`deblur_blurred_<image>_<N>.png`**: blur-only (before noise injection)
+3. **`deblur_observed_blurred_<image>_<N>.png`** or **`deblur_observed_blur_noise_<SNR>dB_<image>_<N>.png`**: observed image
+4. **`deblur_qslst_fft_<image>_<N>.png`**: QSLST-FFT reconstruction
+5. **`deblur_ns_<mode>_<image>_<N>.png`**: baseline reconstruction (mode-dependent)
+6. **`deblur_comparison_grid_<image>_<N>.png`**: 2×2 comparison grid (Clean / Observed / QSLST-FFT / baseline)
 
 ### Reading the Results
 
 **Comparison Grid Layout**:
 ```
-[Clean]    [Observed]  [QSLST-FFT]
-[QSLST-Matrix] [NS]    [HON]
+[Clean]    [Observed]
+[QSLST-FFT] [baseline]
 ```
 
 **Metrics Table**:
@@ -182,19 +197,15 @@ python run_analysis.py image_deblurring --lam 1e-1  # More smoothing
 
 ### Custom Blur Kernels
 
-Modify the blur kernel in the script:
-```python
-# Gaussian blur (default)
-psf = build_psf_gaussian(size, sigma=1.5)
+The demo uses a Gaussian PSF by default. You can increase blur strength from the CLI:
 
-# Motion blur
-def build_psf_motion(size, length, angle):
-    # Implementation for motion blur
-    pass
-
-# Custom kernel
-psf = your_custom_kernel(size)
+```bash
+python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --psf_radius 6 --psf_sigma 2.0
 ```
+
+If you want a different PSF family (e.g. motion blur), the PSF builders live in `quatica/qslst.py`
+(`build_psf_gaussian`, `build_psf_motion`). You can adapt the demo to call them, keeping the same
+FFT-based blur and restoration pipeline.
 
 ### Batch Processing
 ```bash
@@ -209,11 +220,8 @@ done
 
 ```python
 # Use QuatIca deblurring in your pipeline
-import sys, os
-sys.path.append('path/to/QuatIca/core')
-
-from qslst import qslst_restore_fft
-from utils import rgb_to_quat, quat_to_rgb
+from quatica.qslst import qslst_restore_fft
+from quatica.utils import rgb_to_quat, quat_to_rgb
 
 # Your image processing pipeline
 def deblur_image(rgb_image, blur_kernel, lambda_reg=1e-3):
@@ -224,21 +232,18 @@ def deblur_image(rgb_image, blur_kernel, lambda_reg=1e-3):
 
 ## 📈 Benchmark Results
 
-### Accuracy Comparison (PSNR in dB)
+Benchmark results depend on the blur/noise/regularization regime. For paper-ready aggregated results,
+use the benchmark wrapper and the visualization script:
 
-| Image Size | QSLST-FFT | QSLST-Matrix | NS (fftT) | HON (fftT) |
-|------------|-----------|--------------|-----------|------------|
-| 32×32 | 35.2 | 35.3 | 35.1 | 35.4 |
-| 64×64 | 33.8 | 33.9 | 33.7 | 34.0 |
-| 128×128 | 32.1 | 32.2 | 32.0 | 32.3 |
+```bash
+python run_analysis.py deblur_benchmark
+python applications/image_deblurring/visualize_results.py
+```
 
-### Speed Comparison (seconds)
-
-| Image Size | QSLST-FFT | QSLST-Matrix | NS (fftT) | HON (fftT) |
-|------------|-----------|--------------|-----------|------------|
-| 32×32 | 0.05 | 0.8 | 0.15 | 0.25 |
-| 64×64 | 0.12 | 4.2 | 0.35 | 0.55 |
-| 128×128 | 0.28 | 18.5 | 0.85 | 1.35 |
+This produces:
+- `output_figures/deblur_benchmark_results.json`
+- `output_figures/deblur_comparison_<image>_<N>.png` (side-by-side panels at the chosen comparison size)
+- `output_figures/deblur_performance_analysis.png` (runtime/PSNR/SSIM curves)
 
 ## 🎯 Recommendations
 

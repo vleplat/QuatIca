@@ -47,7 +47,7 @@ python run_analysis.py lorenz_benchmark
 python run_analysis.py image_completion
 
 # Quaternion image deblurring (recommended)
-python run_analysis.py image_deblurring --size 64 --lam 1e-3 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
+python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode fftT --fftT_order 3 --ns_iters 12
 
 # Synthetic image completion
 python run_analysis.py synthetic
