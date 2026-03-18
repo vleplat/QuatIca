@@ -212,7 +212,6 @@ def build_psf_gaussian(radius: int, sigma: float) -> np.ndarray:
     Uses the 2D Gaussian formula: exp(-(x² + y²) / (2σ²)) / (2πσ²)
     The PSF is centered and normalized for convolution operations.
     """
-    2 * radius + 1
     ax = np.arange(-radius, radius + 1)
     xx, yy = np.meshgrid(ax, ax, indexing="xy")
     psf = np.exp(-(xx**2 + yy**2) / (2.0 * sigma**2)) / (2.0 * np.pi * sigma**2)
@@ -295,10 +294,15 @@ def _pad_psf(psf: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     H, W = shape
     kH, kW = psf.shape
     pad = np.zeros((H, W), dtype=np.float64)
-    # Place PSF at top-left corner after centering
-    kh2, kw2 = kH // 2, kW // 2
-    psf_shifted = np.roll(np.roll(psf, -kh2, axis=0), -kw2, axis=1)
-    pad[:kH, :kW] = psf_shifted[:H, :W]
+
+    # Embed the PSF, then roll on the *full* padded grid so that the PSF center
+    # (kH//2, kW//2) moves to (0, 0). This is the standard convention for
+    # FFT-based circular convolution.
+    h_use = min(kH, H)
+    w_use = min(kW, W)
+    pad[:h_use, :w_use] = psf[:h_use, :w_use]
+    pad = np.roll(pad, -(kH // 2), axis=0)
+    pad = np.roll(pad, -(kW // 2), axis=1)
     return pad
 
 

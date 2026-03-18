@@ -660,7 +660,7 @@ python run_analysis.py lorenz_benchmark --no_show --methods newton,lu --points 5
 
 - **What it is**: Compares QSLST (Algorithm 2) with our NS variants on restoring a blurred/noisy image. Two QSLST paths are provided: a literal matrix-based implementation and an efficient FFT specialization for convolution with periodic boundary (BCCB).
 - **Why it matters**: The target solution is Tikhonov-regularized: x_λ = (A^T A + λI)^{-1} A^T b. FFT diagonalization yields an O(N log N) filter; NS can match it via an augmented system or via inverse-NS on T in the frequency domain.
-- **Output**: Side-by-side grid with Clean, Observed, QSLST-FFT, QSLST-Matrix, NS, and HON panels, including PSNR/SSIM and timing. Images saved to `output_figures/`.
+- **Output**: A 2×2 comparison grid (Clean, Observed, QSLST-FFT, and the selected baseline) with PSNR/SSIM. Images are saved to `output_figures/`. Optional outputs (enabled by flags) include a matrix-based QSLST reference and a higher-order NS result.
 - **Usage**:
   ```bash
   python run_analysis.py image_deblurring
@@ -668,9 +668,14 @@ python run_analysis.py lorenz_benchmark --no_show --methods newton,lu --points 5
   #   --size 32                # grid size (default 32)
   #   --lam 1e-1               # Tikhonov lambda (default 1e-3)
   #   --snr 30                 # optional AWGN SNR in dB
+  #   --psf_radius 4           # Gaussian PSF radius (kernel size = 2r+1)
+  #   --psf_sigma 1.0          # Gaussian PSF sigma (increase for stronger blur)
   #   --ns_mode {dense,sparse,fftT,tikhonov_aug}
   #   --ns_iters K             # iterations for fftT solver
   #   --fftT_order {2,3}       # 2=Newton–Schulz, 3=Halley (cubic)
+  #   --run_qslst_matrix       # also compute explicit matrix QSLST reference (slower)
+  #   --validate_bccb          # validate explicit BCCB matrix vs FFT blur (sanity check)
+  #   --metrics_json PATH      # write machine-readable metrics (for wrappers)
   ```
 
 ### Pseudoinverse Benchmark (NS vs HON vs RSP-Q vs Hybrid vs CGNE–Q)
@@ -728,12 +733,11 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
 - **Output**:
   - **LaTeX table** ready for publication with PSNR, SSIM, CPU time metrics
   - **JSON results** file for further analysis
-  - **Performance plots** comparing methods across sizes
   - **Side-by-side image comparisons** for visual assessment
 - **Features**:
-  - **Optimized lambda values** per image/size combination
+  - **Optimized lambda values** per image/size combination (loaded from `output_figures/lambda_optimization_results.json` if present)
   - **30dB SNR** noise level for realistic conditions
-  - **Gaussian blur** (radius=2, sigma=1.0) with periodic boundary conditions
+  - **Gaussian blur** (radius=4, sigma=1.0) with periodic boundary conditions
   - **FFT-NS-Q** with 12 iterations and order-2 Newton-Schulz
   - **Publication-ready formatting** with proper LaTeX table structure
 - **Usage**:
@@ -742,20 +746,35 @@ python run_analysis.py image_deblurring --size 64 --lam 1e-1 --snr 40 --ns_mode 
   # Run complete benchmark
   python run_analysis.py deblur_benchmark
 
+  # (Optional) If you want the optimized lambdas JSON used by the benchmark:
+  python applications/image_deblurring/optimize_lambda.py
+
+  # Optimize λ for a stronger blur (for alternative figures / stress tests):
+  python applications/image_deblurring/optimize_lambda.py --psf-radius 6 --psf-sigma 2.0
+
+  # (Optional) Create performance plots from the JSON results:
+  python applications/image_deblurring/visualize_results.py
+
   # Results saved to:
   # - output_figures/deblur_benchmark_results.json
   # - LaTeX table printed to console
   # - Comparison plots: output_figures/deblur_comparison_*.png
+  # - Performance plots (via visualize_results): output_figures/deblur_performance_analysis.png
   ```
 
 #### Parameters
 
-- --size N: resize `data/images/kodim16.png` to N×N (default 32).
-- --lam λ: Tikhonov regularization (default 1e-3).
-- --snr dB: add AWGN at the given SNR.
-- --ns_mode: fftT (recommended), tikhonov_aug (exact), dense/sparse (unregularized reference).
-- --ns_iters: iterations for fftT (12–20 typical).
-- --fftT_order: 2 (quadratic) or 3 (cubic; fewer iterations).
+- `--images`: comma-separated Kodak images (default `kodim16,kodim20`).
+- `--sizes`: comma-separated sizes \(N\) (default `32,64,128,256,400,512`).
+- `--snr`: SNR in dB (default `30`).
+- `--ns-iters`: NS iterations for the FFT baseline (default `12`).
+- `--lambda-json`: path to `lambda_optimization_results.json` (default `output_figures/lambda_optimization_results.json`).
+- `--default-lam`: fallback \(\lambda\) if no optimized value is available (default `0.05`).
+- `--compare-size`: size \(N\) at which to generate side-by-side comparison panels (default `128`).
+- `--skip-comparison`: skip generating comparison panels.
+- `--psf-radius`: Gaussian PSF radius forwarded to the deblurring driver (default `4`).
+- `--psf-sigma`: Gaussian PSF sigma forwarded to the deblurring driver (default `1.0`).
+- `--out-json`: path to save benchmark results (default `output_figures/deblur_benchmark_results.json`).
 
 - **Input**: Generated 16×16 test images with known patterns
 - **Output**: Matrix completion results and PSNR evolution

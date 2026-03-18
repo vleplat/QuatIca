@@ -6,20 +6,41 @@ This script performs a line search to find the optimal lambda value for each
 image and size combination, using SNR=30dB.
 """
 
+import argparse
 import json
 import os
 import subprocess
 import sys
+from typing import Optional, Sequence
 
 
-def run_single_experiment(image_name, size, snr, lam, ns_iters=12):
+def _repo_root() -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+
+def _script_path() -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "script_image_deblurring.py"))
+
+
+def _output_dir() -> str:
+    return os.path.join(_repo_root(), "output_figures")
+
+
+def run_single_experiment(
+    image_name, size, snr, lam, ns_iters=12, *, psf_radius: int = 4, psf_sigma: float = 1.0
+):
     """Run a single deblurring experiment and return results"""
     print(f"  Testing λ={lam:.3f}...", end=" ", flush=True)
 
-    # Build command
+    os.makedirs(_output_dir(), exist_ok=True)
+    metrics_path = os.path.join(
+        _output_dir(), f"_metrics_opt_{image_name}_{size}_{int(snr)}dB_lam{lam:.6g}.json"
+    )
+
+    # Build command (machine-readable output)
     cmd = [
         sys.executable,
-        "applications/image_deblurring/script_image_deblurring.py",
+        _script_path(),
         "--image",
         image_name,
         "--size",
@@ -28,101 +49,84 @@ def run_single_experiment(image_name, size, snr, lam, ns_iters=12):
         str(lam),
         "--snr",
         str(snr),
+        "--psf_radius",
+        str(int(psf_radius)),
+        "--psf_sigma",
+        str(float(psf_sigma)),
         "--ns_mode",
         "fftT",
         "--ns_iters",
         str(ns_iters),
         "--fftT_order",
         "2",
+        "--metrics_json",
+        metrics_path,
     ]
 
     # Run the experiment
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.getcwd())
+    result = subprocess.run(cmd, capture_output=True, text=True, cwd=_repo_root())
 
     if result.returncode != 0:
         print("❌ FAILED")
         return None
 
-    # Parse results from output
-    output_lines = result.stdout.split("\n")
-    results = {}
-
-    for line in output_lines:
-        if "QSLST (FFT):" in line:
-            try:
-                # Extract PSNR value
-                psnr_start = line.find("PSNR=") + 5
-                psnr_end = line.find("dB", psnr_start)
-                psnr = float(line[psnr_start:psnr_end])
-
-                # Extract SSIM value
-                ssim_start = line.find("SSIM=") + 5
-                ssim_end = line.find(" ", ssim_start)
-                ssim = float(line[ssim_start:ssim_end])
-
-                # Extract time value
-                time_start = line.find("time=") + 5
-                time_end = line.find("s", time_start)
-                time_val = float(line[time_start:time_end])
-
-                results["qslst_fft"] = {"psnr": psnr, "ssim": ssim, "time": time_val}
-            except (ValueError, IndexError):
-                print("❌ PARSE ERROR")
-                return None
-        elif "NS (T^-1, FFT, order-2):" in line:
-            try:
-                # Extract PSNR value
-                psnr_start = line.find("PSNR=") + 5
-                psnr_end = line.find("dB", psnr_start)
-                psnr = float(line[psnr_start:psnr_end])
-
-                # Extract SSIM value
-                ssim_start = line.find("SSIM=") + 5
-                ssim_end = line.find(" ", ssim_start)
-                ssim = float(line[ssim_start:ssim_end])
-
-                # Extract time value
-                time_start = line.find("time=") + 5
-                time_end = line.find("s", time_start)
-                time_val = float(line[time_start:time_end])
-
-                results["ns_fft"] = {"psnr": psnr, "ssim": ssim, "time": time_val}
-            except (ValueError, IndexError):
-                print("❌ PARSE ERROR")
-                return None
-
-    if "qslst_fft" in results and "ns_fft" in results:
-        print(
-            f"✅ PSNR={results['qslst_fft']['psnr']:.2f}dB, SSIM={results['qslst_fft']['ssim']:.3f}"
-        )
-        return results
-    else:
-        print("❌ MISSING RESULTS")
+    if not os.path.exists(metrics_path):
+        print("❌ MISSING METRICS JSON")
         return None
 
+    with open(metrics_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
 
-def optimize_lambda_for_image_size(image_name, size, snr=30, ns_iters=12):
+    results = {
+        "psf_radius": int(payload.get("psf_radius", psf_radius)),
+        "psf_sigma": float(payload.get("psf_sigma", psf_sigma)),
+        "qslst_fft": {
+            "psnr": float(payload["qslst_fft"]["psnr"]),
+            "ssim": float(payload["qslst_fft"]["ssim"]),
+            "time": float(payload["qslst_fft"]["time_s"]),
+        },
+        "ns_fft": {
+            "psnr": float(payload["ns"]["psnr"]),
+            "ssim": float(payload["ns"]["ssim"]),
+            "time": float(payload["ns"]["time_s"]),
+        },
+    }
+    print(f"✅ PSNR={results['qslst_fft']['psnr']:.2f}dB, SSIM={results['qslst_fft']['ssim']:.3f}")
+    return results
+
+
+def optimize_lambda_for_image_size(
+    image_name,
+    size,
+    snr=30,
+    ns_iters=12,
+    *,
+    psf_radius: int = 4,
+    psf_sigma: float = 1.0,
+    lambda_values: Optional[Sequence[float]] = None,
+):
     """Find optimal lambda for a specific image and size"""
     print(f"\n🔍 Optimizing λ for {image_name} at size {size}x{size}")
     print("=" * 60)
 
     # Define lambda search range (logarithmic scale)
     # Start with a reasonable range based on typical values
-    lambda_values = [
-        0.001,
-        0.002,
-        0.005,
-        0.01,
-        0.02,
-        0.05,
-        0.1,
-        0.2,
-        0.5,
-        1.0,
-        2.0,
-        5.0,
-        10.0,
-    ]
+    if lambda_values is None:
+        lambda_values = [
+            0.001,
+            0.002,
+            0.005,
+            0.01,
+            0.02,
+            0.05,
+            0.1,
+            0.2,
+            0.5,
+            1.0,
+            2.0,
+            5.0,
+            10.0,
+        ]
 
     best_lambda = None
     best_psnr = -float("inf")
@@ -134,7 +138,15 @@ def optimize_lambda_for_image_size(image_name, size, snr=30, ns_iters=12):
     print("-" * 60)
 
     for lam in lambda_values:
-        results = run_single_experiment(image_name, size, snr, lam, ns_iters)
+        results = run_single_experiment(
+            image_name,
+            size,
+            snr,
+            lam,
+            ns_iters,
+            psf_radius=int(psf_radius),
+            psf_sigma=float(psf_sigma),
+        )
 
         if results is not None:
             psnr = results["qslst_fft"]["psnr"]
@@ -169,6 +181,8 @@ def optimize_lambda_for_image_size(image_name, size, snr=30, ns_iters=12):
         return {
             "image": image_name,
             "size": size,
+            "psf_radius": int(psf_radius),
+            "psf_sigma": float(psf_sigma),
             "best_lambda": best_lambda,
             "best_psnr": best_psnr,
             "best_ssim": best_ssim,
@@ -230,7 +244,7 @@ def create_lambda_optimization_plot(image_name, size, all_results, best_lambda):
         plt.tight_layout()
 
         # Save plot
-        output_dir = "output_figures"
+        output_dir = _output_dir()
         os.makedirs(output_dir, exist_ok=True)
         plot_file = f"{output_dir}/lambda_optimization_{image_name}_{size}.png"
         plt.savefig(plot_file, dpi=300, bbox_inches="tight", facecolor="white")
@@ -284,36 +298,83 @@ def generate_optimized_latex_table(all_optimizations):
 
 def main():
     """Main optimization function"""
+    parser = argparse.ArgumentParser(description="Optimize lambda for image deblurring (QSLST-FFT).")
+    parser.add_argument(
+        "--images",
+        type=str,
+        default="kodim16,kodim20",
+        help="Comma-separated image names (default: kodim16,kodim20).",
+    )
+    parser.add_argument(
+        "--sizes",
+        type=str,
+        default="32,64,128,256,400,512",
+        help="Comma-separated square sizes N (default: 32,64,128,256,400,512).",
+    )
+    parser.add_argument("--snr", type=float, default=30.0, help="SNR in dB (default: 30).")
+    parser.add_argument("--ns-iters", type=int, default=12, help="NS iterations (default: 12).")
+    parser.add_argument(
+        "--lambda-values",
+        type=str,
+        default="0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1.0,2.0,5.0,10.0",
+        help="Comma-separated lambda grid to test (default: 0.001..10.0).",
+    )
+    parser.add_argument(
+        "--psf-radius",
+        "--psf_radius",
+        type=int,
+        default=4,
+        help="Gaussian PSF radius r forwarded to the deblurring driver (default: 4).",
+    )
+    parser.add_argument(
+        "--psf-sigma",
+        "--psf_sigma",
+        type=float,
+        default=1.0,
+        help="Gaussian PSF sigma forwarded to the deblurring driver (default: 1.0).",
+    )
+    args = parser.parse_args()
+
     print("🚀 Starting Lambda Optimization for Image Deblurring")
     print("=" * 80)
     print("Parameters:")
-    print("  - Images: kodim16, kodim20")
-    print("  - Sizes: 32, 64, 128, 256, 400, 512")
-    print("  - SNR: 30 dB")
-    print("  - Lambda range: 0.001 to 10.0 (logarithmic)")
-    print("  - NS iterations: 12")
+    print(f"  - Images: {args.images}")
+    print(f"  - Sizes: {args.sizes}")
+    print(f"  - SNR: {args.snr:g} dB")
+    print(f"  - PSF: Gaussian (radius={args.psf_radius}, sigma={args.psf_sigma})")
+    print(f"  - Lambda grid: {args.lambda_values}")
+    print(f"  - NS iterations: {args.ns_iters}")
     print("=" * 80)
 
     # Create output directory
-    os.makedirs("output_figures", exist_ok=True)
+    os.makedirs(_output_dir(), exist_ok=True)
 
     # Configuration
-    images = ["kodim16", "kodim20"]
-    sizes = [32, 64, 128, 256, 400, 512]
-    snr = 30
-    ns_iters = 12
+    images = [x.strip() for x in args.images.split(",") if x.strip()]
+    sizes = [int(x.strip()) for x in args.sizes.split(",") if x.strip()]
+    snr = float(args.snr)
+    ns_iters = int(args.ns_iters)
 
     all_optimizations = []
 
     # Run optimization for each image and size
+    lambda_values = [float(x.strip()) for x in str(args.lambda_values).split(",") if x.strip()]
     for image in images:
         for size in sizes:
-            result = optimize_lambda_for_image_size(image, size, snr, ns_iters)
+            result = optimize_lambda_for_image_size(
+                image,
+                size,
+                snr,
+                ns_iters,
+                psf_radius=int(args.psf_radius),
+                psf_sigma=float(args.psf_sigma),
+                lambda_values=lambda_values,
+            )
             if result:
                 all_optimizations.append(result)
 
     # Save results to JSON
-    results_file = "output_figures/lambda_optimization_results.json"
+    results_file = os.path.join(_output_dir(), "lambda_optimization_results.json")
     with open(results_file, "w") as f:
         json.dump(all_optimizations, f, indent=2)
 

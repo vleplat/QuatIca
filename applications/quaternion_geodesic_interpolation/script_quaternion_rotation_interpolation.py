@@ -213,7 +213,7 @@ def main() -> None:
     Visualizer.plot_quaternion_trajectories_on_s2(
         s2_paths,
         keyframes=qs,
-        v0=(1.0, 0.0, 0.0),
+        v0=(1.0, -0.9, 0.0),
         title=r"Trajectory of rotated unit vector on $S^2$ (with keyframes)",
         save_path=os.path.join(out_dir, "s2_trajectory.png"),
         show=not args.no_display,
@@ -221,7 +221,7 @@ def main() -> None:
     Visualizer.plot_quaternion_trajectories_on_s2(
         s2_paths,
         keyframes=qs,
-        v0=(1.0, 0.0, 0.0),
+        v0=(1.0, -0.9, 0.0),
         title=r"Trajectory of rotated unit vector on $S^2$ (with keyframes)",
         save_path=os.path.join(out_dir, "s2_trajectory.pdf"),
         show=False,
