@@ -4,10 +4,10 @@ message: "If you use QuatIca, please cite the specific release you used."
 authors:
   - family-names: Leplat
     given-names: Valentin
-  - family-names: Pan
-    given-names: Junjun
   - family-names: Ahmadi-Asl
     given-names: Salman
+  - family-names: Pan
+    given-names: Junjun
   - family-names: Ouerdane
     given-names: Henni
   - family-names: Ng
@@ -19,10 +19,10 @@ preferred-citation:
   authors:
     - family-names: Leplat
       given-names: Valentin
-    - family-names: Pan
-      given-names: Junjun
     - family-names: Ahmadi-Asl
       given-names: Salman
+    - family-names: Pan
+      given-names: Junjun
     - family-names: Ouerdane
       given-names: Henni
     - family-names: Ng

@@ -1534,9 +1534,9 @@ A comprehensive paper describing QuatIca's algorithms and applications is curren
 ```bibtex
 @software{quatica2025,
   title   = {QuatIca: Quaternion Linear Algebra Library},
-  author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Ouerdane, Henni and Ng, Michael},
+  author  = {Leplat, Valentin and Ahmadi-Asl, Salman and Pan, Junjun and Ouerdane, Henni and Ng, Michael},
   year    = {2025},
-  version = {v1.0.0},
+  version = {v1.0.1},
   doi     = {10.5281/zenodo.16910158},
   url     = {https://github.com/vleplat/QuatIca},
   note    = {Numerical linear algebra for quaternions}

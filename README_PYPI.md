@@ -30,8 +30,8 @@
 | Demo | Description | Link |
 |------|-------------|------|
 | **Image Completion** | Fill missing pixels in real images using quaternion matrix completion algorithms. | [Open in Colab](https://colab.research.google.com/drive/1-LB6T6caPmayvtcWcIMNXQgiVI16HOQy?usp=sharing) |
-| **Image Deblurring (Technical)** | Reproducible benchmarks comparing FFT–NS–Q and QSLST–FFT on Kodak images with λ-optimization, PSNR/SSIM reporting, and LaTeX tables. | [Open in Colab](https://colab.research.google.com/drive/1cm8oW5PhPNtI1lfNDYMvNm9xgJLFgO7n?usp=sharing) |
-| **Image Deblurring (Visual)** | Same as above but with beautiful visual examples and side-by-side comparisons. | [Open in Colab](https://colab.research.google.com/drive/1vqWvo2ilFZcCnic5VDlf0z-KPzA8J17f?usp=sharing) |
+| **Image Deblurring (Technical)** | Reproducible benchmarks comparing FFT–NS–Q and QSLST–FFT on Kodak images with λ-optimization, PSNR/SSIM reporting, and LaTeX tables. | [Open in Colab](https://colab.research.google.com/drive/1cG9EYZi_JDjBnxEjjx8oV9zPnxQltx1z?usp=sharing) |
+| **Image Deblurring (Visual)** | Same as above but with beautiful visual examples and side-by-side comparisons. | [Open in Colab](https://colab.research.google.com/drive/17Rzph2R1Y0LMEcy57JY9ndIk4nkSQztA?usp=sharing) |
 
 ### 📊 **Algorithm Benchmarks**
 | Demo | Description | Link |
@@ -120,7 +120,7 @@ QuatIca brings modern numerical linear algebra to quaternion matrices and tensor
 ### Key Features
 
 - **🚀 Performance**: Optimized quaternion operations with NumPy backend
-- **🧪 Well-tested**: Comprehensive test suite with >100 unit tests
+- **🧪 Well-tested**: Comprehensive test suite with >200 unit tests
 - **📚 Documented**: Complete API documentation with examples
 - **🔬 Research-ready**: Implements latest algorithms from quaternion linear algebra literature
 - **🎯 Practical**: Real-world applications in image processing and signal analysis
@@ -285,7 +285,7 @@ QuatIca is optimized for performance:
 
 QuatIca is thoroughly validated:
 
-- **100+ unit tests** covering all major functions
+- **200+ unit tests** covering all major functions
 - **Numerical accuracy** verified against theoretical results
 - **Performance benchmarks** comparing different algorithms
 - **Literature validation** against published research results
@@ -297,9 +297,9 @@ If you use QuatIca in your research, please cite:
 ```bibtex
 @software{quatica2025,
   title   = {QuatIca: Quaternion Linear Algebra Library},
-  author  = {Leplat, Valentin and Pan, Junjun and Ahmadi-Asl, Salman and Ouerdane, Henni and Ng, Michael},
+  author  = {Leplat, Valentin and Ahmadi-Asl, Salman and Pan, Junjun and Ouerdane, Henni and Ng, Michael},
   year    = {2025},
-  version = {v1.0.0},
+  version = {v1.0.1},
   doi     = {10.5281/zenodo.16910158},
   url     = {https://github.com/vleplat/QuatIca},
   note    = {Numerical linear algebra for quaternions}

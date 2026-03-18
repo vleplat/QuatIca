@@ -265,7 +265,13 @@ def squad_control_quaternions(qs):
         qip1 = qs[i+1]
         term = quat_log_unit(quat_inv_unit(qi) * qim1) + quat_log_unit(quat_inv_unit(qi) * qip1)
         ai = qi * quat_exp_pure(-0.25 * term)
-        a[i] = quat_normalize(ai)
+        ai = quat_normalize(ai)
+        # Keep the control quaternion on the same "sheet" as its keyframe.
+        # This does not change the represented rotation, but improves robustness of
+        # downstream nested SLERP evaluation and velocity diagnostics.
+        if quat_dot(ai, qi) < 0.0:
+            ai = -ai
+        a[i] = ai
     return a
 
 def squad_segment(qi, qip1, ai, aip1, u: float):
@@ -357,6 +363,9 @@ def interpolate_squad(qs, ts, samples_per_seg=50):
             u = m / samples_per_seg
             out_t.append((1-u)*t0 + u*t1)
             out_q.append(squad_segment(qs[i], qs[i+1], a[i], a[i+1], u))
+    # Nested SLERP's shortest-arc convention can introduce occasional sign flips
+    # even when the represented rotation is smooth. Unwrap for diagnostic stability.
+    out_q = enforce_sign_continuity(out_q)
     return np.array(out_t), np.array(out_q, dtype=object)
 
 # ----------------------
@@ -528,12 +537,17 @@ def estimate_omega(q_path, t_path):
         - `t_mid`: times at midpoints of each sample interval
         - `omega`: array of shape `(len(q_path)-1, 3)`
     """
-    q_path = list(q_path)
+    # Important: unwrap quaternion signs before differencing.
+    # Otherwise, harmless sheet flips (q and -q) can create artificial π-like jumps
+    # and narrow spikes in the estimated angular speed.
+    q_path = enforce_sign_continuity(list(q_path))
     t_path = np.asarray(t_path, dtype=float)
     omegas = []
     times = []
     for k in range(len(q_path)-1):
         dt = t_path[k+1] - t_path[k]
+        if dt <= 0:
+            raise ValueError("t_path must be strictly increasing.")
         dq = q_path[k+1] * quat_inv_unit(q_path[k])
         l = quat_log_unit(dq)
         a = _as_float4(l)[1:]
