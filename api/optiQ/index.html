@@ -1,0 +1,4036 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Fast, practical quaternion linear algebra for Python - matrix operations, decompositions, and real-world applications">
+      
+      
+      
+        <link rel="canonical" href="https://vleplat.github.io/QuatIca/api/optiQ/">
+      
+      
+        <link rel="prev" href="../tensor/">
+      
+      
+        <link rel="next" href="../optiq_visualization/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>OptiQ - QuatIca - Quaternion Linear Algebra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quaticaoptiq" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="QuatIca - Quaternion Linear Algebra" class="md-header__button md-logo" aria-label="QuatIca - Quaternion Linear Algebra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QuatIca - Quaternion Linear Algebra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              OptiQ
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/vleplat/QuatIca" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vleplat/QuatIca
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting-started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../applications/image_deblurring/" class="md-tabs__link">
+          
+  
+  
+  Applications
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../utils/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="QuatIca - Quaternion Linear Algebra" class="md-nav__button md-logo" aria-label="QuatIca - Quaternion Linear Algebra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QuatIca - Quaternion Linear Algebra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/vleplat/QuatIca" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    vleplat/QuatIca
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Applications
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Applications
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/image_deblurring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Deblurring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/image_completion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Completion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../applications/lorenz_attractor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lorenz Attractor Filtering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Functions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Functions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../solver/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Solver
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data_gen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Generation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specialized
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specialized
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qslst/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    QSLST
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qtraj/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    qtraj
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OptiQ
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OptiQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quatica.optiQ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        optiQ
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="optiQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.BarrierParams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BarrierParams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BarrierParams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.BarrierParams--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QuaternionSDPOperator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QuaternionSDPOperator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperator--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperatorScaled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QuaternionSDPOperatorScaled
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QuaternionSDPOperatorScaled">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperatorScaled.A_unscaled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A_unscaled
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperatorScaled.scale_b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scale_b
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.SolverState" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SolverState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        admm_barrier_fixed_mu
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="admm_barrier_fixed_mu">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--notesreferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes/References
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_canonical_orthonormal_basis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_canonical_orthonormal_basis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_canonical_orthonormal_basis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_canonical_orthonormal_basis--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_central_mu_instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_central_mu_instance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_central_mu_instance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_central_mu_instance--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_central_mu_instance--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_certificate_optimum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_certificate_optimum
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_certificate_optimum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_certificate_optimum--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_singleton_feasible
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_singleton_feasible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible_canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_singleton_feasible_canonical
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_singleton_feasible_canonical">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible_canonical--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible_canonical--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.dim_hermitian_quat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dim_hermitian_quat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.eighH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        eighH
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="eighH">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.eighH--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.eigvalsH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        eigvalsH
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.hess_inv_apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hess_inv_apply
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="hess_inv_apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.hess_inv_apply--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.hess_inv_apply--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.inner_real" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_real
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="inner_real">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.inner_real--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invH
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invH">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.logdetH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        logdetH
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qadj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qadj
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qeye" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qeye
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qherm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qherm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qmm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qmm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qzeros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qzeros
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_H_basis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        random_H_basis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_hermitian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        random_hermitian
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_spd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        random_spd
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="random_spd">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_spd--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_spd--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_admm_history_plot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="save_admm_history_plot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot--description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot--notesreferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes/References
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_barrier_history_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_barrier_history_plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_pdipm_history_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_pdipm_history_plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_barrier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_barrier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_logdet_barrier_newton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_logdet_barrier_newton
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_logdet_barrier_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_logdet_barrier_path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_pd_mehrotra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_pd_mehrotra
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.sqrtH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sqrtH
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../optiq_visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OptiQ Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decompositions
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Decompositions
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/qsvd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Q-SVD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/eigen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Eigendecomposition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/LU/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LU Decomposition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/chol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cholesky
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/hessenberg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hessenberg
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/tridiagonalize/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tridiagonalization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decomp/schur/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schur Decomposition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quatica.optiQ" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        optiQ
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="optiQ">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.BarrierParams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BarrierParams
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="BarrierParams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.BarrierParams--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QuaternionSDPOperator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QuaternionSDPOperator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperator--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperatorScaled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QuaternionSDPOperatorScaled
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="QuaternionSDPOperatorScaled">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperatorScaled.A_unscaled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A_unscaled
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.QuaternionSDPOperatorScaled.scale_b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        scale_b
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.SolverState" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SolverState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        admm_barrier_fixed_mu
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="admm_barrier_fixed_mu">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.admm_barrier_fixed_mu--notesreferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes/References
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_canonical_orthonormal_basis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_canonical_orthonormal_basis
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_canonical_orthonormal_basis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_canonical_orthonormal_basis--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_central_mu_instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_central_mu_instance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_central_mu_instance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_central_mu_instance--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_central_mu_instance--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_certificate_optimum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_certificate_optimum
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_certificate_optimum">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_certificate_optimum--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_singleton_feasible
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_singleton_feasible">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible_canonical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_singleton_feasible_canonical
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="build_singleton_feasible_canonical">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible_canonical--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.build_singleton_feasible_canonical--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.dim_hermitian_quat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dim_hermitian_quat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.eighH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        eighH
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="eighH">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.eighH--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.eigvalsH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        eigvalsH
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.hess_inv_apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hess_inv_apply
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="hess_inv_apply">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.hess_inv_apply--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.hess_inv_apply--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.inner_real" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_real
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="inner_real">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.inner_real--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invH
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invH">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.invH--notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.logdetH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        logdetH
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qadj" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qadj
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qeye" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qeye
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qherm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qherm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qmm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qmm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.qzeros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        qzeros
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_H_basis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        random_H_basis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_hermitian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        random_hermitian
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_spd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        random_spd
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="random_spd">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_spd--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.random_spd--returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_admm_history_plot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="save_admm_history_plot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot--description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot--parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_admm_history_plot--notesreferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes/References
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_barrier_history_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_barrier_history_plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.save_pdipm_history_plot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_pdipm_history_plot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_barrier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_barrier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_logdet_barrier_newton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_logdet_barrier_newton
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_logdet_barrier_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_logdet_barrier_path
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.solve_pd_mehrotra" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        solve_pd_mehrotra
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quatica.optiQ.sqrtH" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sqrtH
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quaticaoptiq">quatica.optiQ</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="quatica.optiQ" class="doc doc-heading">
+            <code>quatica.optiQ</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Optimization solvers for quaternion Hermitian matrices (pure quaternion algebra).</p>
+<p>This module provides an equality-constrained Newton method for the
+log-det barrier formulation of quaternionic semidefinite programs (SDP):</p>
+<p>minimize <C, X> - mu * logdet(X)  subject to  A(X) = b,  X ≻ 0,  X ∈ H_n(H),</p>
+<p>where <U, V> = Re tr(U^H V) is the real inner product on H_n(H), and A is a
+linear map with Hermitian measurement matrices {H_i}.</p>
+<p>All operations are quaternion-native using QuatIca utilities; no real/complex
+embeddings are used.</p>
+<p>References/Notes:
+- Gradient/Hessian: ∇ logdet(X) = X^{-1},  ∇² logdet(X)[H] = - X^{-1} H X^{-1}
+- Barrier Newton KKT via Schur complement with H^{-1}[W] = (1/mu) X W X</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.optiQ.BarrierParams" class="doc doc-heading">
+            <code>BarrierParams</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Parameters controlling the barrier Newton method.</p>
+<h5 id="quatica.optiQ.BarrierParams--parameters">Parameters</h5>
+<p>mu : float
+    Initial barrier parameter.
+mu_decay : float
+    Geometric decay factor for mu per outer iteration.
+mu_min : float
+    Minimum barrier value to stop.
+newton_tol : float
+    Tolerance for inner Newton convergence (on combined residual).
+newton_maxit : int
+    Max Newton iterations per barrier value.
+backtrack_beta : float
+    Backtracking multiplicative shrink.
+backtrack_sigma : float
+    Armijo parameter for sufficient decrease.
+posdef_eps : float
+    Minimal eigenvalue threshold to accept PD candidate.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.optiQ.QuaternionSDPOperator" class="doc doc-heading">
+            <code>QuaternionSDPOperator</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Linear map A and its adjoint A* represented via Hermitian measurement matrices.</p>
+<p>A(X)_i = <H_i, X>_R = Re tr(H_i^H X)
+A*(y)   = sum_i y_i H_i</p>
+<h5 id="quatica.optiQ.QuaternionSDPOperator--parameters">Parameters</h5>
+<p>H_list : list[np.ndarray]
+    List of Hermitian quaternion matrices (same shape n×n).</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.optiQ.QuaternionSDPOperatorScaled" class="doc doc-heading">
+            <code>QuaternionSDPOperatorScaled</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Scaled constraint operator  ilde A with internal per-row scaling s_i.</p>
+<p>(   ilde A X)_i = <H_i, X> / s_i,
+    ilde A^*(y)   = \sum_i (y_i / s_i) H_i.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.optiQ.QuaternionSDPOperatorScaled.A_unscaled" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">A_unscaled</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return original (unscaled) A(X) with raw H_i.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="quatica.optiQ.QuaternionSDPOperatorScaled.scale_b" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">scale_b</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return b̃ = b / s (elementwise), consistent with internal scaling.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="quatica.optiQ.SolverState" class="doc doc-heading">
+            <code>SolverState</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Lightweight state container for solver bookkeeping.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.admm_barrier_fixed_mu" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">admm_barrier_fixed_mu</span><span class="p">(</span><span class="n">H_list</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">maxit</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">abstol</span><span class="o">=</span><span class="mf">1e-06</span><span class="p">,</span> <span class="n">reltol</span><span class="o">=</span><span class="mf">1e-05</span><span class="p">,</span> <span class="n">X0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Z0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">U0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">use_hat_projection</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <h5 id="quatica.optiQ.admm_barrier_fixed_mu--description">Description</h5>
+<p>Scaled ADMM for the fixed-μ barrier subproblem:
+    minimize <C, X> - μ logdet(X)  subject to  A(X) = b,  X ≻ 0,
+using a consensus split with Z carrying only the equality constraints.</p>
+<h5 id="quatica.optiQ.admm_barrier_fixed_mu--parameters">Parameters</h5>
+<p>H_list : list[np.ndarray]
+    Hermitian measurement matrices defining A and A*.
+b : np.ndarray
+    Constraint right-hand side (R^m).
+C : np.ndarray
+    Hermitian cost matrix.
+mu : float
+    Barrier parameter (fixed for this solver call).
+rho : float
+    ADMM penalty parameter.
+maxit : int
+    Maximum ADMM iterations.
+abstol, reltol : float
+    Absolute and relative stopping tolerances (Boyd criteria).
+X0, Z0, U0 : np.ndarray | None
+    Optional initializations for primal/dual variables.
+verbose : bool
+    If True, prints per-iteration diagnostics.</p>
+<h5 id="quatica.optiQ.admm_barrier_fixed_mu--returns">Returns</h5>
+<p>tuple
+    (X, Z, U, history) where history contains norms and eigenvalue traces.</p>
+<h5 id="quatica.optiQ.admm_barrier_fixed_mu--notesreferences">Notes/References</h5>
+<ul>
+<li>Pure quaternion algebra via QuatIca utilities.</li>
+<li>Z-projection is exact in orthonormalized coordinates Â (one line).</li>
+<li>X-update is closed-form SPD prox of -μ logdet with Frobenius metric.</li>
+</ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.build_canonical_orthonormal_basis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_canonical_orthonormal_basis</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Construct a canonical orthonormal basis of quaternion-Hermitian matrices for H_n(H).</p>
+<p>Basis elements (orthonormal under <U,V>=Re tr(U^H V)):
+- Diagonals: D_k = E_{kk}
+- Off-diagonals (i&lt;j): for u in {1, i, j, k}
+    S^{(u)}<em>{ij} = (1/sqrt(2)) ( u E</em>{ij} + conj(u) E_{ji} )</p>
+<h5 id="quatica.optiQ.build_canonical_orthonormal_basis--returns">Returns</h5>
+<p>list[np.ndarray]
+    List of length 2 n^2 - n with dtype quaternion, orthonormal.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.build_central_mu_instance" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_central_mu_instance</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="s1">&#39;canonical&#39;</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build a small, planted central-point instance for the fixed-μ barrier problem.</p>
+<p>The planted solution is X_star with y_star=0 and C = μ X_star^{-1}.</p>
+<h5 id="quatica.optiQ.build_central_mu_instance--parameters">Parameters</h5>
+<p>n : int
+    Matrix size.
+m : int
+    Number of constraints to use (subset of canonical basis if basis='canonical').
+mu : float
+    Barrier parameter used to plant C.
+seed : int | None
+    RNG seed.
+basis : str
+    'canonical' for a subset of the canonical orthonormal basis; otherwise uses
+    random Hermitian constraints orthonormalized via Gram–Cholesky.</p>
+<h5 id="quatica.optiQ.build_central_mu_instance--returns">Returns</h5>
+<p>(H_list, b, C, X_star, mu)</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.build_certificate_optimum" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_certificate_optimum</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Regime B: Choose rank-r X_<em> and slack S_</em> on its complement.
+Set b = A(X_<em>), C = S_</em>, so that (X_<em>, S_</em>) is a certificate at optimum.</p>
+<h5 id="quatica.optiQ.build_certificate_optimum--returns">Returns</h5>
+<p>(H_list, b, C, X_star, S_star)</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.build_singleton_feasible" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_singleton_feasible</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Regime A: Complete constraints that pin X uniquely.</p>
+<h5 id="quatica.optiQ.build_singleton_feasible--returns">Returns</h5>
+<p>(H_list, b, C, X_star)</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.build_singleton_feasible_canonical" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_singleton_feasible_canonical</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build a singleton-feasible instance using a canonical orthonormal basis for constraints.</p>
+<h5 id="quatica.optiQ.build_singleton_feasible_canonical--parameters">Parameters</h5>
+<p>n : int
+    Matrix size.
+m : int | None
+    Number of constraints to use. If None, use full dimension (2 n^2 - n).
+seed : int | None
+    RNG seed for X_star and for selecting a subset when m &lt; d.</p>
+<h5 id="quatica.optiQ.build_singleton_feasible_canonical--returns">Returns</h5>
+<p>(H_list, b, C, X_star)</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.dim_hermitian_quat" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">dim_hermitian_quat</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Real dimension of H_n(H) = {X ∈ H^{n×n} : X = X^H} → 2 n^2 − n.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.eighH" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">eighH</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Quaternion Hermitian eigendecomposition: X = V diag(lam) V^H.</p>
+<h5 id="quatica.optiQ.eighH--returns">Returns</h5>
+<p>lam : np.ndarray of shape (n,)
+    Real eigenvalues in unspecified order.
+V : np.ndarray (dtype=quaternion)
+    Unitary quaternion eigenvectors.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.eigvalsH" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">eigvalsH</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Eigenvalues (real) of a Hermitian quaternion matrix X (with symmetrization).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.hess_inv_apply" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">hess_inv_apply</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">G</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Apply H^{-1}[G] for H[W] = mu * X^{-1} W X^{-1}.</p>
+<h5 id="quatica.optiQ.hess_inv_apply--parameters">Parameters</h5>
+<p>X : np.ndarray
+    Current PD iterate.
+mu : float
+    Barrier parameter.
+G : np.ndarray
+    Right-hand quaternion matrix.</p>
+<h5 id="quatica.optiQ.hess_inv_apply--returns">Returns</h5>
+<p>np.ndarray
+    (1/mu) X G X</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.inner_real" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">inner_real</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Real inner product <U, V>_R = Re tr(U^H V) using quaternion adjoint.</p>
+<h5 id="quatica.optiQ.inner_real--notes">Notes</h5>
+<p>Must use the adjoint U^H, not the Hermitian part, to preserve adjointness
+and accurate Gram/Schur assembly.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.invH" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">invH</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Inverse of a Hermitian positive definite quaternion matrix.</p>
+<h5 id="quatica.optiQ.invH--parameters">Parameters</h5>
+<p>X : np.ndarray
+    Hermitian PD matrix.</p>
+<h5 id="quatica.optiQ.invH--returns">Returns</h5>
+<p>np.ndarray
+    X^{-1} computed via eigen-decomposition in quaternion algebra.</p>
+<h5 id="quatica.optiQ.invH--notes">Notes</h5>
+<p>This routine assumes X is strictly PD; it raises if any eigenvalue ≤ 0.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.logdetH" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">logdetH</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return sum(log(lam_i)) for lam_i eigenvalues of PD quaternion X.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.qadj" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">qadj</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Quaternion adjoint (conjugate transpose).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.qeye" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">qeye</span><span class="p">(</span><span class="n">n</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the n×n quaternion identity matrix.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.qherm" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">qherm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Hermitian projection: (A + A^H)/2.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.qmm" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">qmm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Quaternion matrix multiply using QuatIca optimized matmul.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.qzeros" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">qzeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return an n×m quaternion zero matrix.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.random_H_basis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">random_H_basis</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build a random (numerically independent) set of Hermitian directions H_i.
+For small n, sampling random Hermitians is sufficient for toy problems.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.random_hermitian" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">random_hermitian</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Random dense quaternion Hermitian matrix.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.random_spd" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">random_spd</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">lam_min</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">lam_max</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Generate a random quaternion SPD matrix via unitary diagonalization.</p>
+<h5 id="quatica.optiQ.random_spd--parameters">Parameters</h5>
+<p>n : int
+    Matrix size.
+lam_min, lam_max : float
+    Bounds for positive eigenvalues.
+seed : int | None
+    RNG seed.</p>
+<h5 id="quatica.optiQ.random_spd--returns">Returns</h5>
+<p>np.ndarray
+    Quaternion SPD matrix.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.save_admm_history_plot" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_admm_history_plot</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <h5 id="quatica.optiQ.save_admm_history_plot--description">Description</h5>
+<p>Save a semilog plot of ADMM residuals across iterations.</p>
+<h5 id="quatica.optiQ.save_admm_history_plot--parameters">Parameters</h5>
+<p>hist : dict
+    History dictionary from admm_barrier_fixed_mu with keys 'pr','dr','eq'.
+out_path : str
+    Path to save the figure (PNG). Parent directories will be created.</p>
+<h5 id="quatica.optiQ.save_admm_history_plot--notesreferences">Notes/References</h5>
+<p>Figures are saved; not displayed interactively. Use validation_output directory.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.save_barrier_history_plot" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_barrier_history_plot</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Save iteration metrics for primal barrier Newton history.</p>
+<p>Plots semilog curves of ||r_p||, ||r_d||, and step t over iterations.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.save_pdipm_history_plot" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_pdipm_history_plot</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Save iteration metrics for the barrier-path solver history.</p>
+<p>Plots semilog curves of ||r_p||, ||r_d||, gap/n, and step t over iterations.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.solve_barrier" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">solve_barrier</span><span class="p">(</span><span class="n">A_list</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">X0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">BarrierParams</span><span class="p">(),</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Equality-constrained log-det barrier Newton method (quaternion-native), in hat space.</p>
+<p>Solves (for each mu stage):
+    minimize  <C, X>_R - mu logdet(X)
+    subject to A_hat(X) = b_hat,   X ≻ 0,</p>
+
+
+<details class="with-kkt-residuals" open>
+  <summary>with KKT residuals</summary>
+  <p>r_p = b_hat - A_hat(X),
+r_d = C + A_hat^*(y) - mu X^{-1}.</p>
+</details>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.solve_logdet_barrier_newton" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">solve_logdet_barrier_newton</span><span class="p">(</span><span class="n">H_list</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">X0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">schur_solver</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">,</span> <span class="n">schur_precond</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">schur_precond_rank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">schur_precond_ridge_scale</span><span class="o">=</span><span class="mf">1e-06</span><span class="p">,</span> <span class="n">schur_precond_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cg_tol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">cg_maxit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">ops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_hat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_ops</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Solve the fixed-μ equality-constrained logdet barrier KKT system via Newton steps in hat-space.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.solve_logdet_barrier_path" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">solve_logdet_barrier_path</span><span class="p">(</span><span class="n">H_list</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">X0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu_init</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">beta_mu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">mu_min</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">schur_solver</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">,</span> <span class="n">schur_precond</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">schur_precond_rank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">schur_precond_ridge_scale</span><span class="o">=</span><span class="mf">1e-06</span><span class="p">,</span> <span class="n">schur_precond_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cg_tol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">cg_maxit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">ops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_hat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_ops</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Barrier path-following (μ-continuation) for the logdet barrier SDP subproblem in hat-space.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.solve_pd_mehrotra" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">solve_pd_mehrotra</span><span class="p">(</span><span class="n">H_list</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">X0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y0</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu_init</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">beta_mu</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">eps_p</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">eps_d</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">eps_gap</span><span class="o">=</span><span class="mf">1e-08</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">cg_tol</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">,</span> <span class="n">cg_maxit</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fixed_mu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">schur_solver</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">,</span> <span class="n">schur_precond</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">schur_precond_rank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">schur_precond_ridge_scale</span><span class="o">=</span><span class="mf">1e-06</span><span class="p">,</span> <span class="n">schur_precond_seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">assume_hat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_ops</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Barrier-path (μ-continuation) logdet solver in hat space. (Historical name: solve_pd_mehrotra)</p>
+<p>Current design (robust core):
+  Solve the fixed-μ barrier KKT system (in hat space):
+    Ahat(X) = b_hat,
+    C + Ahat^*(y) - μ X^{-1} = 0.</p>
+<p>If fixed_mu=True:
+  solve only for μ=mu_init.</p>
+<p>If fixed_mu=False:
+  continuation on μ: μ &lt;- max(beta_mu*μ, eps_gap),
+  warm-starting from previous (X,y).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="quatica.optiQ.sqrtH" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">sqrtH</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Hermitian square root via quaternion eigendecomposition.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/vleplat/QuatIca" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.sections", "navigation.top", "navigation.tabs", "content.code.copy", "content.code.annotate", "search.highlight", "search.suggest"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
