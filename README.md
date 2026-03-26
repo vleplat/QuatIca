@@ -81,13 +81,13 @@ python run_analysis.py qgmres
 python run_analysis.py image_completion
 ```
 
-### Step-by-step Jupyter notebook (all main functions)
+### Step-by-step Jupyter notebook covering the main features
 
 ```bash
 jupyter notebook QuatIca_Core_Functionality_Demo.ipynb
 ```
 
-This guided notebook showcases the core QuatIca APIs and verifies results with compact, runnable cells.
+This guided notebook showcases the core QuatIca APIs through compact, runnable examples and basic verification checks.
 
 ## 🤔 What is QuatIca?
 
@@ -100,9 +100,9 @@ QuatIca brings modern numerical linear algebra to quaternion matrices and tensor
 
 ### Highlights
 
-- Fast quaternion algebra (numpy>=2.3.2)
+- Fast quaternion linear algebra, with strong performance on NumPy >= 2.3.2
 - Clean APIs, extensive unit tests (150+)
-- Real working examples with saved outputs
+- Practical examples with saved figures and reproducible outputs
 
 ### **🧪 Preview: Quaternion Tensor Algebra (Experimental)**
 
@@ -122,17 +122,17 @@ We extend our sincere gratitude to Sangwine and Le Bihan for providing the inspi
 
 We also warmly thank <a href="https://digital-ignition.be">Digital Ignition - Marketing Solutions</a> for supporting the project by designing the QuatIca logo. 
 
-## ⚠️ CRITICAL PERFORMANCE INFORMATION
+## ⚠️ Performance Notes
 
 **numpy Version Requirement:**
 
-- **REQUIRED**: numpy >= 2.3.2 for optimal performance
-- **CRITICAL**: numpy 2.3.2 provides **10-15x speedup** for quaternion matrix operations compared to 2.2.6
-- **WARNING**: Using older numpy versions will result in significantly slower performance
+- For best performance, we recommend NumPy >= 2.3.2.
+- In our tests, NumPy 2.3.2 provided a substantial speedup over 2.2.6 for quaternion matrix operations.
+- **Warning**: Using older numpy versions could result in significantly slower performance
 
 **Package Performance Warnings:**
 
-- **opencv-python** and **tqdm** cause **3x performance degradation** and are NOT included in requirements.txt
+- In our tests, installing heavy optional dependencies such as `opencv-python` and `tqdm` noticeably reduced performance for some workloads, and are not included in requirements.txt
 - These packages pull in heavy dependencies that affect numpy performance
 - If you need these for matrix completion features, install them separately but be aware of the performance cost
 
@@ -231,7 +231,7 @@ python run_analysis.py
 
 ### **🎯 Super Simple: Run Any Analysis with One Command!**
 
-The library provides a **super easy** way to run any analysis script. Just use `run_analysis.py`:
+The library provides a simple entry point for running the main analysis scripts: 
 
 ```bash
 # 🚀 The Magic Command:
@@ -654,7 +654,6 @@ python run_analysis.py lorenz_benchmark --no_show --methods newton,lu --points 5
 - **Output**: Completed images and PSNR metrics
 - **Shows**: How quaternion matrix completion works in practice
 
-### **🧪 `synthetic` - Controlled Experiments**
 
 ### **🖼️ `image_deblurring` - Quaternion Image Deblurring (QSLST vs NS/HON)**
 
@@ -1528,29 +1527,25 @@ python run_analysis.py pseudoinverse
 
 ## 📖 How to Cite
 
-**Academic Paper (In Preparation):**
-A comprehensive paper describing QuatIca's algorithms and applications is currently in preparation. For now, please cite this software using:
+If you use **QuatIca** in your research, please cite the following paper:
 
 ```bibtex
-@software{quatica2025,
-  title   = {QuatIca: Quaternion Linear Algebra Library},
-  author  = {Leplat, Valentin and Ahmadi-Asl, Salman and Pan, Junjun and Ouerdane, Henni and Ng, Michael},
-  year    = {2025},
-  version = {v1.0.1},
-  doi     = {10.5281/zenodo.16910158},
-  url     = {https://github.com/vleplat/QuatIca},
-  note    = {Numerical linear algebra for quaternions}
+@misc{leplat2026quaticaadvancednumericallinear,
+  title         = {QuatIca: Advanced Numerical Linear Algebra and Optimization for Quaternionic Matrices in Python},
+  author        = {Valentin Leplat and Salman Ahmadi-Asl and Junjun Pan and Henni Ouerdane and Michael Ng},
+  year          = {2026},
+  eprint        = {2603.24074},
+  archivePrefix = {arXiv},
+  primaryClass  = {math.NA},
+  url           = {https://arxiv.org/abs/2603.24074}
 }
 ```
 
-**Note for Researchers:**
-If you use QuatIca in your research, please:
+**Note for Researchers:**  
+If you use **QuatIca** in your research, please cite the paper above as the primary reference.  
+For experiments tied to a specific package version, you may also cite the software release.
 
-1. Use the above software citation
-2. Check back for our upcoming academic publication
-3. Consider reaching out to discuss collaboration and proper attribution
-
-We are committed to providing proper academic references for this work. A peer-reviewed publication with detailed algorithmic descriptions and performance analysis is forthcoming.
+QuatIca is an actively developed research software project, and we welcome feedback, bug reports, and collaboration opportunities.
 
 ## 🤝 Contributing
 

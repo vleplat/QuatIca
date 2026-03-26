@@ -94,7 +94,7 @@ print("✅ QuatIca is working!")
 
 ### 🎓 Getting Started
 
-After installing QuatIca, you can start coding immediately. For comprehensive examples and tutorials, clone the [GitHub repository](https://github.com/vleplat/QuatIca) and use the interactive tutorial:
+After installing QuatIca, you can start coding immediately. For more comprehensive examples and tutorials, clone the [GitHub repository](https://github.com/vleplat/QuatIca) and run one of the interactive demos:
 
 ```bash
 # Comprehensive tutorial with visualizations (recommended for beginners)
@@ -109,21 +109,23 @@ python run_analysis.py qgmres
 
 ## 🤔 What is QuatIca?
 
-QuatIca brings modern numerical linear algebra to quaternion matrices and tensors:
+QuatIca brings modern numerical linear algebra and optimization tools to quaternion matrices, with growing support for quaternion tensor workflows.
 
-- **Matrix Operations**: Multiplication, norms, basic operations optimized for quaternions
-- **Factorizations**: QR, LU, SVD, eigendecomposition, Hessenberg, tridiagonal, **Cholesky**, **Schur**
-- **Pseudoinverse**: Newton–Schulz method with higher-order variants
+- **Matrix Operations**: Multiplication, norms, and core operations adapted to quaternion-valued data
+- **Factorizations**: QR, LU, SVD, eigendecomposition, Hessenberg, tridiagonal, **Cholesky**, and **Schur**
+- **Pseudoinverse Methods**: Newton–Schulz iterations with higher-order variants
 - **Linear Solvers**: Q-GMRES with LU preconditioning
-- **Applications**: Image processing, signal processing, computer vision
+- **Optimization**: Quaternion Hermitian SDP tools through the OptiQ module
+- **Applications**: Image processing, signal processing, and related scientific computing tasks
 
 ### Key Features
 
-- **🚀 Performance**: Optimized quaternion operations with NumPy backend
-- **🧪 Well-tested**: Comprehensive test suite with >200 unit tests
-- **📚 Documented**: Complete API documentation with examples
-- **🔬 Research-ready**: Implements latest algorithms from quaternion linear algebra literature
-- **🎯 Practical**: Real-world applications in image processing and signal analysis
+- **🚀 Performance**: Efficient quaternion operations built on top of the NumPy ecosystem
+- **🧪 Well-tested**: Comprehensive test suite covering the main algorithms and utilities
+- **📚 Documented**: Complete API documentation with examples and tutorials
+- **🔬 Research-ready**: Implements recent algorithms from the quaternion numerical linear algebra literature
+- **🎯 Practical**: Includes real-world applications in image processing and signal analysis
+
 
 ## 📖 Core Functionality
 
@@ -290,19 +292,19 @@ QuatIca is thoroughly validated:
 - **Performance benchmarks** comparing different algorithms
 - **Literature validation** against published research results
 
-## 📄 Citation
+## 📖 How to Cite
 
-If you use QuatIca in your research, please cite:
+If you use **QuatIca** in your research, please cite the following paper:
 
 ```bibtex
-@software{quatica2025,
-  title   = {QuatIca: Quaternion Linear Algebra Library},
-  author  = {Leplat, Valentin and Ahmadi-Asl, Salman and Pan, Junjun and Ouerdane, Henni and Ng, Michael},
-  year    = {2025},
-  version = {v1.0.1},
-  doi     = {10.5281/zenodo.16910158},
-  url     = {https://github.com/vleplat/QuatIca},
-  note    = {Numerical linear algebra for quaternions}
+@misc{leplat2026quaticaadvancednumericallinear,
+  title         = {QuatIca: Advanced Numerical Linear Algebra and Optimization for Quaternionic Matrices in Python},
+  author        = {Valentin Leplat and Salman Ahmadi-Asl and Junjun Pan and Henni Ouerdane and Michael Ng},
+  year          = {2026},
+  eprint        = {2603.24074},
+  archivePrefix = {arXiv},
+  primaryClass  = {math.NA},
+  url           = {https://arxiv.org/abs/2603.24074}
 }
 ```
 
@@ -327,6 +329,7 @@ See [LICENSE](https://github.com/vleplat/QuatIca/blob/main/LICENSE) for details.
 
 - **📖 [Documentation](https://vleplat.github.io/QuatIca/)**
 - **🐙 [GitHub Repository](https://github.com/vleplat/QuatIca)**
+- **📄 [arXiv Paper](https://arxiv.org/abs/2603.24074)**
 - **🔬 [Colab Demo](https://colab.research.google.com/drive/1LQMnpGdSiWZsXjZQrMp1BmVT9Uzt_CKM?usp=sharing)**
 - **📊 [PyPI Package](https://pypi.org/project/quatica/)**
 

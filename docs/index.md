@@ -135,7 +135,9 @@ QuatIca supports cutting-edge research in:
 
 ## 🔗 External Resources
 
+- **📄 [arXiv Paper](https://arxiv.org/abs/2603.24074)**
 - **GitHub Repository**: [https://github.com/vleplat/QuatIca](https://github.com/vleplat/QuatIca)
+- **📊 [PyPI Package](https://pypi.org/project/quatica/)**
 - **Issue Tracker**: [https://github.com/vleplat/QuatIca/issues](https://github.com/vleplat/QuatIca/issues)
 - **QTFM (MATLAB)**: Original inspiration for quaternion linear algebra
 - **Research Papers**: References included in function documentation

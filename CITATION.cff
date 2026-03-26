@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 title: "QuatIca: Quaternion Linear Algebra Library"
-message: "If you use QuatIca, please cite the specific release you used."
+message: "If you use QuatIca, please cite the paper below. For version-specific reproducibility, please also cite the specific release you used."
 authors:
   - family-names: Leplat
     given-names: Valentin
@@ -14,8 +14,8 @@ authors:
     given-names: Michael
 
 preferred-citation:
-  type: software
-  title: "QuatIca"
+  type: article
+  title: "QuatIca: Advanced Numerical Linear Algebra and Optimization for Quaternionic Matrices in Python"
   authors:
     - family-names: Leplat
       given-names: Valentin
@@ -27,6 +27,6 @@ preferred-citation:
       given-names: Henni
     - family-names: Ng
       given-names: Michael
-  year: 2025
-  doi: 10.5281/zenodo.16910158
-  url: "https://github.com/vleplat/QuatIca"
+  year: 2026
+  journal: "arXiv"
+  url: "https://arxiv.org/abs/2603.24074"
